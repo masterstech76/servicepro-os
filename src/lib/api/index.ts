@@ -12,8 +12,8 @@ export function getApiMode(): "mock" | "real" {
       return override;
     }
   }
-  const envMode = process.env.NEXT_PUBLIC_API_MODE ?? process.env.API_MODE ?? "mock";
-  return envMode === "real" ? "real" : "mock";
+  const envMode = process.env.NEXT_PUBLIC_API_MODE ?? process.env.API_MODE ?? "real";
+  return envMode === "mock" ? "mock" : "real";
 }
 
 export function getBookingApi(): BookingApiAdapter {
