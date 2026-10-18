@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
 export interface TipSelectorProps {
   subtotalCents: number;
   presets?: [number, number, number];
-  selectedTipCents: number;
+  selectedTipCents?: number;
+  tipCents?: number;
   onChange: (tipCents: number) => void;
 }
 
@@ -17,8 +18,10 @@ export function TipSelector({
   subtotalCents,
   presets = [15, 20, 25],
   selectedTipCents,
+  tipCents,
   onChange,
 }: TipSelectorProps) {
+  const currentTip = selectedTipCents ?? tipCents ?? 0;
   const [mode, setMode] = React.useState<"preset" | "custom" | "none">("preset");
   const [activePreset, setActivePreset] = React.useState<number>(presets[1]);
   const [customDollars, setCustomDollars] = React.useState<string>("");
@@ -43,16 +46,24 @@ export function TipSelector({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-5 gap-1.5" role="radiogroup" aria-label="Select a tip">
+      <div
+        className="grid grid-cols-5 gap-1.5"
+        role="radiogroup"
+        aria-label="Select a tip"
+      >
         {presets.map((pct) => {
           const tipAmount = roundHalfUp((subtotalCents * pct) / 100);
-          const isSelected = mode === "preset" && activePreset === pct && selectedTipCents === tipAmount;
+          const isSelected =
+            mode === "preset" &&
+            activePreset === pct &&
+            currentTip === tipAmount;
           return (
             <button
               key={pct}
               type="button"
               role="radio"
               aria-checked={isSelected}
+              data-testid={`tip-preset-${pct}`}
               onClick={() => selectPreset(pct)}
               className={cn(
                 "flex flex-col items-center justify-center rounded-input border px-2 py-2 text-xs font-semibold min-h-[48px] transition-colors",
@@ -73,6 +84,7 @@ export function TipSelector({
           type="button"
           role="radio"
           aria-checked={mode === "custom"}
+          data-testid="tip-preset-custom"
           onClick={selectCustom}
           className={cn(
             "flex flex-col items-center justify-center rounded-input border px-2 py-2 text-xs font-semibold min-h-[48px] transition-colors",
@@ -88,6 +100,7 @@ export function TipSelector({
           type="button"
           role="radio"
           aria-checked={mode === "none"}
+          data-testid="tip-preset-none"
           onClick={selectNone}
           className={cn(
             "flex flex-col items-center justify-center rounded-input border px-2 py-2 text-xs font-semibold min-h-[48px] transition-colors",

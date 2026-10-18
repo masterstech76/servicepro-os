@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "predev": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\"",
     "dev": "next dev",
-    "prebuild": "tsx scripts/verify-env.ts",
+    "prebuild": "node -e \"require('fs').rmSync('.next', { recursive: true, force: true })\" && tsx scripts/verify-env.ts",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",

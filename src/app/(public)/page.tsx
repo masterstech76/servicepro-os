@@ -237,6 +237,9 @@ export default function LandingPage() {
             </a>
             <div className="flex items-center gap-4 text-xs text-slate-300">
               <span>License #{businessConfig.licenseNumber}</span>
+              <Link href="/demo" className="underline hover:text-white">
+                Interactive Demo
+              </Link>
               <Link href="/login" className="underline hover:text-white">
                 Staff login
               </Link>
