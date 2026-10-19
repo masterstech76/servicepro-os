@@ -5,8 +5,22 @@ import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import { getLocalDb, getDbNow, DbException } from "@/lib/server/local-db-fallback";
 import { handleRouteError } from "@/lib/server/api-errors";
 import { businessConfig } from "@config/business.config";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
+import { checkRateLimit } from "@/lib/server/rate-limit";
 
 export async function POST(request: Request) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Rate limiting (30 upload signs / min per IP)
+  const rl = checkRateLimit(request, { limit: 30, windowMs: 60_000, keyPrefix: "upload_sign" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = signUploadsRequestSchema.parse(body);

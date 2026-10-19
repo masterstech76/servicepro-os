@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import { getLocalDb, getDbNow } from "@/lib/server/local-db-fallback";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
+import { checkRateLimit } from "@/lib/server/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -9,6 +11,18 @@ const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const VALID_PATH_REGEX = /^[a-zA-Z0-9\/\-_.]+\.(jpg|jpeg|png|webp)$/;
 
 export async function PUT(request: Request) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Rate limiting (20 upload puts / min per IP)
+  const rl = checkRateLimit(request, { limit: 20, windowMs: 60_000, keyPrefix: "upload_put" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   // When Supabase is configured, uploads must use signed URLs from /api/uploads/sign directly to Supabase Storage.
   if (getSupabaseAdminClient()) {
     return NextResponse.json(

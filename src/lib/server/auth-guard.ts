@@ -16,7 +16,7 @@ export interface AuthenticatedActor {
 
 /**
  * Resolves the authenticated actor from:
- * 1. Request headers (`x-servicepro-role`, `x-servicepro-tech-id`) for internal/test callers
+ * 1. Request headers (`x-servicepro-role`, `x-servicepro-tech-id`) STRICTLY for unit tests or verified internal callers
  * 2. Request cookies (`servicepro_dev_role`, `sp_demo_role`, `sp_demo_tech_id`)
  * 3. Next.js `cookies()` store in App Router handlers
  * 4. Supabase Auth SSR session when remote Supabase is configured
@@ -29,8 +29,14 @@ export async function resolveRequestActor(
     Array.from(store.businesses.values())[0]?.id ??
     "00000000-0000-4000-8000-000000000001";
 
-  // 1. Check explicit headers (used in integration/RLS tests or service calls)
-  if (request) {
+  // 1. Check explicit headers (STRICTLY RESTRICTED to unit test runner or verified internal service callers)
+  const isTestRunner = Boolean(process.env.VITEST || process.env.NODE_ENV === "test");
+  const isInternalServiceCaller = Boolean(
+    process.env.CRON_SECRET &&
+    request?.headers.get("x-servicepro-internal-secret") === process.env.CRON_SECRET
+  );
+
+  if (request && (isTestRunner || isInternalServiceCaller)) {
     const headerRole = request.headers.get("x-servicepro-role") as
       | UserRole
       | "anon"
@@ -54,8 +60,10 @@ export async function resolveRequestActor(
         technicianId: normalizedRole === "technician" ? headerTechId ?? "tech-carlos" : null,
       };
     }
+  }
 
-    // 2. Parse Cookie header on incoming Request
+  // 2. Parse Cookie header on incoming Request
+  if (request) {
     const cookieHeader = request.headers.get("cookie") ?? "";
     if (cookieHeader) {
       const parsedCookies = Object.fromEntries(

@@ -6,8 +6,22 @@ import { getLocalDb, rpcHoldSlot } from "@/lib/server/local-db-fallback";
 import { handleRouteError } from "@/lib/server/api-errors";
 import { verifyTurnstileTokenIfEnabled } from "@/lib/server/turnstile";
 import { businessConfig } from "@config/business.config";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
+import { checkRateLimit } from "@/lib/server/rate-limit";
 
 export async function POST(request: Request) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Sensitive rate limiting (20 slot holds / min per IP)
+  const rl = checkRateLimit(request, { limit: 20, windowMs: 60_000, keyPrefix: "slot_hold" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = holdSlotRequestSchema.parse(body);

@@ -10,7 +10,22 @@ import { createDepositPaymentIntent } from "@/lib/server/stripe";
 import { handleRouteError } from "@/lib/server/api-errors";
 import { businessConfig } from "@config/business.config";
 
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
+import { checkRateLimit } from "@/lib/server/rate-limit";
+
 export async function POST(request: Request) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Sensitive rate limiting (20 checkout attempts / min per IP)
+  const rl = checkRateLimit(request, { limit: 20, windowMs: 60_000, keyPrefix: "checkout" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   try {
     const body = await request.json();
     const parsed = checkoutRequestSchema.parse(body);

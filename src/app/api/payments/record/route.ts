@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { collectJobPayment } from "@/lib/server/operations";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
+import { checkRateLimit } from "@/lib/server/rate-limit";
 
 const recordPaymentSchema = z.object({
   jobId: z.string().min(1),
@@ -13,6 +15,18 @@ const recordPaymentSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(req);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Sensitive rate limiting (20 payment records / min per IP)
+  const rl = checkRateLimit(req, { limit: 20, windowMs: 60_000, keyPrefix: "payment_record" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   try {
     const body = await req.json();
     const parsed = recordPaymentSchema.safeParse(body);

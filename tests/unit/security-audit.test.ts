@@ -6,6 +6,7 @@ import { GET as getInventoryRoute, POST as postInventoryRoute } from "@/app/api/
 import { getAdminReportsData, getCentralInventoryOverview } from "@/lib/server/admin-portal";
 import { checkRateLimit, resetRateLimits } from "@/lib/server/rate-limit";
 import { verifyCsrfOrigin } from "@/lib/server/csrf";
+import { resolveRequestActor } from "@/lib/server/auth-guard";
 
 describe("Production Security, Role Authorization & Financial Integrity Audit", () => {
   beforeEach(() => {
@@ -20,6 +21,23 @@ describe("Production Security, Role Authorization & Financial Integrity Audit", 
       expect(res.status).toBe(401);
       const data = await res.json();
       expect(data.error?.code).toBe("UNAUTHORIZED");
+    });
+
+    it("strictly rejects x-servicepro-role spoofing when running outside test runner", async () => {
+      const origVitest = process.env.VITEST;
+      const origNodeEnv = process.env.NODE_ENV;
+      try {
+        delete (process.env as any).VITEST;
+        (process.env as any).NODE_ENV = "production";
+        const req = new Request("http://localhost:3000/api/admin/jobs", {
+          headers: { "x-servicepro-role": "owner" },
+        });
+        const actor = await resolveRequestActor(req);
+        expect(actor).toBeNull();
+      } finally {
+        process.env.VITEST = origVitest;
+        (process.env as any).NODE_ENV = origNodeEnv;
+      }
     });
 
     it("denies unauthenticated requests to admin work orders with explicit anon header (401)", async () => {
@@ -307,6 +325,39 @@ describe("Production Security, Role Authorization & Financial Integrity Audit", 
       const result = verifyCsrfOrigin(req);
       expect(result.valid).toBe(false);
       expect(result.response?.status).toBe(403);
+    });
+
+    it("verifies CSRF protection guards /api/jobs/checkout against cross-site forged origins (403)", () => {
+      const req = new Request("http://localhost:3000/api/jobs/checkout", {
+        method: "POST",
+        headers: {
+          origin: "https://evil-phishing-site.xyz",
+          host: "localhost:3000",
+        },
+      });
+      const result = verifyCsrfOrigin(req);
+      expect(result.valid).toBe(false);
+      expect(result.response?.status).toBe(403);
+    });
+
+    it("verifies CSRF protection guards /api/slots/hold and /api/payments/record (403)", () => {
+      const holdReq = new Request("http://localhost:3000/api/slots/hold", {
+        method: "POST",
+        headers: {
+          origin: "https://attacker.com",
+          host: "localhost:3000",
+        },
+      });
+      expect(verifyCsrfOrigin(holdReq).valid).toBe(false);
+
+      const payReq = new Request("http://localhost:3000/api/payments/record", {
+        method: "POST",
+        headers: {
+          origin: "https://attacker.com",
+          host: "localhost:3000",
+        },
+      });
+      expect(verifyCsrfOrigin(payReq).valid).toBe(false);
     });
   });
 });
