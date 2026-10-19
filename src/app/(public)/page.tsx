@@ -268,61 +268,49 @@ export default function LandingPage() {
         </section>
 
         {/* ========================================================
-            2. QUICK ACCESS: 4 Horizontal Icon Pills
+            2. TRUST PROOF: 4 Small Modern Cards (No Dark Banner)
             ======================================================== */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <Link
-              href="/services/ac-repair"
-              className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-orange-500 hover:shadow-md transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Snowflake className="h-5 w-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center gap-3.5 hover:border-amber-300 transition-all">
+              <div className="h-11 w-11 rounded-xl bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center shrink-0">
+                <Star className="h-5 w-5 fill-amber-400" />
               </div>
-              <div className="text-left">
-                <span className="block text-xs font-bold text-navy-950">AC Repair</span>
-                <span className="block text-[11px] text-slate-500 font-medium">From $129</span>
+              <div>
+                <div className="text-xs font-black text-navy-900">5-Star Rated</div>
+                <div className="text-[11px] text-slate-500">1,200+ Reviews · Google ★★★★★</div>
               </div>
-            </Link>
+            </div>
 
-            <Link
-              href="/services/ac-tuneup"
-              className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-orange-500 hover:shadow-md transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Wrench className="h-5 w-5" />
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center gap-3.5 hover:border-orange-300 transition-all">
+              <div className="h-11 w-11 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-5 w-5" />
               </div>
-              <div className="text-left">
-                <span className="block text-xs font-bold text-navy-950">Tune-Up Special</span>
-                <span className="block text-[11px] text-slate-500 font-medium">Just $89</span>
+              <div>
+                <div className="text-xs font-black text-navy-900">Licensed &amp; Certified</div>
+                <div className="text-[11px] text-slate-500">Lic #{businessConfig.licenseNumber} · EPA Certified</div>
               </div>
-            </Link>
+            </div>
 
-            <Link
-              href="/services/emergency-hvac"
-              className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-orange-500 hover:shadow-md transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Zap className="h-5 w-5" />
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center gap-3.5 hover:border-emerald-300 transition-all">
+              <div className="h-11 w-11 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                <Clock className="h-5 w-5" />
               </div>
-              <div className="text-left">
-                <span className="block text-xs font-bold text-navy-950">24/7 Emergency</span>
-                <span className="block text-[11px] text-rose-600 font-medium">60-Min Dispatch</span>
+              <div>
+                <div className="text-xs font-black text-navy-900">60-Min Guarantee</div>
+                <div className="text-[11px] text-slate-500">On-Time or $50 Credit · GPS ETA</div>
               </div>
-            </Link>
+            </div>
 
-            <Link
-              href="/services/duct-cleaning"
-              className="flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-orange-500 hover:shadow-md transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                <Wind className="h-5 w-5" />
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex items-center gap-3.5 hover:border-blue-300 transition-all">
+              <div className="h-11 w-11 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
-              <div className="text-left">
-                <span className="block text-xs font-bold text-navy-950">Duct Sanitizing</span>
-                <span className="block text-[11px] text-slate-500 font-medium">From $299</span>
+              <div>
+                <div className="text-xs font-black text-navy-900">Upfront Flat Rates</div>
+                <div className="text-[11px] text-slate-500">No Hidden Fees · 100% Guaranteed</div>
               </div>
-            </Link>
+            </div>
           </div>
         </section>
 

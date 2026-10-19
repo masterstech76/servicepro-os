@@ -258,6 +258,13 @@ export function BookingWizard() {
   const [remainingSeconds, setRemainingSeconds] = React.useState<number | null>(null);
   const [holdExpiredModalOpen, setHoldExpiredModalOpen] = React.useState(false);
 
+  // Step 5 customer auth gate before payment
+  const [isCustomerAuthenticated, setIsCustomerAuthenticated] = React.useState(false);
+  const [authModalOpen, setAuthModalOpen] = React.useState(false);
+  const [authPassword, setAuthPassword] = React.useState("");
+  const [authLoading, setAuthLoading] = React.useState(false);
+  const [authError, setAuthError] = React.useState<string | null>(null);
+
   // Online/offline listener
   React.useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -289,7 +296,14 @@ export function BookingWizard() {
   // Prefill contact details if customer is logged in
   React.useEffect(() => {
     fetch("/api/account/profile")
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (res.ok) {
+          setIsCustomerAuthenticated(true);
+          return res.json();
+        }
+        setIsCustomerAuthenticated(false);
+        return null;
+      })
       .then((data) => {
         if (data?.profile) {
           if (data.profile.name) {
@@ -686,49 +700,84 @@ export function BookingWizard() {
         return;
       }
 
-      setStartingCheckout(true);
-      try {
-        const api = getBookingApi();
-        const checkout = await api.startCheckout({
-          holdId: state.holdId,
-          customer: {
-            name: state.customerName.trim(),
-            phone: state.customerPhone.trim(),
-            email: state.customerEmail.trim(),
-          },
-          address: {
-            line1: state.addressLine1.trim(),
-            line2: state.addressLine2.trim() || undefined,
-            city: state.city.trim(),
-            state: state.state.trim(),
-            zip: state.zip.trim(),
-          },
-          issue: state.issueText.trim(),
-          photoPaths: state.uploadedPhotoPaths,
-          smsConsent: true,
-        });
-        dispatch({
-          type: "SET_CHECKOUT",
-          clientSecret: checkout.clientSecret,
-          paymentIntentId: checkout.paymentIntentId,
-        });
-        dispatch({ type: "SET_STEP", step: 6 });
-      } catch (err) {
-        if (err instanceof ApiError && err.code === "SLOT_TAKEN") {
-          toast.error("That time was just taken");
-          dispatch({ type: "CLEAR_HOLD" });
-          dispatch({ type: "SET_STEP", step: 4 });
-        } else if (err instanceof Error) {
-          toast.error(err.message);
-        }
-      } finally {
-        setStartingCheckout(false);
+      // MANDATORY AUTH CHECK: Customer must be logged in before proceeding to payment
+      if (!isCustomerAuthenticated) {
+        setAuthModalOpen(true);
+        return;
       }
+
+      await proceedToCheckout();
       return;
     }
 
     if (state.step === 6) {
       await handleConfirmPayment();
+    }
+  }
+
+  async function proceedToCheckout() {
+    if (!state.holdId) return;
+    setStartingCheckout(true);
+    try {
+      const api = getBookingApi();
+      const checkout = await api.startCheckout({
+        holdId: state.holdId,
+        customer: {
+          name: state.customerName.trim(),
+          phone: state.customerPhone.trim(),
+          email: state.customerEmail.trim(),
+        },
+        address: {
+          line1: state.addressLine1.trim(),
+          line2: state.addressLine2.trim() || undefined,
+          city: state.city.trim(),
+          state: state.state.trim(),
+          zip: state.zip.trim(),
+        },
+        issue: state.issueText.trim(),
+        photoPaths: state.uploadedPhotoPaths,
+        smsConsent: true,
+      });
+      dispatch({
+        type: "SET_CHECKOUT",
+        clientSecret: checkout.clientSecret,
+        paymentIntentId: checkout.paymentIntentId,
+      });
+      dispatch({ type: "SET_STEP", step: 6 });
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "SLOT_TAKEN") {
+        toast.error("That time was just taken");
+        dispatch({ type: "CLEAR_HOLD" });
+        dispatch({ type: "SET_STEP", step: 4 });
+      } else if (err instanceof Error) {
+        toast.error(err.message);
+      }
+    } finally {
+      setStartingCheckout(false);
+    }
+  }
+
+  async function handleCustomerLoginAndProceed(e: React.FormEvent) {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const res = await fetch("/api/auth/demo-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "customer" }),
+      });
+      if (!res.ok) {
+        throw new Error("Unable to authenticate session. Please try again.");
+      }
+      setIsCustomerAuthenticated(true);
+      setAuthModalOpen(false);
+      toast.success("Account verified. Proceeding to payment...");
+      await proceedToCheckout();
+    } catch (err: any) {
+      setAuthError(err.message || "Login failed");
+    } finally {
+      setAuthLoading(false);
     }
   }
 
@@ -1078,6 +1127,85 @@ export function BookingWizard() {
             >
               Pick a new time
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Mandatory Login Required Before Payment Modal */}
+      {authModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/70 backdrop-blur-xs p-4"
+        >
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 text-left shadow-2xl border border-slate-200 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 text-navy-950 shadow-sm shrink-0">
+                <Lock className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 id="auth-modal-title" className="text-lg font-black text-navy-900 leading-tight">
+                  Login Required Before Payment
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Verify your customer account to finalize your booking window.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+              <div className="flex justify-between text-slate-600">
+                <span className="font-semibold text-navy-900">Customer:</span>
+                <span>{state.customerName}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span className="font-semibold text-navy-900">Email:</span>
+                <span>{state.customerEmail}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span className="font-semibold text-navy-900">Phone:</span>
+                <span>{state.customerPhone}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleCustomerLoginAndProceed} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-navy-900 uppercase mb-1">
+                  Customer Password
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Enter your password (or demo password)"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="h-11"
+                  required
+                />
+              </div>
+
+              {authError && (
+                <p className="text-xs text-danger font-medium">{authError}</p>
+              )}
+
+              <Button
+                type="submit"
+                disabled={authLoading}
+                className="w-full h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black text-sm shadow-md"
+              >
+                {authLoading ? "Verifying Account..." : "Sign In & Proceed to Payment →"}
+              </Button>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setAuthModalOpen(false)}
+                  className="text-xs text-slate-400 hover:text-slate-600 font-semibold"
+                >
+                  Cancel and Edit Details
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
