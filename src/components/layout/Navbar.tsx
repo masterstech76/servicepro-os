@@ -5,8 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
-  ShieldCheck,
-  Phone,
   Calendar,
   User,
   ChevronDown,
@@ -27,8 +25,6 @@ export function Navbar() {
     return null;
   }
 
-  const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
-
   const serviceLinks = [
     { name: "All HVAC Services", href: "/services" },
     { name: "AC Repair & Diagnostic", href: "/services/ac-repair" },
@@ -43,35 +39,7 @@ export function Navbar() {
 
   return (
     <div className="w-full">
-      {/* 1. TOP UTILITY BAR (Deep Navy #0F172A) */}
-      <div className="bg-[#0F172A] text-white text-[11px] sm:text-xs py-2 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5 font-medium tracking-wide">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-3.5 w-3.5 text-orange-400" />
-            <span>Licensed &amp; Insured</span>
-            <span className="text-slate-500">•</span>
-            <span className="text-slate-300">State HVAC Lic #{businessConfig.licenseNumber}</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <Phone className="h-3 w-3 text-orange-400" />
-              <span>24/7 Emergency Service</span>
-            </span>
-            <a
-              href={cleanPhoneHref}
-              className="flex items-center gap-1 font-bold text-white hover:text-orange-400 transition-colors"
-            >
-              <span className="h-4 w-4 rounded-full bg-[#F97316] text-[#0F172A] flex items-center justify-center text-[10px]">
-                📞
-              </span>
-              <span>{businessConfig.phone}</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. MAIN NAVBAR */}
+      {/* MAIN NAVBAR */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
         <div className="max-w-7xl mx-auto flex h-20 items-center justify-between px-4 sm:px-6">
           {/* Logo */}
