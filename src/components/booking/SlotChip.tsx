@@ -32,17 +32,17 @@ export function SlotChip({
         aria-pressed={selected}
         onClick={onClick}
         className={cn(
-          "w-full h-12 rounded-full px-3 text-sm font-semibold tabular-nums transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 focus-visible:outline-offset-2 min-h-[48px]",
+          "w-full h-12 rounded-full px-3 text-sm font-bold tabular-nums transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 focus-visible:outline-offset-2 min-h-[48px]",
           selected
-            ? "border-2 border-orange-500 bg-orange-50 text-navy-900"
-            : "border border-slate-200 bg-white text-navy-900 hover:border-slate-300",
+            ? "border-2 border-orange-500 bg-orange-500 text-navy-900 shadow-md"
+            : "border border-slate-200 bg-white text-navy-900 hover:border-orange-500/60 hover:bg-orange-50/40 shadow-sm",
           disabled && "opacity-40 cursor-not-allowed"
         )}
       >
         {label}
       </button>
       {lowText && (
-        <span className="mt-1 text-xs font-medium text-danger leading-4">
+        <span className="mt-1 text-xs font-semibold text-danger leading-4">
           {lowText}
         </span>
       )}

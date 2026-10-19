@@ -73,40 +73,61 @@ function ConfirmationContent() {
   }
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-12 text-center space-y-5">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-success">
-        <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
-      </div>
-      <h1 className="text-[28px] leading-[34px] font-bold text-navy-900">
-        You&apos;re booked!
-      </h1>
-      <p data-testid="confirmed-job-number" className="text-base font-semibold text-orange-700">
-        Job #{job.jobNumber}
-      </p>
-      <div className="rounded-card border border-slate-200 bg-slate-50 p-5 text-left space-y-2 text-sm">
-        <div className="font-bold text-base text-navy-900">{job.serviceName}</div>
-        <div className="text-navy-900 font-medium">
-          {formatBusinessDate(job.scheduledStart)} ·{" "}
-          {formatBusinessTimeWithZone(job.scheduledStart)}
+    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 flex items-center justify-center">
+      <main className="mx-auto w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 text-center shadow-xl space-y-6">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-success shadow-md">
+          <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
         </div>
-        <div className="text-navy-700">
-          {job.addressLine1}, {job.city}, {job.state} {job.zip}
+        <div>
+          <h1 className="font-heading text-[28px] sm:text-[32px] leading-tight font-extrabold text-navy-900">
+            You&apos;re booked!
+          </h1>
+          <p
+            data-testid="confirmed-job-number"
+            className="inline-flex items-center rounded-full bg-orange-50 border border-orange-500/40 px-4 py-1 text-base font-extrabold text-orange-700 mt-2"
+          >
+            Job #{job.jobNumber}
+          </p>
         </div>
-        <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-xs text-navy-700">
-          <span>Deposit paid</span>
-          <Money cents={job.depositCents} emphasis />
+
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left space-y-2.5 text-sm">
+          <div className="font-heading font-bold text-base text-navy-900">
+            {job.serviceName}
+          </div>
+          <div className="text-navy-900 font-semibold">
+            {formatBusinessDate(job.scheduledStart)} ·{" "}
+            {formatBusinessTimeWithZone(job.scheduledStart)}
+          </div>
+          <div className="text-navy-700">
+            {job.addressLine1}, {job.city}, {job.state} {job.zip}
+          </div>
+          <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-navy-700">
+            <span>Deposit paid</span>
+            <Money cents={job.depositCents} emphasis />
+          </div>
         </div>
-      </div>
-      <p className="text-sm text-navy-700">
-        We texted a confirmation to {formatDisplayPhone(job.customerPhone)}.
-      </p>
-      <Button asChild variant="secondary">
-        <a href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}>
-          <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
-          <span>Call us</span>
-        </a>
-      </Button>
-    </main>
+
+        <p className="text-sm text-navy-700">
+          We texted a confirmation to{" "}
+          <span className="font-semibold text-navy-900">
+            {formatDisplayPhone(job.customerPhone)}
+          </span>
+          .
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+          <Button asChild variant="secondary" className="w-full sm:w-auto rounded-full px-6">
+            <a href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}>
+              <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span>Call {businessConfig.phone}</span>
+            </a>
+          </Button>
+          <Button asChild variant="outline" className="w-full sm:w-auto rounded-full px-6">
+            <Link href="/">Return Home</Link>
+          </Button>
+        </div>
+      </main>
+    </div>
   );
 }
 

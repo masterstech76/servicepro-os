@@ -38,34 +38,43 @@ export function ServiceCard({ service, selected, onSelect }: ServiceCardProps) {
       data-testid={`service-card-${service.id}`}
       onClick={() => onSelect(service)}
       className={cn(
-        "w-full text-left rounded-card border p-4 transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 focus-visible:outline-offset-2 min-h-[72px]",
+        "w-full text-left rounded-2xl border p-5 transition-all duration-200 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 focus-visible:outline-offset-2 min-h-[84px]",
         selected
-          ? "border-2 border-orange-500 bg-orange-50 shadow-sm"
-          : "border-slate-200 bg-white hover:border-slate-300 shadow-sm"
+          ? "border-2 border-orange-500 bg-orange-50/90 shadow-lg"
+          : "border-slate-200/80 bg-white hover:border-orange-500/60 hover:shadow-md shadow-sm"
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
+      <div className="flex items-start justify-between gap-3.5">
+        <div className="flex items-start gap-3.5">
           <div
             className={cn(
-              "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-input",
-              selected ? "bg-orange-500 text-navy-900" : "bg-slate-100 text-navy-900"
+              "mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm transition-colors",
+              selected ? "bg-orange-500 text-navy-900" : "bg-navy-900 text-orange-500"
             )}
           >
             <Icon className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <div className="text-lg font-semibold leading-6 text-navy-900">
+            <div className="font-heading text-lg font-bold leading-6 text-navy-900">
               {service.name}
             </div>
-            <div className="text-sm text-navy-700 mt-0.5">{durationDisplay}</div>
-            <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+            <div className="text-xs font-semibold text-navy-700 mt-0.5">
+              {durationDisplay}
+            </div>
+            <p className="text-sm text-navy-700 mt-1.5 line-clamp-2 leading-relaxed">
               {service.description}
             </p>
           </div>
         </div>
         <div className="shrink-0 text-right">
-          <span className="text-lg font-bold tabular-nums text-navy-900">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full px-3 py-1 text-base font-extrabold tabular-nums",
+              selected
+                ? "bg-orange-500 text-navy-900"
+                : "bg-slate-100 text-navy-900"
+            )}
+          >
             {priceDisplay}
           </span>
         </div>

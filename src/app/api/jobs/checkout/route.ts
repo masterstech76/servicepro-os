@@ -111,15 +111,17 @@ export async function POST(request: Request) {
 
       const extendedExpiry = addMinutes(new Date(holdRow.expires_at), 5).toISOString();
 
-      await (supabase.from("slot_holds") as unknown as {
-        update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> };
-      })
+      const { error: holdUpdateError } = await supabase
+        .from("slot_holds")
         .update({
           payload,
           stripe_payment_intent_id: paymentIntentId,
           expires_at: extendedExpiry,
         })
         .eq("id", holdRow.id);
+      if (holdUpdateError) {
+        throw new DbException("HOLD_CONVERT_FAILED: " + holdUpdateError.message);
+      }
 
       return NextResponse.json({
         clientSecret,

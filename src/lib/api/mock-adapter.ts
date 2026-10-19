@@ -220,9 +220,14 @@ export const mockBookingAdapter: BookingApiAdapter = {
   async startCheckout(input: CheckoutInput): Promise<CheckoutDTO> {
     await sleep(350);
     const hold = mockHolds.get(input.holdId);
-    const serviceId = hold?.serviceId ?? businessConfig.services[0].id;
-    const service =
-      businessConfig.services.find((s) => s.id === serviceId) ?? businessConfig.services[0];
+    if (!hold) {
+      throw new ApiError("HOLD_NOT_FOUND", "Slot hold expired, pick time again.", 410);
+    }
+    const serviceId = hold.serviceId;
+    const service = businessConfig.services.find((s) => s.id === serviceId);
+    if (!service) {
+      throw new ApiError("SERVICE_NOT_FOUND", "Service not found.", 404);
+    }
 
     const zipInfo = await this.checkZip(input.address.zip);
     if (!zipInfo.served) {
@@ -246,7 +251,7 @@ export const mockBookingAdapter: BookingApiAdapter = {
       holdId: input.holdId,
       serviceId: service.id,
       zip: input.address.zip,
-      start: hold?.start ?? new Date().toISOString(),
+      start: hold.start,
       expiresAt: addMinutes(new Date(), 15).toISOString(),
       checkoutInput: input,
       paymentIntentId,
@@ -271,9 +276,14 @@ export const mockBookingAdapter: BookingApiAdapter = {
     }
 
     const hold = mockHolds.get(holdId);
-    const service =
-      businessConfig.services.find((s) => s.id === hold?.serviceId) ?? businessConfig.services[0];
-    const startIso = hold?.start ?? new Date().toISOString();
+    if (!hold) {
+      throw new ApiError("HOLD_NOT_FOUND", "Slot hold expired.", 410);
+    }
+    const service = businessConfig.services.find((s) => s.id === hold.serviceId);
+    if (!service) {
+      throw new ApiError("SERVICE_NOT_FOUND", "Service not found.", 404);
+    }
+    const startIso = hold.start;
     const endIso = addMinutes(new Date(startIso), service.durationMinutes).toISOString();
 
     mockJobSequence += 1;

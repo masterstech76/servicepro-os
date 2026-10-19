@@ -29,7 +29,7 @@ export type SmsTemplate =
   | "payment_link"
   | "slot_lost";
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       businesses: {
@@ -59,6 +59,7 @@ export interface Database {
           slug: string;
         };
         Update: Partial<Database["public"]["Tables"]["businesses"]["Row"]>;
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -78,6 +79,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
+        Relationships: [];
       };
       service_areas: {
         Row: {
@@ -99,6 +101,7 @@ export interface Database {
           active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["service_areas"]["Row"]>;
+        Relationships: [];
       };
       business_hours: {
         Row: {
@@ -118,6 +121,7 @@ export interface Database {
           is_closed?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["business_hours"]["Row"]>;
+        Relationships: [];
       };
       business_closures: {
         Row: {
@@ -133,6 +137,7 @@ export interface Database {
           reason?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["business_closures"]["Row"]>;
+        Relationships: [];
       };
       services: {
         Row: {
@@ -167,6 +172,7 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["services"]["Row"]>;
+        Relationships: [];
       };
       technicians: {
         Row: {
@@ -201,6 +207,7 @@ export interface Database {
           active?: boolean;
         };
         Update: Partial<Database["public"]["Tables"]["technicians"]["Row"]>;
+        Relationships: [];
       };
       technician_hours: {
         Row: {
@@ -220,6 +227,7 @@ export interface Database {
           end_time: string;
         };
         Update: Partial<Database["public"]["Tables"]["technician_hours"]["Row"]>;
+        Relationships: [];
       };
       technician_time_off: {
         Row: {
@@ -239,6 +247,7 @@ export interface Database {
           reason?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["technician_time_off"]["Row"]>;
+        Relationships: [];
       };
       customers: {
         Row: {
@@ -269,6 +278,7 @@ export interface Database {
           sms_consent_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["customers"]["Row"]>;
+        Relationships: [];
       };
       jobs: {
         Row: {
@@ -322,6 +332,7 @@ export interface Database {
           estimated_total_cents: number;
         };
         Update: Partial<Database["public"]["Tables"]["jobs"]["Row"]>;
+        Relationships: [];
       };
       invoices: {
         Row: {
@@ -354,6 +365,7 @@ export interface Database {
           invoice_number: string;
         };
         Update: Partial<Database["public"]["Tables"]["invoices"]["Row"]>;
+        Relationships: [];
       };
       invoice_line_items: {
         Row: {
@@ -381,6 +393,7 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["invoice_line_items"]["Row"]>;
+        Relationships: [];
       };
       payments: {
         Row: {
@@ -413,6 +426,7 @@ export interface Database {
           recorded_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["payments"]["Row"]>;
+        Relationships: [];
       };
       slot_holds: {
         Row: {
@@ -443,6 +457,7 @@ export interface Database {
           converted_job_id?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["slot_holds"]["Row"]>;
+        Relationships: [];
       };
       job_events: {
         Row: {
@@ -469,6 +484,7 @@ export interface Database {
           meta?: Json;
         };
         Update: Partial<Database["public"]["Tables"]["job_events"]["Row"]>;
+        Relationships: [];
       };
       sms_log: {
         Row: {
@@ -499,6 +515,7 @@ export interface Database {
           error?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["sms_log"]["Row"]>;
+        Relationships: [];
       };
       stripe_events: {
         Row: {
@@ -512,8 +529,10 @@ export interface Database {
           processed_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["stripe_events"]["Row"]>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
     Functions: {
       slot_capacity: {
         Args: {
@@ -589,5 +608,7 @@ export interface Database {
         Returns: number;
       };
     };
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
-}
+};

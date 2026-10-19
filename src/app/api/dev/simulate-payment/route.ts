@@ -78,11 +78,11 @@ export async function POST(request: Request) {
       }
 
       if (movedPaths.length > 0) {
-        await (supabase.from("jobs") as unknown as {
-          update: (v: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<unknown> };
-        })
+        const { error: jobPhotoError } = await supabase
+          .from("jobs")
           .update({ issue_photos: movedPaths })
           .eq("id", jobId);
+        if (jobPhotoError) throw new Error(jobPhotoError.message);
       }
 
       const { data: job } = await supabase

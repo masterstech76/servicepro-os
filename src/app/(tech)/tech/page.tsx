@@ -81,10 +81,10 @@ export default function TechMyJobsTodayPage() {
   return (
     <div className="space-y-5">
       {/* Technician Selector & Shift Status */}
-      <div className="rounded-card border border-slate-200 bg-white p-4 shadow-sm flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-800">
-            <Wrench className="h-4 w-4" />
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xl flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-orange-500 shadow-sm">
+            <Wrench className="h-5 w-5" />
           </div>
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 block">
@@ -95,7 +95,7 @@ export default function TechMyJobsTodayPage() {
               data-testid="tech-switcher-select"
               value={techId}
               onChange={(e) => setTechId(e.target.value)}
-              className="text-sm font-bold text-navy-900 bg-transparent focus:outline-none"
+              className="font-heading text-sm font-bold text-navy-900 bg-transparent focus:outline-none"
             >
               {DEMO_TECH_OPTIONS.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -107,10 +107,10 @@ export default function TechMyJobsTodayPage() {
         </div>
 
         <div className="text-right">
-          <span className="text-xs font-bold text-navy-900 tabular-nums block">
+          <span className="text-xs font-extrabold text-navy-900 tabular-nums block">
             {activeJobs.length} Remaining
           </span>
-          <span className="text-[11px] text-navy-700 block">
+          <span className="text-[11px] font-semibold text-navy-700 block">
             {completedJobs.length} Completed
           </span>
         </div>
@@ -118,8 +118,8 @@ export default function TechMyJobsTodayPage() {
 
       {loading ? (
         <div className="space-y-3">
-          <div className="h-48 animate-pulse rounded-card bg-slate-200" />
-          <div className="h-28 animate-pulse rounded-card bg-slate-200" />
+          <div className="h-52 animate-pulse rounded-2xl bg-slate-200" />
+          <div className="h-32 animate-pulse rounded-2xl bg-slate-200" />
         </div>
       ) : (
         <>
@@ -128,50 +128,52 @@ export default function TechMyJobsTodayPage() {
             <section
               aria-label="Next scheduled job"
               data-testid="tech-next-job-card"
-              className="rounded-card border-2 border-orange-500 bg-white p-4 shadow-md space-y-3.5"
+              className="rounded-2xl border-2 border-orange-500 bg-white p-5 shadow-xl space-y-4"
             >
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-pill bg-orange-500 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-navy-900">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-navy-900 shadow-sm">
                   Next Up · #{nextJob.jobNumber}
                 </span>
                 <StatusBadge status={nextJob.status} />
               </div>
 
               <div>
-                <h1 className="text-lg font-bold text-navy-900">
+                <h1 className="font-heading text-xl font-extrabold text-navy-900">
                   {nextJob.service.name}
                 </h1>
-                <p className="text-sm font-semibold text-navy-700 mt-0.5">
-                  {nextJob.customer.name}
+                <p className="text-sm font-bold text-navy-700 mt-0.5">
+                  {nextJob.customer.name} · {nextJob.customer.phone}
                 </p>
               </div>
 
-              <div className="space-y-1.5 text-xs text-navy-700 border-t border-slate-100 pt-2.5">
-                <p className="flex items-center gap-1.5 font-semibold text-navy-900">
-                  <Clock className="h-4 w-4 text-orange-600 shrink-0" />
+              <div className="space-y-2 text-xs text-navy-700 border-t border-slate-100 pt-3">
+                <p className="flex items-center gap-2 font-bold text-navy-900">
+                  <Clock className="h-4 w-4 text-orange-700 shrink-0" />
                   Window:{" "}
                   {formatInTimeZone(new Date(nextJob.scheduledStart), tz, "h:mm a")}{" "}
                   – {formatInTimeZone(new Date(nextJob.scheduledEnd), tz, "h:mm a")}
                 </p>
-                <p className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
-                  {nextJob.addressLine1}, {nextJob.city} {nextJob.zip}
+                <p className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-orange-700 shrink-0" />
+                  <span>
+                    {nextJob.addressLine1}, {nextJob.city} {nextJob.zip}
+                  </span>
                 </p>
                 {nextJob.issueText ? (
-                  <p className="rounded bg-slate-50 p-2 text-navy-900 mt-1">
+                  <p className="rounded-xl bg-slate-50 border border-slate-200/80 p-3 text-navy-900 mt-1.5">
                     “{nextJob.issueText}”
                   </p>
                 ) : null}
               </div>
 
-              <div className="grid grid-cols-1 gap-2 pt-1">
+              <div className="grid grid-cols-1 gap-2.5 pt-1">
                 <Button
                   type="button"
                   size="lg"
                   loading={startingRouteId === nextJob.id}
                   data-testid="tech-start-next-job-btn"
                   onClick={() => void handleStartNextJob(nextJob)}
-                  className="w-full gap-2"
+                  className="w-full gap-2 rounded-full font-bold shadow-lg"
                 >
                   <Navigation className="h-4 w-4" />
                   {nextJob.status === "assigned"
@@ -183,9 +185,9 @@ export default function TechMyJobsTodayPage() {
               </div>
             </section>
           ) : (
-            <div className="rounded-card border border-slate-200 bg-white p-6 text-center space-y-2">
-              <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto" />
-              <h2 className="text-base font-bold text-navy-900">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-xl space-y-2">
+              <CheckCircle2 className="h-9 w-9 text-emerald-600 mx-auto" />
+              <h2 className="font-heading text-base font-bold text-navy-900">
                 All Active Jobs Complete!
               </h2>
               <p className="text-xs text-navy-700">
@@ -196,7 +198,7 @@ export default function TechMyJobsTodayPage() {
 
           {/* Later Today Queue */}
           {upcomingJobs.length > 0 ? (
-            <section className="space-y-2.5">
+            <section className="space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-navy-700 px-1">
                 Later Today ({upcomingJobs.length})
               </h2>
@@ -204,7 +206,7 @@ export default function TechMyJobsTodayPage() {
                 <Link
                   key={job.id}
                   href={`/tech/jobs/${job.id}`}
-                  className="block rounded-card border border-slate-200 bg-white p-4 shadow-sm hover:border-orange-500 transition-colors"
+                  className="block rounded-2xl border border-slate-200/80 bg-white p-4 shadow-lg hover:border-orange-500 transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-navy-700">
@@ -213,16 +215,16 @@ export default function TechMyJobsTodayPage() {
                     </span>
                     <StatusBadge status={job.status} />
                   </div>
-                  <div className="flex items-center justify-between mt-1.5">
+                  <div className="flex items-center justify-between mt-2">
                     <div>
-                      <h3 className="text-sm font-bold text-navy-900">
+                      <h3 className="font-heading text-sm font-bold text-navy-900">
                         {job.service.name}
                       </h3>
                       <p className="text-xs text-navy-700">
                         {job.customer.name} · {job.addressLine1}
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
+                    <ChevronRight className="h-5 w-5 text-navy-700" />
                   </div>
                 </Link>
               ))}
@@ -231,7 +233,7 @@ export default function TechMyJobsTodayPage() {
 
           {/* Completed Today */}
           {completedJobs.length > 0 ? (
-            <section className="space-y-2.5">
+            <section className="space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-navy-700 px-1">
                 Completed Today ({completedJobs.length})
               </h2>
@@ -239,7 +241,7 @@ export default function TechMyJobsTodayPage() {
                 <Link
                   key={job.id}
                   href={`/tech/jobs/${job.id}`}
-                  className="block rounded-card border border-slate-200 bg-white/80 p-3.5 hover:border-slate-300"
+                  className="block rounded-2xl border border-slate-200/80 bg-white p-4 shadow-md hover:border-slate-300"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-navy-900">

@@ -28,6 +28,7 @@ const REQUIRED_VARS = [
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "SMS_DRIVER",
+  ...(process.env.NODE_ENV === "production" ? ["CRON_SECRET"] : []),
 ];
 
 export function verifyEnv(): { valid: boolean; missing: string[] } {
@@ -35,8 +36,14 @@ export function verifyEnv(): { valid: boolean; missing: string[] } {
   businessConfigSchema.parse(businessConfig);
 
   // 2. Check required env vars
+  const required = [
+    ...REQUIRED_VARS,
+    ...(process.env.NODE_ENV === "production" && !REQUIRED_VARS.includes("CRON_SECRET")
+      ? ["CRON_SECRET"]
+      : []),
+  ];
   const missing: string[] = [];
-  for (const key of REQUIRED_VARS) {
+  for (const key of required) {
     const val = process.env[key];
     if (!val || val.trim() === "") {
       missing.push(key);

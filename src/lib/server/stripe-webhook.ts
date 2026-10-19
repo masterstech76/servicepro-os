@@ -101,7 +101,7 @@ export async function processStripeWebhookEvent(
           const movedPhotos: string[] = [];
           for (const oldPath of job.issue_photos) {
             const filename = oldPath.split("/").pop() ?? "photo.jpg";
-            const newPath = `${jobId}/issue/${filename}`;
+            const newPath = `${job.business_id ?? businessId}/${jobId}/issue/${filename}`;
             const existingObj = store.storage_objects.get(oldPath);
             if (existingObj) {
               store.storage_objects.delete(oldPath);
