@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const pathname = usePathname();
+  const [servicesOpen, setServicesOpen] = React.useState(false);
 
   // Hide global navbar on dashboard, tech portal, and login screens
   if (
@@ -28,38 +29,50 @@ export function Navbar() {
 
   const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
 
+  const serviceLinks = [
+    { name: "All HVAC Services", href: "/services" },
+    { name: "AC Repair & Diagnostic", href: "/services/ac-repair" },
+    { name: "AC Tune-Up & Maintenance", href: "/services/ac-tuneup" },
+    { name: "Thermostat Installation", href: "/services/thermostat-install" },
+    { name: "Air Duct Cleaning", href: "/services/duct-cleaning" },
+    { name: "Refrigerant Recharge", href: "/services/refrigerant-recharge" },
+    { name: "Furnace & Heating Repair", href: "/services/furnace-repair" },
+    { name: "24/7 Emergency HVAC", href: "/services/emergency-hvac" },
+    { name: "Commercial HVAC", href: "/services/commercial-hvac" },
+  ];
+
   return (
     <div className="w-full">
-      {/* 1. TOP BLACK UTILITY BAR */}
-      <div className="bg-[#090D1A] text-white text-[11px] sm:text-xs py-2 px-4 border-b border-slate-800">
+      {/* 1. TOP UTILITY BAR (Deep Navy #0F172A) */}
+      <div className="bg-[#0F172A] text-white text-[11px] sm:text-xs py-2 px-4 border-b border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5 font-medium tracking-wide">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-3.5 w-3.5 text-blue-400" />
+            <ShieldCheck className="h-3.5 w-3.5 text-orange-400" />
             <span>Licensed &amp; Insured</span>
             <span className="text-slate-500">•</span>
-            <span className="text-slate-300">CA HVAC License #CAC1819420</span>
+            <span className="text-slate-300">State HVAC Lic #{businessConfig.licenseNumber}</span>
           </div>
 
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5 text-slate-300">
-              <Phone className="h-3 w-3 text-blue-400" />
+              <Phone className="h-3 w-3 text-orange-400" />
               <span>24/7 Emergency Service</span>
             </span>
             <a
               href={cleanPhoneHref}
-              className="flex items-center gap-1 font-bold text-white hover:text-blue-400 transition-colors"
+              className="flex items-center gap-1 font-bold text-white hover:text-orange-400 transition-colors"
             >
-              <span className="h-4 w-4 rounded-full bg-blue-600 flex items-center justify-center text-[10px]">
+              <span className="h-4 w-4 rounded-full bg-[#F97316] text-[#0F172A] flex items-center justify-center text-[10px]">
                 📞
               </span>
-              <span>(888) 555-0198</span>
+              <span>{businessConfig.phone}</span>
             </a>
           </div>
         </div>
       </div>
 
-      {/* 2. MAIN WHITE NAVBAR */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
+      {/* 2. MAIN NAVBAR */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
         <div className="max-w-7xl mx-auto flex h-20 items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5">
@@ -79,26 +92,93 @@ export function Navbar() {
             aria-label="Primary navigation"
             className="hidden lg:flex items-center gap-7 text-[13px] font-semibold text-slate-700"
           >
-            <Link href="/" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">
+            <Link
+              href="/"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
               Home
             </Link>
-            <div className="relative group cursor-pointer flex items-center gap-1 hover:text-slate-900 transition-colors">
-              <Link href="/#services">Services</Link>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 transition-transform group-hover:rotate-180" />
+
+            {/* Services Dropdown */}
+            <div
+              className="relative"
+              onMouseEnter={() => setServicesOpen(true)}
+              onMouseLeave={() => setServicesOpen(false)}
+            >
+              <button
+                type="button"
+                className={`flex items-center gap-1 hover:text-slate-900 transition-colors py-2 ${
+                  pathname?.startsWith("/services") ? "text-[#F97316] font-bold" : ""
+                }`}
+              >
+                <span>Services</span>
+                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </button>
+
+              {servicesOpen && (
+                <div className="absolute top-full left-0 w-64 rounded-2xl bg-white border border-slate-200 shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                  {serviceLinks.map((s) => (
+                    <Link
+                      key={s.href}
+                      href={s.href}
+                      className="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-[#FFF7ED] hover:text-[#EA580C] transition-colors"
+                      onClick={() => setServicesOpen(false)}
+                    >
+                      {s.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-            <Link href="/#about-us" className="hover:text-slate-900 transition-colors">
+
+            <Link
+              href="/about"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/about" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
               About Us
             </Link>
-            <Link href="/#how-it-works" className="hover:text-slate-900 transition-colors">
+            <Link
+              href="/how-it-works"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/how-it-works" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
               How It Works
             </Link>
-            <Link href="/#reviews" className="hover:text-slate-900 transition-colors">
+            <Link
+              href="/reviews"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/reviews" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
               Reviews
             </Link>
-            <Link href="/#specials" className="hover:text-slate-900 transition-colors">
+            <Link
+              href="/specials"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/specials" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
               Specials
             </Link>
-            <Link href="/#contact" className="hover:text-slate-900 transition-colors">
+            <Link
+              href="/areas"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/areas" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
+              Service Areas
+            </Link>
+            <Link
+              href="/contact"
+              className={`hover:text-slate-900 transition-colors ${
+                pathname === "/contact" ? "text-[#F97316] font-bold" : ""
+              }`}
+            >
               Contact
             </Link>
           </nav>
@@ -107,7 +187,7 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-all"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition-all"
             >
               <User className="h-4 w-4 text-slate-600" />
               <span>Staff Sign In</span>
@@ -115,7 +195,7 @@ export function Navbar() {
             <Button
               asChild
               size="md"
-              className="rounded-xl bg-[#0066FF] hover:bg-[#0052CC] text-white px-5 py-2.5 font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
+              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] px-5 py-2.5 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
             >
               <Link href="/book" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
