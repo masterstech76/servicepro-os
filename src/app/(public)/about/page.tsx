@@ -14,14 +14,14 @@ export default function AboutPage() {
   const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       {/* Hero Header */}
-      <section className="bg-gradient-to-b from-[#FFF7ED]/60 to-white py-16 sm:py-20 px-4 sm:px-6 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-white py-16 sm:py-20 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-[#FFF7ED] px-3.5 py-1 rounded-full border border-orange-200">
+          <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200">
             About Our Company
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             Setting the Standard in Fast, Honest HVAC Service
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -34,30 +34,30 @@ export default function AboutPage() {
       <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="p-8 rounded-2xl border border-slate-200 bg-white shadow-sm space-y-4">
-            <div className="h-12 w-12 rounded-xl bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <h3 className="font-heading text-xl font-bold text-[#0F172A]">State Licensed &amp; Insured</h3>
+            <h3 className="font-heading text-xl font-bold text-navy-900">State Licensed &amp; Insured</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
               We hold State Mechanical Contractor License #{businessConfig.licenseNumber} with comprehensive $2,000,000 general liability coverage for complete customer protection.
             </p>
           </div>
 
           <div className="p-8 rounded-2xl border border-slate-200 bg-white shadow-sm space-y-4">
-            <div className="h-12 w-12 rounded-xl bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
               <Award className="h-6 w-6" />
             </div>
-            <h3 className="font-heading text-xl font-bold text-[#0F172A]">100% Satisfaction Guarantee</h3>
+            <h3 className="font-heading text-xl font-bold text-navy-900">100% Satisfaction Guarantee</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
               Every diagnostic, repair, and parts installation is backed by our 1-year labor warranty. If the repair doesn&apos;t hold, we return and make it right at zero additional cost.
             </p>
           </div>
 
           <div className="p-8 rounded-2xl border border-slate-200 bg-white shadow-sm space-y-4">
-            <div className="h-12 w-12 rounded-xl bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center">
+            <div className="h-12 w-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
               <Users className="h-6 w-6" />
             </div>
-            <h3 className="font-heading text-xl font-bold text-[#0F172A]">Vetted &amp; Certified Technicians</h3>
+            <h3 className="font-heading text-xl font-bold text-navy-900">Vetted &amp; Certified Technicians</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
               Every field technician undergoes background checks, drug screenings, and ongoing NATE &amp; EPA Section 608 certification training.
             </p>
@@ -65,7 +65,7 @@ export default function AboutPage() {
         </div>
 
         {/* Company Overview & Dispatch Detail */}
-        <div className="mt-16 p-8 sm:p-12 rounded-3xl bg-[#0F172A] text-white flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div className="mt-16 p-8 sm:p-12 rounded-3xl bg-navy-900 text-white flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="space-y-4 max-w-2xl">
             <h2 className="font-heading text-2xl sm:text-3xl font-extrabold text-white">
               Based in {businessConfig.city}, Dispatched Directly to Your Door
@@ -81,7 +81,7 @@ export default function AboutPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-            <Button asChild size="lg" className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-black shadow-lg">
+            <Button asChild size="lg" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black shadow-lg">
               <Link href="/book">
                 <Calendar className="mr-2 h-4 w-4" />
                 <span>Book Service Online</span>
@@ -91,7 +91,7 @@ export default function AboutPage() {
               href={cleanPhoneHref}
               className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-6 font-bold text-sm text-white hover:bg-slate-700 transition-all"
             >
-              <Phone className="mr-2 h-4 w-4 text-[#F97316]" />
+              <Phone className="mr-2 h-4 w-4 text-orange-500" />
               <span>{businessConfig.phone}</span>
             </a>
           </div>

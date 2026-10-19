@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       colors: {
         navy: {
+          950: "var(--navy-950, #020617)",
           900: "var(--navy-900, #0F172A)",
           800: "var(--navy-800, #1E293B)",
           700: "var(--navy-700, #334155)",

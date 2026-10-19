@@ -24,15 +24,15 @@ export default function ServiceAreasHubPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       <Breadcrumbs items={[{ label: "Service Areas" }]} />
 
-      <section className="bg-gradient-to-b from-[#FFF7ED]/60 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-orange-50/60 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-[#FFF7ED] px-3.5 py-1 rounded-full border border-orange-200">
+          <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200">
             Greater Miami Territory
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             HVAC Service Areas &amp; Coverage
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -51,10 +51,10 @@ export default function ServiceAreasHubPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-[#EA580C]" />
+                    <MapPin className="h-4 w-4 text-orange-600" />
                     <Link
                       href={`/service-areas/${area.slug}`}
-                      className="font-heading text-lg font-bold text-[#0F172A] hover:text-[#EA580C] transition-colors"
+                      className="font-heading text-lg font-bold text-navy-900 hover:text-orange-600 transition-colors"
                     >
                       {area.name}
                     </Link>
@@ -66,7 +66,7 @@ export default function ServiceAreasHubPage() {
                 </div>
                 <p className="text-xs text-slate-500">ZIP Codes: {area.zip}</p>
                 <div className="text-xs font-semibold text-slate-700 pt-1">
-                  Average Arrival Window: <span className="font-black text-[#0F172A]">{area.avgEta}</span>
+                  Average Arrival Window: <span className="font-black text-navy-900">{area.avgEta}</span>
                 </div>
               </div>
 
@@ -77,7 +77,7 @@ export default function ServiceAreasHubPage() {
                 >
                   Area Details <ArrowRight className="h-3 w-3" />
                 </Link>
-                <Button asChild size="sm" className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold text-xs h-8 px-3">
+                <Button asChild size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold text-xs h-8 px-3">
                   <Link href="/book">
                     Book Slot
                   </Link>
@@ -88,7 +88,7 @@ export default function ServiceAreasHubPage() {
         </div>
 
         {/* Complete ZIP Code Directory Strip */}
-        <div className="mt-16 p-8 rounded-3xl bg-[#0F172A] text-white space-y-4">
+        <div className="mt-16 p-8 rounded-3xl bg-navy-900 text-white space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h3 className="font-heading text-xl font-bold">All {businessConfig.zipCodes.length} Supported Postal ZIP Codes</h3>
             <span className="text-xs text-orange-400 font-semibold">100% On-Time Guarantee</span>

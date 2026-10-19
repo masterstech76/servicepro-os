@@ -15,6 +15,27 @@ import { Button } from "@/components/ui/button";
 export function Navbar() {
   const pathname = usePathname();
   const [servicesOpen, setServicesOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside or pressing Escape
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setServicesOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setServicesOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // Hide global navbar on dashboard, tech portal, and all auth pages
   const isAuthPage =
@@ -70,7 +91,7 @@ export function Navbar() {
             <Link
               href="/"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/" ? "text-[#F97316] font-bold" : ""
+                pathname === "/" ? "text-orange-500 font-bold" : ""
               }`}
             >
               Home
@@ -78,14 +99,18 @@ export function Navbar() {
 
             {/* Services Dropdown */}
             <div
+              ref={dropdownRef}
               className="relative"
               onMouseEnter={() => setServicesOpen(true)}
               onMouseLeave={() => setServicesOpen(false)}
             >
               <button
                 type="button"
+                onClick={() => setServicesOpen((prev) => !prev)}
+                aria-expanded={servicesOpen}
+                aria-haspopup="true"
                 className={`flex items-center gap-1 hover:text-slate-900 transition-colors py-2 ${
-                  pathname?.startsWith("/services") ? "text-[#F97316] font-bold" : ""
+                  pathname?.startsWith("/services") ? "text-orange-500 font-bold" : ""
                 }`}
               >
                 <span>Services</span>
@@ -98,7 +123,7 @@ export function Navbar() {
                     <Link
                       key={s.href}
                       href={s.href}
-                      className="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-[#FFF7ED] hover:text-[#EA580C] transition-colors"
+                      className="block px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                       onClick={() => setServicesOpen(false)}
                     >
                       {s.name}
@@ -111,7 +136,7 @@ export function Navbar() {
             <Link
               href="/about"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/about" ? "text-[#F97316] font-bold" : ""
+                pathname === "/about" ? "text-orange-500 font-bold" : ""
               }`}
             >
               About Us
@@ -119,7 +144,7 @@ export function Navbar() {
             <Link
               href="/how-it-works"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/how-it-works" ? "text-[#F97316] font-bold" : ""
+                pathname === "/how-it-works" ? "text-orange-500 font-bold" : ""
               }`}
             >
               How It Works
@@ -127,7 +152,7 @@ export function Navbar() {
             <Link
               href="/reviews"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/reviews" ? "text-[#F97316] font-bold" : ""
+                pathname === "/reviews" ? "text-orange-500 font-bold" : ""
               }`}
             >
               Reviews
@@ -135,7 +160,7 @@ export function Navbar() {
             <Link
               href="/specials"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/specials" ? "text-[#F97316] font-bold" : ""
+                pathname === "/specials" ? "text-orange-500 font-bold" : ""
               }`}
             >
               Specials
@@ -143,7 +168,7 @@ export function Navbar() {
             <Link
               href="/areas"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/areas" ? "text-[#F97316] font-bold" : ""
+                pathname === "/areas" ? "text-orange-500 font-bold" : ""
               }`}
             >
               Service Areas
@@ -151,7 +176,7 @@ export function Navbar() {
             <Link
               href="/contact"
               className={`hover:text-slate-900 transition-colors ${
-                pathname === "/contact" ? "text-[#F97316] font-bold" : ""
+                pathname === "/contact" ? "text-orange-500 font-bold" : ""
               }`}
             >
               Contact
@@ -170,7 +195,7 @@ export function Navbar() {
             <Button
               asChild
               size="md"
-              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] px-5 py-2.5 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
+              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 px-5 py-2.5 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
             >
               <Link href="/book" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />

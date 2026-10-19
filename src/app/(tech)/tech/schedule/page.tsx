@@ -69,9 +69,18 @@ export default function TechSchedulePage() {
           <select
             aria-label="Select technician schedule"
             value={techId}
-            onChange={(e) => {
-              setTechId(e.target.value);
-              document.cookie = `sp_demo_tech_id=${e.target.value}; path=/; max-age=86400`;
+            onChange={async (e) => {
+              const newId = e.target.value;
+              setTechId(newId);
+              try {
+                await fetch("/api/auth/demo-session", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ role: "technician", technicianId: newId }),
+                });
+              } catch {
+                // silent
+              }
             }}
             className="rounded-input border border-slate-300 bg-slate-50 px-2.5 py-1 text-xs font-bold text-navy-900 focus:outline-none focus:border-orange-500"
           >

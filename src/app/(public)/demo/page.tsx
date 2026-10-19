@@ -37,8 +37,6 @@ export default function InteractiveDemoGuidePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, technicianId: techId }),
       });
-      document.cookie = `servicepro_dev_role=${role}; path=/; max-age=86400`;
-      document.cookie = `sp_demo_tech_id=${techId}; path=/; max-age=86400`;
       router.push(destPath);
     } finally {
       setEnteringRole(null);

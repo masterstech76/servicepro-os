@@ -224,7 +224,7 @@ export default async function ServiceAreaDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       <Breadcrumbs
         items={[
           { label: "Service Areas", href: "/areas" },
@@ -233,10 +233,10 @@ export default async function ServiceAreaDetailPage({
       />
 
       {/* Hero Banner */}
-      <section className="bg-gradient-to-b from-[#FFF7ED] to-white py-16 px-4 sm:px-6 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-orange-50 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full border border-orange-200 flex items-center gap-1.5">
+            <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-100 px-3 py-1 rounded-full border border-orange-200 flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" />
               {area.city}, {area.state}
             </span>
@@ -246,7 +246,7 @@ export default async function ServiceAreaDetailPage({
             </span>
           </div>
 
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             HVAC &amp; Air Conditioning Services in {area.name}
           </h1>
 
@@ -257,7 +257,7 @@ export default async function ServiceAreaDetailPage({
           <div className="pt-2 flex flex-wrap gap-4 items-center">
             <Button
               asChild
-              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold px-6 py-6 shadow-md hover:shadow-lg transition-all"
+              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold px-6 py-6 shadow-md hover:shadow-lg transition-all"
             >
               <Link href="/book" className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -367,7 +367,7 @@ export default async function ServiceAreaDetailPage({
         </div>
 
         {/* CTA Footer Card */}
-        <div className="rounded-3xl bg-[#0F172A] p-8 sm:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="rounded-3xl bg-navy-900 p-8 sm:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 max-w-xl text-center md:text-left">
             <h3 className="font-heading text-2xl font-black">
               Need Fast AC Service in {area.name}?
@@ -379,7 +379,7 @@ export default async function ServiceAreaDetailPage({
           <div className="flex flex-wrap gap-3">
             <Button
               asChild
-              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold px-6 py-6 shadow-md"
+              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold px-6 py-6 shadow-md"
             >
               <Link href="/book" className="flex items-center gap-2">
                 Schedule Service

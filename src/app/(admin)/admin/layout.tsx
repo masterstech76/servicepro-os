@@ -82,7 +82,10 @@ export default function AdminLayout({
       }
     }
     void fetchAlerts();
-    const timer = setInterval(() => void fetchAlerts(), 20000);
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      void fetchAlerts();
+    }, 60000);
     return () => {
       mounted = false;
       clearInterval(timer);
@@ -95,8 +98,6 @@ export default function AdminLayout({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: "technician", technicianId: "tech-carlos" }),
     });
-    document.cookie = "servicepro_dev_role=technician; path=/; max-age=86400";
-    document.cookie = "sp_demo_tech_id=tech-carlos; path=/; max-age=86400";
     router.push("/tech");
   }
 
@@ -106,8 +107,6 @@ export default function AdminLayout({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: "clear" }),
     });
-    document.cookie = "servicepro_dev_role=; path=/; max-age=0";
-    document.cookie = "sp_demo_role=; path=/; max-age=0";
     router.push("/login");
   }
 

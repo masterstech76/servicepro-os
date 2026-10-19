@@ -128,17 +128,17 @@ export default function GalleryPage() {
       : PROJECTS.filter((p) => p.category === filter);
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       <Breadcrumbs items={[{ label: "Project Gallery" }]} />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-[#FFF7ED]/70 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-orange-50/70 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-[#FFF7ED] px-3.5 py-1 rounded-full border border-orange-200 inline-flex items-center gap-1.5">
+          <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 inline-flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" />
             Field Proof &amp; Craftsmanship
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             HVAC Project &amp; Work Showcase
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -165,7 +165,7 @@ export default function GalleryPage() {
               onClick={() => setFilter(tab.id)}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 filter === tab.id
-                  ? "bg-[#0F172A] text-white shadow-sm"
+                  ? "bg-navy-900 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >
@@ -251,7 +251,7 @@ export default function GalleryPage() {
               <div className="p-5 pt-0">
                 <Button
                   asChild
-                  className="w-full rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold text-xs h-10 shadow-sm"
+                  className="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold text-xs h-10 shadow-sm"
                 >
                   <Link href="/book" className="flex items-center justify-center gap-2">
                     Request Similar Installation
@@ -264,7 +264,7 @@ export default function GalleryPage() {
         </div>
 
         {/* Bottom Banner */}
-        <div className="mt-16 rounded-3xl bg-[#0F172A] p-8 sm:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="mt-16 rounded-3xl bg-navy-900 p-8 sm:p-12 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 max-w-xl text-center md:text-left">
             <h3 className="font-heading text-2xl sm:text-3xl font-black">
               Have an HVAC Project in Mind?
@@ -276,7 +276,7 @@ export default function GalleryPage() {
           <div className="flex flex-wrap gap-3">
             <Button
               asChild
-              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold px-6 py-6 shadow-md"
+              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold px-6 py-6 shadow-md"
             >
               <Link href="/book" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />

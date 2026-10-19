@@ -106,17 +106,17 @@ export default function FAQPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       <Breadcrumbs items={[{ label: "Frequently Asked Questions" }]} />
 
       {/* Hero Header */}
-      <section className="bg-gradient-to-b from-[#FFF7ED]/70 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-orange-50/70 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-[#FFF7ED] px-3.5 py-1 rounded-full border border-orange-200 inline-flex items-center gap-1.5">
+          <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200 inline-flex items-center gap-1.5">
             <HelpCircle className="h-3.5 w-3.5" />
             Clear Answers
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             Frequently Asked Questions
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
@@ -156,7 +156,7 @@ export default function FAQPage() {
               onClick={() => setActiveCategory(cat.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
                 activeCategory === cat.id
-                  ? "bg-[#0F172A] text-white shadow-sm"
+                  ? "bg-navy-900 text-white shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               }`}
             >
@@ -212,7 +212,7 @@ export default function FAQPage() {
         )}
 
         {/* Still Have Questions CTA */}
-        <div className="mt-12 rounded-3xl bg-[#0F172A] p-8 text-white text-center space-y-4 shadow-xl">
+        <div className="mt-12 rounded-3xl bg-navy-900 p-8 text-white text-center space-y-4 shadow-xl">
           <h2 className="font-heading text-xl sm:text-2xl font-black">
             Have a Question Not Listed Here?
           </h2>
@@ -222,7 +222,7 @@ export default function FAQPage() {
           <div className="pt-2 flex flex-wrap justify-center gap-3">
             <Button
               asChild
-              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold px-6 py-5 text-xs shadow-md"
+              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold px-6 py-5 text-xs shadow-md"
             >
               <Link href="/book" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />

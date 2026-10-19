@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --navy-950: #020617;
   --navy-900: #0F172A;
   --navy-800: #1E293B;
   --navy-700: #334155;

@@ -38,13 +38,13 @@ export default function HowItWorksPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
-      <section className="bg-gradient-to-b from-[#FFF7ED]/60 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
+    <div className="min-h-screen bg-white text-navy-900">
+      <section className="bg-gradient-to-b from-orange-50/60 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-[#FFF7ED] px-3.5 py-1 rounded-full border border-orange-200">
+          <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200">
             Frictionless Field Service
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             How TechWork Online Booking Works
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
@@ -60,13 +60,13 @@ export default function HowItWorksPage() {
               key={st.num}
               className="p-8 rounded-3xl border border-slate-200/90 bg-white shadow-sm flex flex-col md:flex-row items-start gap-6 hover:shadow-md transition-shadow"
             >
-              <div className="h-14 w-14 rounded-2xl bg-[#0F172A] text-[#F97316] font-heading font-black text-2xl flex items-center justify-center shrink-0">
+              <div className="h-14 w-14 rounded-2xl bg-navy-900 text-orange-500 font-heading font-black text-2xl flex items-center justify-center shrink-0">
                 {st.num}
               </div>
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
-                  <h2 className="font-heading text-xl font-bold text-[#0F172A]">{st.title}</h2>
-                  <span className="text-[11px] font-bold text-[#EA580C] bg-[#FFF7ED] px-2.5 py-0.5 rounded-full border border-orange-200">
+                  <h2 className="font-heading text-xl font-bold text-navy-900">{st.title}</h2>
+                  <span className="text-[11px] font-bold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
                     {st.badge}
                   </span>
                 </div>
@@ -78,13 +78,13 @@ export default function HowItWorksPage() {
           ))}
         </div>
 
-        <div className="mt-16 p-8 rounded-3xl bg-[#FFF7ED] border border-orange-200 text-center space-y-6">
-          <h3 className="font-heading text-2xl font-bold text-[#0F172A]">Ready to Experience It Firsthand?</h3>
+        <div className="mt-16 p-8 rounded-3xl bg-orange-50 border border-orange-200 text-center space-y-6">
+          <h3 className="font-heading text-2xl font-bold text-navy-900">Ready to Experience It Firsthand?</h3>
           <p className="text-sm text-slate-600 max-w-lg mx-auto">
             Book an appointment today with an upfront flat diagnostic fee and on-time arrival guarantee.
           </p>
           <div className="flex items-center justify-center gap-4">
-            <Button asChild size="lg" className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-black shadow-lg">
+            <Button asChild size="lg" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black shadow-lg">
               <Link href="/book">
                 <Calendar className="mr-2 h-4 w-4" />
                 <span>Book an Arrival Slot</span>

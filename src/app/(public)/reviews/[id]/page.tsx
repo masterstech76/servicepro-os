@@ -145,7 +145,7 @@ export default async function ReviewDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       <Breadcrumbs
         items={[
           { label: "Reviews", href: "/reviews" },
@@ -153,7 +153,7 @@ export default async function ReviewDetailPage({
         ]}
       />
 
-      <section className="bg-gradient-to-b from-[#FFF7ED]/70 to-white py-12 px-4 sm:px-6 border-b border-slate-200">
+      <section className="bg-gradient-to-b from-orange-50/70 to-white py-12 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-3xl mx-auto space-y-4">
           <Link
             href="/reviews"
@@ -200,7 +200,7 @@ export default async function ReviewDetailPage({
 
           <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-orange-100 text-[#EA580C] font-black flex items-center justify-center text-sm border border-orange-200">
+              <div className="h-10 w-10 rounded-full bg-orange-100 text-orange-600 font-black flex items-center justify-center text-sm border border-orange-200">
                 {review.author[0]}
               </div>
               <div>
@@ -262,7 +262,7 @@ export default async function ReviewDetailPage({
         </div>
 
         {/* CTA Card */}
-        <div className="rounded-3xl bg-[#0F172A] p-8 text-white text-center space-y-4 shadow-xl">
+        <div className="rounded-3xl bg-navy-900 p-8 text-white text-center space-y-4 shadow-xl">
           <h3 className="font-heading text-xl sm:text-2xl font-black">
             Need {review.service} for Your Home?
           </h3>
@@ -272,7 +272,7 @@ export default async function ReviewDetailPage({
           <div className="pt-2 flex justify-center gap-3">
             <Button
               asChild
-              className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold px-6 py-5 text-xs shadow-md"
+              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold px-6 py-5 text-xs shadow-md"
             >
               <Link href="/book" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />

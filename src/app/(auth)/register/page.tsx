@@ -83,8 +83,6 @@ function RegisterForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ role: "customer" }),
         });
-        document.cookie = `servicepro_dev_role=customer; path=/; max-age=86400`;
-        document.cookie = `sp_demo_role=customer; path=/; max-age=86400`;
 
         toast.success("Account created successfully (Demo Mode)");
         const safeDestination = sanitizeRedirectUrl(rawRedirect, "/account");
@@ -94,7 +92,9 @@ function RegisterForm() {
       }
 
       const supabase = createSupabaseBrowserClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const origin =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (typeof window !== "undefined" ? window.location.origin : "https://heavenlease.in");
 
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),

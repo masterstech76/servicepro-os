@@ -32,18 +32,13 @@ function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, technicianId: techId }),
       });
-      document.cookie = `servicepro_dev_role=${role}; path=/; max-age=86400`;
-      document.cookie = `sp_demo_role=${role}; path=/; max-age=86400`;
-      if (role === "technician") {
-        document.cookie = `sp_demo_tech_id=${techId}; path=/; max-age=86400`;
-      }
 
       const defaultHome = getHomeForRole(role);
       const destination = sanitizeRedirectUrl(rawRedirect, defaultHome);
       router.push(destination);
       router.refresh();
     } catch {
-      toast.error("Failed to start demo session. Please try again.");
+      toast.error("Failed to start session. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -61,22 +56,8 @@ function LoginForm() {
         url.includes("placeholder-project.supabase.co");
 
       if (isPlaceholder) {
-        // Fallback for mock/dev environment based on email
-        let simulatedRole: UserRole = "customer";
-        const lowEmail = email.toLowerCase();
-        if (lowEmail.includes("owner") || lowEmail.includes("admin")) {
-          simulatedRole = "owner";
-        } else if (
-          lowEmail.includes("carlos") ||
-          lowEmail.includes("danny") ||
-          lowEmail.includes("maria") ||
-          lowEmail.includes("tony") ||
-          lowEmail.includes("tech")
-        ) {
-          simulatedRole = "technician";
-        }
-
-        await quickSignIn(simulatedRole, "tech-carlos");
+        // Safe default: authenticate as customer role only (no keyword escalation)
+        await quickSignIn("customer");
         return;
       }
 

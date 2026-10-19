@@ -30,7 +30,6 @@ export default function TechLayout({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: "owner" }),
     });
-    document.cookie = "servicepro_dev_role=owner; path=/; max-age=86400";
     router.push("/admin/dispatch");
   }
 
@@ -40,8 +39,6 @@ export default function TechLayout({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role: "clear" }),
     });
-    document.cookie = "servicepro_dev_role=; path=/; max-age=0";
-    document.cookie = "sp_demo_role=; path=/; max-age=0";
     router.push("/login");
   }
 

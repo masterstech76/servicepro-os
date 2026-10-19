@@ -11,11 +11,11 @@ export const metadata = {
 
 export default function AccessibilityPage() {
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
-      <section className="bg-gradient-to-b from-[#FFF7ED]/70 via-white to-white py-12 px-4 sm:px-6 border-b border-slate-200">
+    <div className="min-h-screen bg-white text-navy-900">
+      <section className="bg-gradient-to-b from-orange-50/70 via-white to-white py-12 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto space-y-4">
           <Breadcrumbs items={[{ label: "Accessibility" }]} />
-          <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-navy-900 tracking-tight">
             Accessibility Statement
           </h1>
           <p className="text-sm text-slate-500 font-medium">
@@ -30,7 +30,7 @@ export default function AccessibilityPage() {
         </p>
 
         <div className="space-y-3">
-          <h2 className="font-heading text-xl font-bold text-[#0F172A]">Conformance Measures</h2>
+          <h2 className="font-heading text-xl font-bold text-navy-900">Conformance Measures</h2>
           <ul className="list-disc pl-5 space-y-1.5 text-slate-600">
             <li>High-contrast color themes meeting 4.5:1 text contrast ratios.</li>
             <li>Keyboard navigable interactive elements and screen-reader accessible form labels.</li>

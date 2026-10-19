@@ -81,7 +81,9 @@ function VerifyEmailContent() {
       }
 
       const supabase = createSupabaseBrowserClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const origin =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (typeof window !== "undefined" ? window.location.origin : "https://heavenlease.in");
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: email.trim(),

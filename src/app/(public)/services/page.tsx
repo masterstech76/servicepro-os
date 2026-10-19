@@ -85,7 +85,7 @@ export default function ServicesCatalogPage() {
       price: "Priority Dispatch",
       duration: "Immediate",
       href: "/services/emergency-hvac",
-      bookHref: "/book?serviceId=svc-ac-repair",
+      bookHref: "/services/emergency-hvac",
       icon: Clock,
       image: "/images/hero.jpg",
     },
@@ -96,20 +96,20 @@ export default function ServicesCatalogPage() {
       price: "Custom Estimate",
       duration: "Scheduled",
       href: "/services/commercial-hvac",
-      bookHref: "/book?serviceId=svc-ac-repair",
+      bookHref: "/contact",
       icon: ShieldCheck,
       image: "/images/service-bg.jpg",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
-      <section className="bg-gradient-to-b from-[#FFF7ED]/60 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
+    <div className="min-h-screen bg-white text-navy-900">
+      <section className="bg-gradient-to-b from-orange-50/60 to-white py-16 px-4 sm:px-6 border-b border-slate-200">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <span className="text-xs font-black text-[#EA580C] uppercase tracking-wider bg-[#FFF7ED] px-3.5 py-1 rounded-full border border-orange-200">
+          <span className="text-xs font-black text-orange-600 uppercase tracking-wider bg-orange-50 px-3.5 py-1 rounded-full border border-orange-200">
             Transparent Pricing
           </span>
-          <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight">
             HVAC Services &amp; Flat-Rate Pricing
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto">
@@ -129,17 +129,25 @@ export default function ServicesCatalogPage() {
               >
                 <div>
                   <div className="relative h-48 w-full rounded-xl overflow-hidden bg-slate-100 mb-5">
-                    <Image src={svc.image} alt={svc.title} fill className="object-cover" />
-                    <div className="absolute top-3 right-3 bg-[#0F172A]/90 backdrop-blur-md text-white font-extrabold text-xs px-3 py-1 rounded-full">
+                    <Image
+                      src={svc.image}
+                      alt={svc.title}
+                      fill
+                      quality={85}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                    <div className="absolute top-3 right-3 bg-navy-900/90 backdrop-blur-md text-white font-extrabold text-xs px-3 py-1 rounded-full">
                       {svc.price}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2.5 mb-2.5">
-                    <div className="h-8 w-8 rounded-lg bg-[#FFF7ED] text-[#EA580C] flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
                       <Icon className="h-4 w-4" />
                     </div>
-                    <h2 className="font-heading text-lg font-bold text-[#0F172A]">{svc.title}</h2>
+                    <h2 className="font-heading text-lg font-bold text-navy-900">{svc.title}</h2>
                   </div>
 
                   <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 mb-6">
@@ -150,13 +158,13 @@ export default function ServicesCatalogPage() {
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                   <Link
                     href={svc.href}
-                    className="text-xs font-bold text-slate-700 hover:text-[#EA580C] flex items-center gap-1"
+                    className="text-xs font-bold text-slate-700 hover:text-orange-600 flex items-center gap-1"
                   >
                     <span>View Details</span>
                     <ArrowRight className="h-3 w-3" />
                   </Link>
 
-                  <Button asChild size="sm" className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold text-xs h-9 px-4">
+                  <Button asChild size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold text-xs h-9 px-4">
                     <Link href={svc.bookHref}>
                       Book Now
                     </Link>

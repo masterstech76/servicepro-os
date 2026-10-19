@@ -93,29 +93,6 @@ function VerifyPhoneContent() {
         </Button>
       </div>
 
-      {/* Developer / Technical Specs Accordion */}
-      <div className="pt-2 border-t border-slate-100">
-        <button
-          type="button"
-          onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-          className="text-[11px] font-semibold text-slate-500 hover:text-navy-900 underline flex items-center gap-1 mx-auto"
-        >
-          <Lock className="h-3 w-3" />
-          <span>{showTechnicalDetails ? "Hide Provider Specifications" : "View Integration Specifications"}</span>
-        </button>
-
-        {showTechnicalDetails && (
-          <div className="mt-3 p-3 rounded-lg bg-slate-900 text-slate-300 font-mono text-[11px] space-y-1">
-            <p className="text-orange-400 font-bold">[Phase 2 SMS Provider Integration Checklist]</p>
-            <p>- TWILIO_ACCOUNT_SID: [configured]</p>
-            <p>- TWILIO_AUTH_TOKEN: [configured]</p>
-            <p>- TWILIO_VERIFY_SERVICE_SID: [pending registration]</p>
-            <p>- A2P 10DLC Campaign Use-Case: 2FA Authentication</p>
-            <p>- Fallback: Primary email token authentication enforced</p>
-          </div>
-        )}
-      </div>
-
       {/* Navigation */}
       <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
         <Link href="/" className="font-medium text-slate-600 hover:text-navy-900 underline">

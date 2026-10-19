@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { AlertCircle, Phone, Clock, ShieldCheck, ArrowRight, Zap } from "lucide-react";
+import { AlertCircle, Phone, ArrowRight } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export default function EmergencyHvacPage() {
   const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
+    <div className="min-h-screen bg-white text-navy-900">
       <Breadcrumbs items={[{ label: "Services", href: "/services" }, { label: "24/7 Emergency HVAC" }]} />
 
       <section className="bg-gradient-to-b from-red-50/60 via-white to-white py-14 px-4 sm:px-6 border-b border-slate-200">
@@ -25,7 +25,7 @@ export default function EmergencyHvacPage() {
               <AlertCircle className="h-3.5 w-3.5" />
               <span>Priority Emergency Dispatch</span>
             </span>
-            <h1 className="font-heading text-3xl sm:text-5xl font-black text-[#0F172A] tracking-tight leading-tight">
+            <h1 className="font-heading text-3xl sm:text-5xl font-black text-navy-900 tracking-tight leading-tight">
               24/7 Emergency HVAC Repair in <span className="text-red-600">60 Minutes</span>
             </h1>
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
@@ -39,7 +39,7 @@ export default function EmergencyHvacPage() {
                 <Phone className="h-4 w-4" />
                 <span>Call Dispatch: {businessConfig.phone}</span>
               </a>
-              <Button asChild size="lg" className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-black h-12 px-6 shadow-md">
+              <Button asChild size="lg" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black h-12 px-6 shadow-md">
                 <Link href="/book?serviceId=svc-ac-repair">
                   <span>Book Immediate Slot Online</span>
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -50,7 +50,15 @@ export default function EmergencyHvacPage() {
 
           <div className="lg:col-span-5 relative">
             <div className="relative h-80 sm:h-96 w-full rounded-3xl overflow-hidden border border-slate-200 shadow-xl bg-slate-100">
-              <Image src="/images/hero.jpg" alt="Emergency HVAC van" fill className="object-cover" />
+              <Image
+                src="/images/hero.jpg"
+                alt="Emergency HVAC van"
+                fill
+                quality={85}
+                sizes="(max-width: 1024px) 100vw, 40vw"
+                className="object-cover"
+                priority
+              />
             </div>
           </div>
         </div>

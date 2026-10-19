@@ -42,6 +42,10 @@ export default function AccountDashboardPage() {
     setError(null);
     try {
       const res = await fetch("/api/account/dashboard");
+      if (res.status === 401) {
+        window.location.href = "/login?redirectTo=/account";
+        return;
+      }
       if (!res.ok) {
         throw new Error("Unable to load customer dashboard data");
       }
