@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database, UserRole } from "./types";
+import { sanitizeRedirectUrl, getHomeForRole } from "@/lib/server/redirect-safety";
 
 export function isRemoteSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -23,19 +24,29 @@ export async function updateSessionAndEnforceRoles(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
   const isTechRoute = pathname.startsWith("/tech");
-  const isLoginRoute = pathname === "/login";
+  const isAccountRoute = pathname.startsWith("/account");
+  const isAuthEntryRoute = pathname === "/login" || pathname === "/register";
 
-  if (!isAdminRoute && !isTechRoute && !isLoginRoute) {
+  // If not a protected or auth entry route, continue immediately
+  if (!isAdminRoute && !isTechRoute && !isAccountRoute && !isAuthEntryRoute) {
     return supabaseResponse;
   }
 
   let role: UserRole | null = null;
 
-  // Support demo / local dev session cookie
-  const devRoleCookie = request.cookies.get("servicepro_dev_role")?.value as UserRole | undefined;
-  if (devRoleCookie === "owner" || devRoleCookie === "technician") {
-    role = devRoleCookie;
+  // 1. Support demo / local dev session cookie
+  const devRoleCookie = (request.cookies.get("servicepro_dev_role")?.value ||
+    request.cookies.get("sp_demo_role")?.value) as UserRole | undefined;
+
+  if (
+    devRoleCookie === "owner" ||
+    devRoleCookie === "admin" ||
+    devRoleCookie === "technician" ||
+    devRoleCookie === "customer"
+  ) {
+    role = devRoleCookie === "admin" ? "owner" : devRoleCookie;
   } else if (isRemoteSupabaseConfigured()) {
+    // 2. Remote Supabase session verification
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -69,38 +80,53 @@ export async function updateSessionAndEnforceRoles(request: NextRequest) {
         .select("role")
         .eq("id", user.id)
         .single();
-      role = (profile as { role?: UserRole } | null)?.role ?? null;
+      const resolved = (profile as { role?: UserRole } | null)?.role ?? null;
+      role = resolved === "admin" ? "owner" : resolved;
     }
   }
 
-  // Unauthenticated access to /admin or /tech -> redirect to /login
-  if (!role && (isAdminRoute || isTechRoute)) {
+  // 3. Unauthenticated access to protected routes -> redirect to /login
+  if (!role && (isAdminRoute || isTechRoute || isAccountRoute)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Authenticated user visiting /login -> redirect to their home surface
-  if (role && isLoginRoute) {
+  // 4. Authenticated user visiting /login or /register -> route safely
+  if (role && isAuthEntryRoute) {
+    const rawRedirect = request.nextUrl.searchParams.get("redirectTo");
+    const defaultHome = getHomeForRole(role);
+    const targetPath = sanitizeRedirectUrl(rawRedirect, defaultHome);
+
     const dest = request.nextUrl.clone();
-    dest.pathname = role === "owner" ? "/admin" : "/tech";
+    dest.pathname = targetPath.split("?")[0];
+    const queryPart = targetPath.split("?")[1];
+    if (queryPart) {
+      dest.search = queryPart;
+    } else {
+      dest.search = "";
+    }
     return NextResponse.redirect(dest);
   }
 
-  // Wrong-role access -> 403 page (BUILD_PLAN Section 19)
-  if (role === "technician" && isAdminRoute) {
-    return new NextResponse("403 Forbidden — Owner access required", {
-      status: 403,
-      headers: { "Content-Type": "text/plain" },
-    });
+  // 5. Role-based route enforcement
+  // /admin requires owner (admin) role
+  if (isAdminRoute && role !== "owner") {
+    const unauthUrl = request.nextUrl.clone();
+    unauthUrl.pathname = "/unauthorized";
+    unauthUrl.searchParams.set("required", "admin");
+    unauthUrl.searchParams.set("current", role ?? "unknown");
+    return NextResponse.redirect(unauthUrl);
   }
 
-  if (role === "owner" && isTechRoute) {
-    return new NextResponse("403 Forbidden — Technician access required", {
-      status: 403,
-      headers: { "Content-Type": "text/plain" },
-    });
+  // /tech requires technician role
+  if (isTechRoute && role !== "technician") {
+    const unauthUrl = request.nextUrl.clone();
+    unauthUrl.pathname = "/unauthorized";
+    unauthUrl.searchParams.set("required", "tech");
+    unauthUrl.searchParams.set("current", role ?? "unknown");
+    return NextResponse.redirect(unauthUrl);
   }
 
   return supabaseResponse;

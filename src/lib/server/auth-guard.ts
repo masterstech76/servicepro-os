@@ -39,13 +39,19 @@ export async function resolveRequestActor(
     if (headerRole === "anon") {
       return null;
     }
-    if (headerRole === "owner" || headerRole === "technician") {
+    if (headerRole === "owner" || headerRole === "admin" || headerRole === "technician" || headerRole === "customer") {
+      const normalizedRole: UserRole = headerRole === "admin" ? "owner" : headerRole;
       return {
         authenticated: true,
-        userId: headerRole === "owner" ? "user_owner" : `user_${headerTechId ?? "tech-carlos"}`,
-        role: headerRole,
+        userId:
+          normalizedRole === "owner"
+            ? "user_owner"
+            : normalizedRole === "customer"
+            ? "user_customer"
+            : `user_${headerTechId ?? "tech-carlos"}`,
+        role: normalizedRole,
         businessId: defaultBizId,
-        technicianId: headerRole === "technician" ? headerTechId ?? "tech-carlos" : null,
+        technicianId: normalizedRole === "technician" ? headerTechId ?? "tech-carlos" : null,
       };
     }
 
@@ -61,13 +67,19 @@ export async function resolveRequestActor(
       const cookieRole = (parsedCookies["servicepro_dev_role"] ||
         parsedCookies["sp_demo_role"]) as UserRole | undefined;
       const cookieTechId = parsedCookies["sp_demo_tech_id"] || "tech-carlos";
-      if (cookieRole === "owner" || cookieRole === "technician") {
+      if (cookieRole === "owner" || cookieRole === "admin" || cookieRole === "technician" || cookieRole === "customer") {
+        const normalizedRole: UserRole = cookieRole === "admin" ? "owner" : cookieRole;
         return {
           authenticated: true,
-          userId: cookieRole === "owner" ? "user_owner" : `user_${cookieTechId}`,
-          role: cookieRole,
+          userId:
+            normalizedRole === "owner"
+              ? "user_owner"
+              : normalizedRole === "customer"
+              ? "user_customer"
+              : `user_${cookieTechId}`,
+          role: normalizedRole,
           businessId: defaultBizId,
-          technicianId: cookieRole === "technician" ? cookieTechId : null,
+          technicianId: normalizedRole === "technician" ? cookieTechId : null,
         };
       }
     }
@@ -81,13 +93,19 @@ export async function resolveRequestActor(
     const techIdCookie =
       cookieStore.get("sp_demo_tech_id")?.value || "tech-carlos";
 
-    if (roleCookie === "owner" || roleCookie === "technician") {
+    if (roleCookie === "owner" || roleCookie === "admin" || roleCookie === "technician" || roleCookie === "customer") {
+      const normalizedRole: UserRole = roleCookie === "admin" ? "owner" : roleCookie;
       return {
         authenticated: true,
-        userId: roleCookie === "owner" ? "user_owner" : `user_${techIdCookie}`,
-        role: roleCookie,
+        userId:
+          normalizedRole === "owner"
+            ? "user_owner"
+            : normalizedRole === "customer"
+            ? "user_customer"
+            : `user_${techIdCookie}`,
+        role: normalizedRole,
         businessId: defaultBizId,
-        technicianId: roleCookie === "technician" ? techIdCookie : null,
+        technicianId: normalizedRole === "technician" ? techIdCookie : null,
       };
     }
 

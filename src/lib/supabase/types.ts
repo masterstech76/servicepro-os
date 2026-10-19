@@ -14,7 +14,7 @@ export type JobStatus =
   | "completed"
   | "cancelled";
 
-export type UserRole = "owner" | "technician";
+export type UserRole = "owner" | "admin" | "technician" | "customer";
 export type PricingType = "flat" | "hourly";
 export type InvoiceStatus = "draft" | "sent" | "paid" | "void";
 export type PaymentKind = "deposit" | "remaining" | "tip" | "refund";

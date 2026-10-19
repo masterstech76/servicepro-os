@@ -190,7 +190,7 @@ export function Navbar() {
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition-all"
             >
               <User className="h-4 w-4 text-slate-600" />
-              <span>Staff Sign In</span>
+              <span>Sign In</span>
             </Link>
             <Button
               asChild

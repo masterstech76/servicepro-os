@@ -38,11 +38,14 @@ export async function POST(
     note?: string;
   };
 
+  const actorRole: "owner" | "technician" =
+    auth.actor.role === "technician" ? "technician" : "owner";
+
   const res = await transitionJobState({
     jobId: params.id,
     toStatus: body.toStatus,
-    actor: body.actor ?? auth.actor.role,
-    actorLabel: body.actor ?? auth.actor.role,
+    actor: body.actor ?? actorRole,
+    actorLabel: body.actor ?? actorRole,
     note: body.note,
   });
 
