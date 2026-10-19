@@ -29,7 +29,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-slate-800 bg-[#0F172A] text-slate-300 pt-10 pb-8 px-4 sm:px-6 text-sm">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-10">
         {/* Brand Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
           <div className="flex items-center gap-2.5 font-heading font-black text-xl text-white">
@@ -53,7 +53,40 @@ export function Footer() {
           </div>
         </div>
 
-        {/* The 4 Category Columns Requested */}
+        {/* LAYER 1: TRUST CARDS STRIP (3 Cards) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+            <div className="h-10 w-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20">
+              <span className="font-bold text-sm">4.9★</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-white">Top-Rated Service</div>
+              <div className="text-[11px] text-slate-400">1,200+ Verified Homeowner Reviews</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+            <div className="h-10 w-10 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-white">Licensed &amp; Insured</div>
+              <div className="text-[11px] text-slate-400">State Mechanical Lic #{businessConfig.licenseNumber}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+            <div className="h-10 w-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+              <span className="font-black text-xs">100%</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-white">Service Guarantee</div>
+              <div className="text-[11px] text-slate-400">Fixed Right or 100% Diagnostic Refund</div>
+            </div>
+          </div>
+        </div>
+
+        {/* LAYER 2: The 4 Category Columns */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800">
           {/* Category 1: Company */}
           <div className="space-y-3">
