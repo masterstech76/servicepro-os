@@ -129,10 +129,10 @@ END:VCALENDAR`;
             Dispatch Queue Confirmed
           </span>
           <h1 className="font-heading text-2xl sm:text-3xl font-black text-navy-950 tracking-tight">
-            You're Confirmed!
+            You&apos;re Confirmed!
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-sm">
-            Work order has been created and staged on today's Miami dispatch board.
+            Work order has been created and staged on today&apos;s Miami dispatch board.
           </p>
         </div>
 

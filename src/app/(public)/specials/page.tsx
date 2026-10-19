@@ -156,7 +156,7 @@ export default function SpecialsPage() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
                 <Flame className="h-3.5 w-3.5 fill-orange-400 text-orange-400" />
-                <span>Today's Verified HVAC Deals &amp; Instant Coupons</span>
+                <span>Today&apos;s Verified HVAC Deals &amp; Instant Coupons</span>
               </div>
               <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight">
                 Amazon-Style Savings on Professional Service

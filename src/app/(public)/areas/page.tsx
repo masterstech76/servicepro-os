@@ -373,7 +373,7 @@ export default function ServiceAreasHubPage() {
 
           <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-400">
             <span>
-              Don't see your postal code? Call our 24/7 central office for surrounding territory dispatch:
+              Don&apos;t see your postal code? Call our 24/7 central office for surrounding territory dispatch:
             </span>
             <a
               href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}

@@ -239,7 +239,7 @@ export default function TermsPage() {
               <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 text-xs font-mono">
                 <p>State Mechanical License: #{businessConfig.licenseNumber}</p>
                 <p>Commercial General Liability: $2,000,000 Aggregate Coverage</p>
-                <p>Workers' Compensation: Active State Compliance</p>
+                <p>Workers&apos; Compensation: Active State Compliance</p>
               </div>
             </section>
 
