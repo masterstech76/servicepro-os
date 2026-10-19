@@ -22,13 +22,13 @@ export async function POST(request: Request) {
   const role = body.role ?? "owner";
   response.cookies.set("servicepro_dev_role", role, {
     path: "/",
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
   });
   response.cookies.set("sp_demo_role", role, {
     path: "/",
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
   });
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   if (body.technicianId) {
     response.cookies.set("sp_demo_tech_id", body.technicianId, {
       path: "/",
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
     });
