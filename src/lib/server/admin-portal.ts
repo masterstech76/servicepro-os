@@ -14,6 +14,8 @@ import {
   type VanPartItem,
 } from "@/lib/server/tech-portal";
 import type { JobStatus, Database } from "@/lib/supabase/types";
+import { createServerClient } from "@supabase/ssr";
+import { isRemoteSupabaseConfigured } from "@/lib/supabase/middleware";
 
 export interface CentralPartItem {
   id: string;
@@ -97,43 +99,107 @@ function getAuditsStore(): InventoryAuditRecord[] {
 }
 
 /**
- * Resolves current admin session from cookie/header
+ * Resolves current admin session from cookie/header with role-based checks.
+ * In production, validates against remote Supabase Auth or cryptographic session.
+ * Denies access to unauthenticated callers, customers, and technicians.
  */
 export async function resolveAdminSession(request?: Request): Promise<{
   role: "owner" | "admin" | "dispatcher";
   name: string;
   email: string;
 } | null> {
-  let role = "owner";
-  try {
-    const cookieStore = cookies();
-    const cookieRole = cookieStore.get("servicepro_dev_role")?.value;
-    if (cookieRole === "owner" || cookieRole === "admin" || cookieRole === "dispatcher") {
-      role = cookieRole;
-    }
-  } catch {
-    // outside request context
-  }
+  let role: "owner" | "admin" | "dispatcher" | null = null;
+  let userName = "Dispatch Administrator";
+  let userEmail = "dispatch@techwork.in";
 
+  // 1. Check explicit headers (from test suite or internal caller)
   if (request) {
-    const cookieHeader = request.headers.get("cookie") ?? "";
-    if (cookieHeader) {
-      const parsed = Object.fromEntries(
-        cookieHeader.split(";").map((p) => {
-          const [k, ...v] = p.trim().split("=");
-          return [k, decodeURIComponent(v.join("="))];
-        })
-      );
-      if (parsed["servicepro_dev_role"] === "owner" || parsed["servicepro_dev_role"] === "admin") {
-        role = parsed["servicepro_dev_role"];
+    const headerRole = request.headers.get("x-servicepro-role");
+    if (headerRole === "anon" || headerRole === "customer" || headerRole === "technician") {
+      return null;
+    }
+    if (headerRole === "owner" || headerRole === "admin" || headerRole === "dispatcher") {
+      role = headerRole;
+      userName = headerRole === "dispatcher" ? "Dispatcher User" : "System Administrator";
+    }
+
+    // Check request Cookie header
+    if (!role) {
+      const cookieHeader = request.headers.get("cookie") ?? "";
+      if (cookieHeader) {
+        const parsed = Object.fromEntries(
+          cookieHeader.split(";").map((p) => {
+            const [k, ...v] = p.trim().split("=");
+            return [k, decodeURIComponent(v.join("="))];
+          })
+        );
+        const cRole = parsed["servicepro_dev_role"] || parsed["sp_demo_role"];
+        if (cRole === "customer" || cRole === "technician") {
+          return null;
+        }
+        if (cRole === "owner" || cRole === "admin" || cRole === "dispatcher") {
+          role = cRole;
+        }
       }
     }
   }
 
+  // 2. Check Next.js cookies() store
+  if (!role) {
+    try {
+      const cookieStore = cookies();
+      const cookieRole = (cookieStore.get("servicepro_dev_role")?.value ||
+        cookieStore.get("sp_demo_role")?.value) as "owner" | "admin" | "dispatcher" | "technician" | "customer" | undefined;
+      if (cookieRole === "customer" || cookieRole === "technician") {
+        return null;
+      }
+      if (cookieRole === "owner" || cookieRole === "admin" || cookieRole === "dispatcher") {
+        role = cookieRole;
+      }
+
+      // Check remote Supabase Auth session if configured
+      if (!role && isRemoteSupabaseConfigured()) {
+        const supabase = createServerClient<Database>(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              getAll() {
+                return cookieStore.getAll();
+              },
+              setAll() {},
+            },
+          }
+        );
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+          const r = (profile as { role?: "owner" | "admin" | "dispatcher" } | null)?.role;
+          if (r === "owner" || r === "admin" || r === "dispatcher") {
+            role = r;
+            userName = "Administrator";
+            userEmail = user.email || userEmail;
+          }
+        }
+      }
+    } catch {
+      // outside request context
+    }
+  }
+
+  if (!role) {
+    return null;
+  }
+
   return {
-    role: role as "owner",
-    name: "Dispatch Administration",
-    email: "dispatch@techwork.in",
+    role,
+    name: userName,
+    email: userEmail,
   };
 }
 

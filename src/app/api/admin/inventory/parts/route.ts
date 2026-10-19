@@ -45,9 +45,16 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
+    const qty =
+      body.adjustmentQuantity !== undefined
+        ? Number(body.adjustmentQuantity)
+        : body.adjustment !== undefined
+        ? Number(body.adjustment)
+        : 0;
+
     const res = adjustCentralInventoryStock({
       partId: body.partId,
-      adjustmentQuantity: Number(body.adjustmentQuantity) || 0,
+      adjustmentQuantity: qty,
       reason: body.reason,
       actor: session.name,
     });

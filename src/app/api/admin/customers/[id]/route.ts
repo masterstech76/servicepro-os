@@ -52,13 +52,67 @@ export async function PATCH(
       );
     }
 
-    if (body.name) customer.name = String(body.name).trim();
-    if (body.phone) customer.phone = String(body.phone).trim();
-    if (body.email !== undefined) customer.email = body.email ? String(body.email).trim() : "";
-    if (body.smsOptOut !== undefined) customer.sms_opt_out = Boolean(body.smsOptOut);
+    if (body.name !== undefined) {
+      const name = String(body.name).trim();
+      if (!name) {
+        return NextResponse.json(
+          { error: { code: "INVALID_INPUT", message: "Customer name cannot be empty" } },
+          { status: 400 }
+        );
+      }
+      customer.name = name;
+    }
+
+    if (body.phone !== undefined) {
+      const digits = String(body.phone).replace(/\D/g, "");
+      if (digits.length < 10) {
+        return NextResponse.json(
+          { error: { code: "INVALID_INPUT", message: "A valid 10-digit phone number is required" } },
+          { status: 400 }
+        );
+      }
+      customer.phone = String(body.phone).trim();
+    }
+
+    if (body.email !== undefined && body.email) {
+      const email = String(body.email).trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return NextResponse.json(
+          { error: { code: "INVALID_INPUT", message: "Invalid email address format" } },
+          { status: 400 }
+        );
+      }
+      customer.email = email;
+    } else if (body.email === "") {
+      customer.email = "";
+    }
+
+    if (body.smsOptOut !== undefined) {
+      customer.sms_opt_out = Boolean(body.smsOptOut);
+    }
+
+    // Record immutable audit event
+    const evtId = `evt_cust_update_${Date.now()}`;
+    store.job_events.set(evtId, {
+      id: evtId,
+      business_id: customer.business_id,
+      job_id: "",
+      actor_id: session.role,
+      actor_label: `${session.name} (${session.role})`,
+      event_type: "customer_updated",
+      from_status: null,
+      to_status: null,
+      meta: {
+        customerId: customer.id,
+        updatedFields: Object.keys(body),
+        timestamp: new Date().toISOString(),
+      },
+      created_at: new Date().toISOString(),
+    });
 
     const detail = getAdminCustomerDetail(params.id);
-    return NextResponse.json({ ok: true, customer: detail });
+    return NextResponse.json({ ok: true, customer: detail?.customer, detail });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Bad request";
     return NextResponse.json(
