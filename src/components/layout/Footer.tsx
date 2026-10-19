@@ -9,12 +9,19 @@ import { businessConfig } from "@config/business.config";
 export function Footer() {
   const pathname = usePathname();
 
-  // Hide global footer on dashboard, tech portal, and login screens
-  if (
+  // Hide global footer on dashboard, tech portal, and all auth pages
+  const isAuthPage =
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/tech") ||
-    pathname?.startsWith("/login")
-  ) {
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/register") ||
+    pathname?.startsWith("/forgot-password") ||
+    pathname?.startsWith("/reset-password") ||
+    pathname?.startsWith("/verify-email") ||
+    pathname?.startsWith("/verify-phone") ||
+    pathname?.startsWith("/unauthorized");
+
+  if (isAuthPage) {
     return null;
   }
 

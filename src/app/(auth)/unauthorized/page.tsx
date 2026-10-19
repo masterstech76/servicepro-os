@@ -147,7 +147,7 @@ function UnauthorizedContent() {
 
 export default function UnauthorizedPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <main className="w-full flex justify-center">
       <React.Suspense
         fallback={
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-600">

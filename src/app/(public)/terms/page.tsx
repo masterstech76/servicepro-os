@@ -44,7 +44,7 @@ export default function TermsPage() {
         <div id="guarantee" className="space-y-3 scroll-mt-24">
           <h2 className="font-heading text-xl font-bold text-[#0F172A]">3. Service Guarantee &amp; 1-Year Workmanship Warranty</h2>
           <p>
-            All residential replacement parts and labor performed by our licensed technicians are backed by our 30-day "Fixed Right" guarantee and 1-year limited workmanship warranty. If an issue recurs within the warranty window, we return promptly at zero additional dispatch cost.
+            All residential replacement parts and labor performed by our licensed technicians are backed by our 30-day &ldquo;Fixed Right&rdquo; guarantee and 1-year limited workmanship warranty. If an issue recurs within the warranty window, we return promptly at zero additional dispatch cost.
           </p>
         </div>
 

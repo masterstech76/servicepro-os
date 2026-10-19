@@ -478,7 +478,7 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-50 p-4 sm:p-6">
+    <main className="w-full flex justify-center">
       <React.Suspense
         fallback={
           <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-7 text-center text-sm font-semibold text-slate-600">
