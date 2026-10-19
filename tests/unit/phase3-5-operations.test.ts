@@ -15,6 +15,9 @@ import {
 import { acePlumbingAustinConfig } from "@config/examples/ace-plumbing-austin";
 import { businessConfigSchema } from "@config/business.schema";
 import { processStripeWebhookEvent } from "@/lib/server/stripe-webhook";
+import { chargeCustomerOffSession } from "@/lib/server/stripe";
+import { maskPhoneForLogs } from "@/lib/server/sms";
+import { GET as getJobByIdRoute } from "@/app/api/jobs/[id]/route";
 import { getLocalDb, rpcHoldSlot } from "@/lib/server/local-db-fallback";
 import { fromZonedTime } from "date-fns-tz";
 
@@ -278,6 +281,67 @@ describe("Phases 3, 4 & 5 — Full-Stack Server Operations & White-Label Config"
       },
     });
     expect(invalidContrast.success).toBe(false);
+  });
+
+  it("enforces API RBAC (anon 401, other tech 403, assigned tech 200, owner 200), 3DS off-session fallback, and PII masking", async () => {
+    const board = getDispatchBoardData();
+    const carlosJob = board.jobs.find((j) => j.technician?.id === "tech-carlos")!;
+    expect(carlosJob).toBeDefined();
+
+    // 1. Anon cannot fetch job via API -> 401
+    const anonRes = await getJobByIdRoute(
+      new Request(`http://localhost:3000/api/jobs/${carlosJob.id}`, {
+        headers: { "x-servicepro-role": "anon" },
+      }),
+      { params: { id: carlosJob.id } }
+    );
+    expect(anonRes.status).toBe(401);
+
+    // 2. Technician Danny cannot fetch Carlos's job via API -> 403
+    const otherTechRes = await getJobByIdRoute(
+      new Request(`http://localhost:3000/api/jobs/${carlosJob.id}`, {
+        headers: {
+          "x-servicepro-role": "technician",
+          "x-servicepro-tech-id": "tech-danny",
+        },
+      }),
+      { params: { id: carlosJob.id } }
+    );
+    expect(otherTechRes.status).toBe(403);
+
+    // 3. Assigned Technician Carlos can fetch his own job -> 200
+    const ownTechRes = await getJobByIdRoute(
+      new Request(`http://localhost:3000/api/jobs/${carlosJob.id}`, {
+        headers: {
+          "x-servicepro-role": "technician",
+          "x-servicepro-tech-id": "tech-carlos",
+        },
+      }),
+      { params: { id: carlosJob.id } }
+    );
+    expect(ownTechRes.status).toBe(200);
+
+    // 4. Owner can fetch any job -> 200
+    const ownerRes = await getJobByIdRoute(
+      new Request(`http://localhost:3000/api/jobs/${carlosJob.id}`, {
+        headers: { "x-servicepro-role": "owner" },
+      }),
+      { params: { id: carlosJob.id } }
+    );
+    expect(ownerRes.status).toBe(200);
+
+    // 5. Off-session charge requiring authentication returns { fallback: "link" }
+    const authReqRes = await chargeCustomerOffSession({
+      jobId: carlosJob.id,
+      invoiceId: "inv_test_3ds",
+      amountCents: 12500,
+      simulateAuthRequired: true,
+    });
+    expect(authReqRes.status).toBe("requires_action");
+    expect(authReqRes.fallback).toBe("link");
+
+    // 6. Phone PII masking hides middle digits
+    expect(maskPhoneForLogs("+13055550142")).toBe("+1305***0142");
   });
 });
 

@@ -1,7 +1,8 @@
 import "server-only";
+import twilio from "twilio";
 import { businessConfig } from "@config/business.config";
 import type { SmsTemplate } from "@/lib/supabase/types";
-import { getLocalDb } from "@/lib/server/local-db-fallback";
+import { getLocalDb, saveLocalDbToDisk } from "@/lib/server/local-db-fallback";
 
 export interface SendSmsInput {
   to: string;
@@ -17,6 +18,12 @@ export interface SendSmsResult {
   provider: "twilio" | "console";
   providerSid: string | null;
   body: string;
+}
+
+export function maskPhoneForLogs(phone: string): string {
+  const digits = phone.replace(/[^\d+]/g, "");
+  if (digits.length < 7) return "***";
+  return `${digits.slice(0, 5)}***${digits.slice(-4)}`;
 }
 
 /**
@@ -48,14 +55,32 @@ export function renderSmsTemplate(
   }
 }
 
+export function verifyTwilioWebhookSignature(params: {
+  signature: string | null;
+  url: string;
+  formParams: Record<string, string>;
+}): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN ?? "";
+  if (!authToken || authToken.includes("placeholder") || process.env.NODE_ENV !== "production") {
+    return true;
+  }
+  if (!params.signature) {
+    return false;
+  }
+  return twilio.validateRequest(authToken, params.signature, params.url, params.formParams);
+}
+
 export async function sendServiceSms(input: SendSmsInput): Promise<SendSmsResult> {
   const db = getLocalDb();
   const biz = Array.from(db.businesses.values())[0];
   const body = renderSmsTemplate(input.template, input.vars);
-  const driver =
-    process.env.SMS_DRIVER === "twilio" && process.env.TWILIO_ACCOUNT_SID
-      ? "twilio"
-      : "console";
+  const isRealTwilio =
+    process.env.SMS_DRIVER === "twilio" &&
+    Boolean(process.env.TWILIO_ACCOUNT_SID?.startsWith("AC")) &&
+    Boolean(process.env.TWILIO_AUTH_TOKEN) &&
+    Boolean(process.env.TWILIO_FROM_NUMBER);
+
+  const driver: "twilio" | "console" = isRealTwilio ? "twilio" : "console";
 
   // Check opt-out on customer
   const cust = input.customerId
@@ -72,7 +97,38 @@ export async function sendServiceSms(input: SendSmsInput): Promise<SendSmsResult
     };
   }
 
-  const providerSid = `${driver}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  let providerSid = `${driver}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  let status = "delivered";
+  let errorMsg: string | null = null;
+
+  if (isRealTwilio) {
+    try {
+      const client = twilio(
+        process.env.TWILIO_ACCOUNT_SID!,
+        process.env.TWILIO_AUTH_TOKEN!
+      );
+      const statusCallbackUrl = process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/api/sms/status`
+        : undefined;
+      const msg = await client.messages.create({
+        to: input.to,
+        from: process.env.TWILIO_FROM_NUMBER!,
+        body,
+        statusCallback: statusCallbackUrl,
+      });
+      providerSid = msg.sid;
+      status = msg.status ?? "sent";
+    } catch (err) {
+      status = "failed";
+      errorMsg = err instanceof Error ? err.message : "Twilio send error";
+    }
+  } else if (process.env.NODE_ENV !== "test") {
+    // Log with masked phone number (no raw PII in console)
+    console.info(
+      `[sms:${driver}] template=${input.template} to=${maskPhoneForLogs(input.to)} sid=${providerSid}`
+    );
+  }
+
   const logId = `sms_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
   db.sms_log.set(logId, {
@@ -85,8 +141,8 @@ export async function sendServiceSms(input: SendSmsInput): Promise<SendSmsResult
     body,
     provider: driver,
     provider_sid: providerSid,
-    status: "delivered",
-    error: null,
+    status,
+    error: errorMsg,
     created_at: new Date().toISOString(),
   });
 
@@ -98,16 +154,24 @@ export async function sendServiceSms(input: SendSmsInput): Promise<SendSmsResult
       job_id: input.jobId,
       actor_id: null,
       actor_label: "system",
-      event_type: "sms",
+      event_type: `sms_${input.template}`,
       from_status: null,
       to_status: null,
-      meta: { template: input.template, provider: driver, to: "***" + input.to.slice(-4) },
+      meta: {
+        template: input.template,
+        to_masked: maskPhoneForLogs(input.to),
+        provider: driver,
+        provider_sid: providerSid,
+        status,
+      },
       created_at: new Date().toISOString(),
     });
   }
 
+  saveLocalDbToDisk(db);
+
   return {
-    sent: true,
+    sent: status !== "failed",
     provider: driver,
     providerSid,
     body,

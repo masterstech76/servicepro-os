@@ -1,7 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { BarChart3, Download, TrendingUp } from "lucide-react";
+import { BarChart3, Calendar, Download, TrendingUp } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/shared/Money";
 
@@ -33,20 +43,29 @@ interface ReportResponse {
 }
 
 export default function AdminReportsPage() {
-  const [groupBy, setGroupBy] = React.useState<"tech" | "service" | "day">("tech");
+  const [groupBy, setGroupBy] = React.useState<"tech" | "service" | "day">(
+    "tech"
+  );
+  const [fromDate, setFromDate] = React.useState<string>("");
+  const [toDate, setToDate] = React.useState<string>("");
   const [report, setReport] = React.useState<ReportResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   const loadReport = React.useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/reports/revenue?groupBy=${groupBy}`);
+      const qs = new URLSearchParams({ groupBy });
+      if (fromDate) qs.set("from", fromDate);
+      if (toDate) qs.set("to", toDate);
+      const res = await fetch(`/api/reports/revenue?${qs.toString()}`);
       const data = (await res.json()) as ReportResponse;
       setReport(data);
+      if (!fromDate && data.fromDate) setFromDate(data.fromDate);
+      if (!toDate && data.toDate) setToDate(data.toDate);
     } finally {
       setLoading(false);
     }
-  }, [groupBy]);
+  }, [groupBy, fromDate, toDate]);
 
   React.useEffect(() => {
     void loadReport();
@@ -72,7 +91,9 @@ export default function AdminReportsPage() {
       (r.netCents / 100).toFixed(2),
       (r.commissionCents / 100).toFixed(2),
     ]);
-    const csv = [headers.join(","), ...lines.map((l) => l.join(","))].join("\n");
+    const csv = [headers.join(","), ...lines.map((l) => l.join(","))].join(
+      "\n"
+    );
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -86,19 +107,52 @@ export default function AdminReportsPage() {
     ...(report?.rows.map((r) => r.grossCents) ?? [1])
   );
 
+  const chartData = React.useMemo(
+    () =>
+      (report?.rows ?? []).map((r) => ({
+        name: r.groupLabel,
+        grossDollars: Number((r.grossCents / 100).toFixed(2)),
+        netDollars: Number((r.netCents / 100).toFixed(2)),
+        commissionDollars: Number((r.commissionCents / 100).toFixed(2)),
+        tipsDollars: Number((r.tipsCents / 100).toFixed(2)),
+      })),
+    [report]
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-navy-900">
             Revenue & Commission Reports
           </h1>
           <p className="text-xs text-navy-700">
-            Last 14 days financial performance ({report?.fromDate} → {report?.toDate})
+            Financial performance, technician commissions (labor-only), and tip
+            pass-through ({report?.fromDate} → {report?.toDate})
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Date Range Picker */}
+          <div className="inline-flex items-center gap-1.5 rounded-input border border-slate-300 bg-white px-2.5 py-1.5 text-xs">
+            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+            <input
+              type="date"
+              aria-label="Report start date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="bg-transparent font-medium text-navy-900 focus:outline-none"
+            />
+            <span className="text-slate-400">to</span>
+            <input
+              type="date"
+              aria-label="Report end date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="bg-transparent font-medium text-navy-900 focus:outline-none"
+            />
+          </div>
+
           <div
             role="group"
             aria-label="Report grouping"
@@ -181,7 +235,9 @@ export default function AdminReportsPage() {
               <p className="text-2xl font-bold text-navy-900 mt-1">
                 <Money cents={report.summary.avgTicketCents} />
               </p>
-              <span className="text-[11px] text-navy-700">Per completed job</span>
+              <span className="text-[11px] text-navy-700">
+                Per completed job
+              </span>
             </div>
 
             <div className="rounded-card border border-slate-200 bg-white p-4 shadow-sm">
@@ -191,7 +247,9 @@ export default function AdminReportsPage() {
               <p className="text-2xl font-bold text-emerald-700 mt-1">
                 <Money cents={report.summary.tipsCents} />
               </p>
-              <span className="text-[11px] text-navy-700">100% pass-through</span>
+              <span className="text-[11px] text-navy-700">
+                100% pass-through
+              </span>
             </div>
 
             <div className="col-span-2 lg:col-span-1 rounded-card border border-slate-200 bg-white p-4 shadow-sm">
@@ -201,24 +259,67 @@ export default function AdminReportsPage() {
               <p className="text-2xl font-bold text-navy-900 mt-1">
                 <Money cents={report.summary.commissionCents} />
               </p>
-              <span className="text-[11px] text-navy-700">Earned on pre-tip subtotal</span>
+              <span className="text-[11px] text-navy-700">
+                Earned on labor only
+              </span>
             </div>
           </section>
 
-          {/* Visual Bar Chart Breakdown */}
-          <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+          {/* Interactive Recharts Financial Visualization + Progress Breakdown */}
+          <section className="rounded-card border border-slate-200 bg-white p-5 shadow-sm space-y-5">
             <h2 className="text-base font-bold text-navy-900 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-orange-600" />
-              Visual Revenue Breakdown (
+              Visual Revenue & Commission Chart (
               {groupBy === "tech"
                 ? "By Technician"
                 : groupBy === "service"
-                ? "By Service"
-                : "Daily Trend"}
+                  ? "By Service"
+                  : "Daily Trend"}
               )
             </h2>
 
-            <div className="space-y-3">
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 8, right: 16, left: 0, bottom: 8 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fontSize: 11, fill: "#334155" }}
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `$${v}`}
+                    tick={{ fontSize: 11, fill: "#334155" }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [`$${value.toFixed(2)}`, ""]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  <Bar
+                    dataKey="grossDollars"
+                    name="Gross Revenue ($)"
+                    fill="#F97316"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="commissionDollars"
+                    name="Tech Commission ($)"
+                    fill="#0F172A"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="tipsDollars"
+                    name="Customer Tips ($)"
+                    fill="#059669"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="space-y-3 pt-3 border-t border-slate-100">
               {report.rows.map((row) => {
                 const widthPct = Math.max(
                   6,
@@ -237,7 +338,7 @@ export default function AdminReportsPage() {
                         <Money cents={row.grossCents} />
                       </span>
                     </div>
-                    <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-orange-500 transition-all"
                         style={{ width: `${widthPct}%` }}
@@ -265,8 +366,8 @@ export default function AdminReportsPage() {
                       {groupBy === "tech"
                         ? "Technician"
                         : groupBy === "service"
-                        ? "Service"
-                        : "Date"}
+                          ? "Service"
+                          : "Date"}
                     </th>
                     <th className="px-4 py-3 text-right">Jobs</th>
                     <th className="px-4 py-3 text-right">Gross Revenue</th>

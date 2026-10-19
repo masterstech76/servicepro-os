@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Snowflake } from "lucide-react";
+import { LogOut, ShieldCheck, Snowflake } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 
 export default function TechLayout({
@@ -21,6 +21,17 @@ export default function TechLayout({
     });
     document.cookie = "servicepro_dev_role=owner; path=/; max-age=86400";
     router.push("/admin/dispatch");
+  }
+
+  async function handleSignOut() {
+    await fetch("/api/auth/demo-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "clear" }),
+    });
+    document.cookie = "servicepro_dev_role=; path=/; max-age=0";
+    document.cookie = "sp_demo_role=; path=/; max-age=0";
+    router.push("/login");
   }
 
   return (
@@ -41,14 +52,24 @@ export default function TechLayout({
             </div>
           </Link>
 
-          <button
-            type="button"
-            onClick={switchToOwnerAdmin}
-            className="inline-flex items-center gap-1 rounded-input bg-navy-800 border border-slate-700 px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
-          >
-            <ShieldCheck className="h-3.5 w-3.5 text-orange-400" />
-            Dispatch
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={switchToOwnerAdmin}
+              className="inline-flex items-center gap-1 rounded-input bg-navy-800 border border-slate-700 px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-orange-400" />
+              Dispatch
+            </button>
+            <button
+              type="button"
+              aria-label="Sign out"
+              onClick={handleSignOut}
+              className="inline-flex items-center justify-center rounded-input bg-navy-800 border border-slate-700 p-1.5 text-slate-300 hover:text-white"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </header>
 

@@ -49,3 +49,17 @@
 | 4 | Customer Hosted Payment Link (`/pay/[token]`) with itemized invoice, deposit credit, tip presets, and instant receipt | **PASS** | Implemented in `src/app/(public)/pay/[token]/page.tsx` and `/api/invoices/public/[token]`, verified in `tests/e2e/dispatch-tech-pay-phase3-5.spec.ts` (Test 3). |
 | 5 | Revenue & Commission Reports (`/admin/reports`) by Technician, Service, and Day with CSV export | **PASS** | Implemented in `src/app/(admin)/admin/reports/page.tsx` and `/api/reports/revenue`, verified in unit & E2E suites. |
 | 6 | White-Label Example (`config/examples/ace-plumbing-austin.ts`), `pnpm seed:demo`, and Interactive `/demo` Hub | **PASS** | Implemented and verified via `pnpm seed:demo`, `tests/unit/phase3-5-operations.test.ts`, and `tests/e2e/dispatch-tech-pay-phase3-5.spec.ts`. |
+
+---
+
+## Production-Ready Hardening & Verification Checklist
+
+| # | Production Requirement | Status | Evidence |
+|---|---|---|---|
+| 1 | Server API RBAC & Technician Job-Ownership Enforcement (`401`/`403`) | **PASS** | `src/lib/server/auth-guard.ts` (`resolveRequestActor`, `requireRole`) wired across `/api/jobs/[id]`, `/api/jobs/[id]/status`, and `/api/dispatch/board`. Verified in `tests/unit/phase3-5-operations.test.ts` (Test 5: unauthenticated returns `401`, wrong technician returns `403`, assigned technician returns `200`). |
+| 2 | Official Stripe SDK Integration & Webhook Verification | **PASS** | `src/lib/server/stripe.ts` & `src/lib/server/stripe-webhook.ts` (`createDepositPaymentIntent`, `chargeCustomerOffSession` with SCA `authentication_required` fallback to payment link, `issueStripeRefund`, `/api/stripe/webhook`, `/api/stripe/pay-link-intent`, `/api/stripe/refund`, `/api/payments/record`). |
+| 3 | Official Twilio SDK + Webhook Signature Validation + PII Masking | **PASS** | `src/lib/server/sms/index.ts` (`twilio(accountSid, authToken).messages.create`, `twilio.validateRequest` on `X-Twilio-Signature` in `/api/sms/inbound` & `/api/sms/status`, `maskPhoneForLogs` masking E.164 phone numbers in logs). Verified in `tests/unit/phase3-5-operations.test.ts` (Test 6). |
+| 4 | Interactive Drag-and-Drop Dispatch Board (`@dnd-kit/core`) & Calendar (`@fullcalendar/react`) | **PASS** | `src/app/(admin)/admin/dispatch/page.tsx` supports dragging cards onto Technician Rail drop targets and Kanban columns with `aria-live="assertive"` screen-reader announcements, date navigation (`Prev Day`, `Today`, `Next Day`), 15s live polling, and FullCalendar `timeGridDay` with `eventDrop` rescheduling. |
+| 5 | Interactive Revenue Charts (`recharts`) & Date-Range Filtering | **PASS** | `src/app/(admin)/admin/reports/page.tsx` renders daily collected revenue vs deposits bar chart via `recharts` (`ResponsiveContainer`, `BarChart`), date range filtering (`fromDate`/`toDate`), and CSV export. |
+| 6 | CI/CD, Vercel Cron, Health Diagnostics, SEO, & Handover Docs | **PASS** | `.github/workflows/ci.yml`, `vercel.json`, `.env.example`, `/api/health`, `src/app/robots.ts`, `src/app/sitemap.ts`, `docs/ONBOARDING.md`, `docs/HANDOVER.md`, `docs/CLIENT_QUICKSTART.md`, and `docs/DEFERRED.md`. |
+

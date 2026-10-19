@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLocalDbWithDemo } from "@/lib/server/demo-dataset";
+import { saveLocalDbToDisk } from "@/lib/server/local-db-fallback";
+import { verifyTwilioWebhookSignature } from "@/lib/server/sms";
 
 const OPT_OUT_WORDS = new Set(["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"]);
 const OPT_IN_WORDS = new Set(["START", "YES", "UNSTOP"]);
@@ -8,16 +10,37 @@ export async function POST(req: NextRequest) {
   try {
     let from = "";
     let body = "";
+    const formParams: Record<string, string> = {};
 
     const contentType = req.headers.get("content-type") ?? "";
     if (contentType.includes("application/json")) {
       const json = await req.json();
       from = String(json.From ?? json.from ?? "");
       body = String(json.Body ?? json.body ?? "");
+      for (const [k, v] of Object.entries(json)) {
+        formParams[k] = String(v ?? "");
+      }
     } else {
       const formData = await req.formData();
+      formData.forEach((v, k) => {
+        formParams[k] = String(v);
+      });
       from = String(formData.get("From") ?? "");
       body = String(formData.get("Body") ?? "");
+    }
+
+    const signature = req.headers.get("x-twilio-signature");
+    const isValidSig = verifyTwilioWebhookSignature({
+      signature,
+      url: req.url,
+      formParams,
+    });
+
+    if (!isValidSig) {
+      return NextResponse.json(
+        { error: { code: "INVALID_SIGNATURE", message: "Invalid X-Twilio-Signature." } },
+        { status: 403 }
+      );
     }
 
     const normalizedKeyword = body.trim().toUpperCase();
@@ -43,6 +66,10 @@ export async function POST(req: NextRequest) {
           action = "opt_in";
         }
       }
+    }
+
+    if (updatedCount > 0) {
+      saveLocalDbToDisk(store);
     }
 
     return NextResponse.json({

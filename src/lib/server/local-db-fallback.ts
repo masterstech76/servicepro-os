@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { addMinutes, addDays } from "date-fns";
 import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { businessConfig } from "@config/business.config";
@@ -49,6 +52,37 @@ export interface LocalDbStore {
 }
 
 const globalForDb = globalThis as unknown as { __serviceProLocalDb?: LocalDbStore };
+
+const PERSIST_FILE = path.join(os.tmpdir(), `servicepro-os-${businessConfig.slug}-db.json`);
+
+export function saveLocalDbToDisk(store = getLocalDb()): void {
+  if (process.env.VITEST || process.env.NODE_ENV === "test") return;
+  try {
+    const snapshot = {
+      jobSequence: store.jobSequence,
+      businesses: Array.from(store.businesses.entries()),
+      service_areas: Array.from(store.service_areas.entries()),
+      business_hours: Array.from(store.business_hours.entries()),
+      business_closures: Array.from(store.business_closures.entries()),
+      services: Array.from(store.services.entries()),
+      technicians: Array.from(store.technicians.entries()),
+      technician_hours: Array.from(store.technician_hours.entries()),
+      technician_time_off: Array.from(store.technician_time_off.entries()),
+      customers: Array.from(store.customers.entries()),
+      jobs: Array.from(store.jobs.entries()),
+      invoices: Array.from(store.invoices.entries()),
+      invoice_line_items: Array.from(store.invoice_line_items.entries()),
+      payments: Array.from(store.payments.entries()),
+      slot_holds: Array.from(store.slot_holds.entries()),
+      job_events: Array.from(store.job_events.entries()),
+      sms_log: Array.from(store.sms_log.entries()),
+      stripe_events: Array.from(store.stripe_events.entries()),
+    };
+    fs.writeFileSync(PERSIST_FILE, JSON.stringify(snapshot), "utf8");
+  } catch {
+    // Ignore transient disk write errors
+  }
+}
 
 function createInitialStore(): LocalDbStore {
   const store: LocalDbStore = {

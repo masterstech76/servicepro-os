@@ -4,10 +4,14 @@ import type { Database, UserRole } from "./types";
 
 export function isRemoteSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
   return (
     url.startsWith("https://") &&
-    !url.includes("placeholder-project.supabase.co") &&
-    !url.includes("your-project-ref.supabase.co")
+    !url.includes("placeholder") &&
+    !url.includes("your-project") &&
+    !url.includes("example") &&
+    anonKey.length > 40 &&
+    !anonKey.endsWith("...")
   );
 }
 

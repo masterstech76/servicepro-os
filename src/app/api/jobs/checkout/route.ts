@@ -6,6 +6,7 @@ import { normalizeUSPhone } from "@/lib/domain/format";
 import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import { getLocalDb, getDbNow, DbException } from "@/lib/server/local-db-fallback";
 import { geocodeAddress } from "@/lib/server/mapbox";
+import { createDepositPaymentIntent } from "@/lib/server/stripe";
 import { handleRouteError } from "@/lib/server/api-errors";
 import { businessConfig } from "@config/business.config";
 
@@ -78,13 +79,23 @@ export async function POST(request: Request) {
         depositPctOverride: svcRow.deposit_pct_override,
       });
 
-      const paymentIntentId = `pi_fake_${holdRow.id}`;
-      const clientSecret = `${paymentIntentId}_secret_phase2`;
+      const intentRes = await createDepositPaymentIntent({
+        holdId: holdRow.id,
+        businessId: holdRow.business_id,
+        customerEmail: parsed.customer.email.toLowerCase(),
+        customerName: parsed.customer.name,
+        customerPhone: normalizedPhone,
+        depositCents: est.depositCents,
+      });
+
+      const paymentIntentId = intentRes.paymentIntentId;
+      const clientSecret = intentRes.clientSecret;
       const payload = {
         customer: {
           name: parsed.customer.name,
           phone: normalizedPhone,
           email: parsed.customer.email.toLowerCase(),
+          stripeCustomerId: intentRes.stripeCustomerId,
         },
         address: {
           ...parsed.address,
@@ -152,14 +163,24 @@ export async function POST(request: Request) {
       depositPctOverride: svc.deposit_pct_override,
     });
 
-    const paymentIntentId = `pi_fake_${hold.id}`;
-    const clientSecret = `${paymentIntentId}_secret_phase2`;
+    const intentRes = await createDepositPaymentIntent({
+      holdId: hold.id,
+      businessId: hold.business_id,
+      customerEmail: parsed.customer.email.toLowerCase(),
+      customerName: parsed.customer.name,
+      customerPhone: normalizedPhone,
+      depositCents: est.depositCents,
+    });
+
+    const paymentIntentId = intentRes.paymentIntentId;
+    const clientSecret = intentRes.clientSecret;
 
     hold.payload = {
       customer: {
         name: parsed.customer.name,
         phone: normalizedPhone,
         email: parsed.customer.email.toLowerCase(),
+        stripeCustomerId: intentRes.stripeCustomerId,
       },
       address: {
         ...parsed.address,
