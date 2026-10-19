@@ -22,8 +22,8 @@ export function Footer() {
   const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
 
   return (
-    <footer className="border-t border-slate-800 bg-[#0F172A] text-slate-300 pt-16 pb-16 px-4 sm:px-6 text-sm">
-      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
+    <footer className="border-t border-slate-800 bg-[#0F172A] text-slate-300 pt-10 pb-8 px-4 sm:px-6 text-sm">
+      <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800">
         {/* Col 1: Brand & License */}
         <div className="space-y-4">
           <div className="flex items-center gap-2.5 font-heading font-black text-xl text-white">
@@ -102,13 +102,13 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/services" className="hover:text-white transition-colors">
-                All Services &amp; Pricing
+              <Link href="/gallery" className="hover:text-white transition-colors">
+                Project Gallery
               </Link>
             </li>
             <li>
-              <Link href="/how-it-works" className="hover:text-white transition-colors">
-                How Online Booking Works
+              <Link href="/faq" className="hover:text-white transition-colors">
+                Frequently Asked Questions
               </Link>
             </li>
             <li>
@@ -132,8 +132,8 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/login" className="hover:text-white transition-colors">
-                Staff Sign In
+              <Link href="/login" className="hover:text-white transition-colors font-semibold text-orange-400">
+                Staff &amp; Tech Sign In &rarr;
               </Link>
             </li>
           </ul>

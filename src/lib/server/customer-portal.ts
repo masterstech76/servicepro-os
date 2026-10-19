@@ -499,3 +499,181 @@ export function markAllCustomerNotificationsRead(customerId: string): number {
   }
   return count;
 }
+
+// ---------------------------------------------------------------------------
+// CUSTOMER REVIEWS
+// ---------------------------------------------------------------------------
+
+export interface CustomerReviewItem {
+  id: string;
+  customerId: string;
+  jobId: string;
+  jobNumber: number;
+  serviceName: string;
+  rating: number;
+  content: string;
+  status: "approved" | "pending" | "rejected";
+  createdAt: string;
+}
+
+const globalCustReviews = globalThis as unknown as { __spCustomerReviews?: Map<string, CustomerReviewItem> };
+if (!globalCustReviews.__spCustomerReviews) {
+  globalCustReviews.__spCustomerReviews = new Map([
+    [
+      "crev_1",
+      {
+        id: "crev_1",
+        customerId: "cust-1",
+        jobId: "job-1001",
+        jobNumber: 1001,
+        serviceName: "AC Repair & Diagnostic",
+        rating: 5,
+        content: "Carlos arrived within 30 minutes, diagnosed the dead capacitor immediately, and got our AC cooling fast. Highly recommend!",
+        status: "approved",
+        createdAt: "2026-10-14T12:00:00Z",
+      },
+    ],
+  ]);
+}
+
+export function getCustomerReviews(customerId: string): CustomerReviewItem[] {
+  const store = getLocalDbWithDemo();
+  const list: CustomerReviewItem[] = [];
+
+  for (const r of globalCustReviews.__spCustomerReviews!.values()) {
+    if (r.customerId === customerId) {
+      list.push(r);
+    }
+  }
+
+  return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function submitCustomerReview(
+  customerId: string,
+  params: { jobId: string; rating: number; content: string }
+): { ok: boolean; error?: string; review?: CustomerReviewItem } {
+  const store = getLocalDbWithDemo();
+  const job = store.jobs.get(params.jobId);
+
+  if (!job) {
+    return { ok: false, error: "Appointment record not found" };
+  }
+  if (job.customer_id !== customerId) {
+    return { ok: false, error: "You can only review appointments booked under your account" };
+  }
+  if (job.status !== "completed") {
+    return { ok: false, error: "Reviews can only be submitted after job completion" };
+  }
+  if (!params.rating || params.rating < 1 || params.rating > 5) {
+    return { ok: false, error: "Rating must be between 1 and 5 stars" };
+  }
+  if (!params.content || params.content.trim().length < 5) {
+    return { ok: false, error: "Review feedback must be at least 5 characters long" };
+  }
+
+  const service = store.services.get(job.service_id);
+  const id = `crev_${Date.now()}`;
+  const review: CustomerReviewItem = {
+    id,
+    customerId,
+    jobId: job.id,
+    jobNumber: job.job_number || 1000,
+    serviceName: service?.name || "HVAC Service",
+    rating: params.rating,
+    content: params.content.trim(),
+    status: "approved",
+    createdAt: new Date().toISOString(),
+  };
+
+  globalCustReviews.__spCustomerReviews!.set(id, review);
+  return { ok: true, review };
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOMER FAVORITES (SAVED SERVICES)
+// ---------------------------------------------------------------------------
+
+export interface CustomerFavoriteItem {
+  id: string;
+  customerId: string;
+  serviceId: string;
+  serviceName: string;
+  category: string;
+  priceCents: number;
+  durationMinutes: number;
+  savedAt: string;
+}
+
+const globalCustFavorites = globalThis as unknown as { __spCustomerFavorites?: Map<string, CustomerFavoriteItem> };
+if (!globalCustFavorites.__spCustomerFavorites) {
+  globalCustFavorites.__spCustomerFavorites = new Map([
+    [
+      "fav_1_svc-ac-tuneup",
+      {
+        id: "fav_1_svc-ac-tuneup",
+        customerId: "cust-1",
+        serviceId: "svc-ac-tuneup",
+        serviceName: "AC Tune-Up & 21-Point Inspection",
+        category: "Maintenance",
+        priceCents: 8900,
+        durationMinutes: 60,
+        savedAt: "2026-10-10T10:00:00Z",
+      },
+    ],
+    [
+      "fav_1_svc-duct-cleaning",
+      {
+        id: "fav_1_svc-duct-cleaning",
+        customerId: "cust-1",
+        serviceId: "svc-duct-cleaning",
+        serviceName: "Whole-Home Air Duct Cleaning",
+        category: "Indoor Air Quality",
+        priceCents: 34900,
+        durationMinutes: 180,
+        savedAt: "2026-10-12T14:20:00Z",
+      },
+    ],
+  ]);
+}
+
+export function getCustomerFavorites(customerId: string): CustomerFavoriteItem[] {
+  const store = getLocalDbWithDemo();
+  const list: CustomerFavoriteItem[] = [];
+
+  for (const f of globalCustFavorites.__spCustomerFavorites!.values()) {
+    if (f.customerId === customerId) {
+      list.push(f);
+    }
+  }
+
+  return list.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
+}
+
+export function toggleCustomerFavorite(
+  customerId: string,
+  serviceId: string
+): { saved: boolean } {
+  const store = getLocalDbWithDemo();
+  const service = store.services.get(serviceId);
+  const key = `fav_${customerId}_${serviceId}`;
+
+  if (globalCustFavorites.__spCustomerFavorites!.has(key)) {
+    globalCustFavorites.__spCustomerFavorites!.delete(key);
+    return { saved: false };
+  }
+
+  const fav: CustomerFavoriteItem = {
+    id: key,
+    customerId,
+    serviceId,
+    serviceName: service?.name || "HVAC Service",
+    category: service?.category || "Heating & Cooling",
+    priceCents: service?.price_cents || 18900,
+    durationMinutes: service?.duration_minutes || 90,
+    savedAt: new Date().toISOString(),
+  };
+
+  globalCustFavorites.__spCustomerFavorites!.set(key, fav);
+  return { saved: true };
+}

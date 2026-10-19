@@ -11,6 +11,8 @@ import {
   User,
   Wrench,
   Radio,
+  DollarSign,
+  Bell,
 } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 
@@ -45,7 +47,9 @@ export default function TechLayout({
 
   const isTodayActive = pathname === "/tech";
   const isScheduleActive = pathname === "/tech/schedule";
+  const isEarningsActive = pathname === "/tech/earnings";
   const isProfileActive = pathname === "/tech/profile";
+  const isNotifsActive = pathname === "/tech/notifications";
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col antialiased">
@@ -67,6 +71,17 @@ export default function TechLayout({
           </Link>
 
           <div className="flex items-center gap-1.5">
+            <Link
+              href="/tech/notifications"
+              aria-label="Dispatch alerts"
+              className={`inline-flex items-center justify-center rounded-lg bg-navy-800 border p-1.5 transition-colors ${
+                isNotifsActive
+                  ? "border-orange-500 text-orange-400"
+                  : "border-slate-700 text-slate-300 hover:text-white"
+              }`}
+            >
+              <Bell className="h-3.5 w-3.5" />
+            </Link>
             <button
               type="button"
               onClick={switchToOwnerAdmin}
@@ -99,7 +114,7 @@ export default function TechLayout({
         <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
           <Link
             href="/tech"
-            className={`flex flex-col items-center justify-center py-1 px-4 rounded-xl transition-all ${
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
               isTodayActive
                 ? "text-orange-600 font-bold"
                 : "text-navy-700 hover:text-navy-950 font-semibold"
@@ -117,7 +132,7 @@ export default function TechLayout({
 
           <Link
             href="/tech/schedule"
-            className={`flex flex-col items-center justify-center py-1 px-4 rounded-xl transition-all ${
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
               isScheduleActive
                 ? "text-orange-600 font-bold"
                 : "text-navy-700 hover:text-navy-950 font-semibold"
@@ -134,8 +149,26 @@ export default function TechLayout({
           </Link>
 
           <Link
+            href="/tech/earnings"
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+              isEarningsActive
+                ? "text-orange-600 font-bold"
+                : "text-navy-700 hover:text-navy-950 font-semibold"
+            }`}
+          >
+            <div
+              className={`p-1 rounded-lg mb-0.5 ${
+                isEarningsActive ? "bg-orange-100 text-orange-600" : ""
+              }`}
+            >
+              <DollarSign className="h-5 w-5" />
+            </div>
+            <span className="text-[11px]">Earnings</span>
+          </Link>
+
+          <Link
             href="/tech/profile"
-            className={`flex flex-col items-center justify-center py-1 px-4 rounded-xl transition-all ${
+            className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
               isProfileActive
                 ? "text-orange-600 font-bold"
                 : "text-navy-700 hover:text-navy-950 font-semibold"

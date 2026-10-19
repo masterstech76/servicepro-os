@@ -19,6 +19,8 @@ import {
   ChevronRight,
   Menu,
   X,
+  Star,
+  Bookmark,
 } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,8 @@ const NAV_ITEMS = [
   { href: "/account/appointments", label: "Appointments", icon: Calendar },
   { href: "/account/invoices", label: "Invoices", icon: FileText },
   { href: "/account/payments", label: "Payments", icon: CreditCard },
+  { href: "/account/favorites", label: "Saved Services", icon: Bookmark },
+  { href: "/account/reviews", label: "My Reviews", icon: Star },
   { href: "/account/addresses", label: "Addresses", icon: MapPin },
   { href: "/account/profile", label: "Profile", icon: User },
   { href: "/account/support", label: "Support", icon: HelpCircle },

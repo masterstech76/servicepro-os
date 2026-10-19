@@ -21,6 +21,11 @@ import {
   Wrench,
   X,
   ExternalLink,
+  FileText,
+  CreditCard,
+  Tag,
+  Star,
+  ShieldAlert,
 } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { cn } from "@/lib/utils";
@@ -29,6 +34,12 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/dispatch", label: "Dispatch Board", icon: CalendarClock },
   { href: "/admin/jobs", label: "Jobs", icon: Briefcase },
+  { href: "/admin/invoices", label: "Invoices", icon: FileText },
+  { href: "/admin/payments", label: "Payments", icon: CreditCard },
+  { href: "/admin/coupons", label: "Coupons", icon: Tag },
+  { href: "/admin/reviews", label: "Reviews", icon: Star },
+  { href: "/admin/audit-logs", label: "Audit Logs", icon: ShieldAlert },
+  { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/technicians", label: "Technicians", icon: Wrench },
   { href: "/admin/inventory", label: "Inventory", icon: Package },
   { href: "/admin/services", label: "Services", icon: Sparkles },
@@ -297,6 +308,15 @@ export default function AdminLayout({
                       ))}
                     </div>
                   )}
+                  <div className="pt-2 mt-2 border-t border-slate-100 text-center">
+                    <Link
+                      href="/admin/notifications"
+                      onClick={() => setAlertsOpen(false)}
+                      className="text-xs font-semibold text-orange-600 hover:text-orange-700 block py-1"
+                    >
+                      View All Notification History &rarr;
+                    </Link>
+                  </div>
                 </div>
               ) : null}
             </div>

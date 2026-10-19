@@ -760,3 +760,660 @@ export function getAdminReportsData(params: {
     technicians: Array.from(techMap.values()),
   };
 }
+
+// ---------------------------------------------------------------------------
+// ADMIN INVOICES & PAYMENTS
+// ---------------------------------------------------------------------------
+
+export interface AdminInvoiceItem {
+  id: string;
+  invoiceNumber: string;
+  jobId: string;
+  jobNumber: number;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  serviceName: string;
+  status: "draft" | "sent" | "paid" | "partially_paid" | "overdue" | "void";
+  subtotalCents: number;
+  taxCents: number;
+  totalCents: number;
+  amountPaidCents: number;
+  amountDueCents: number;
+  dueDate: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+export function getAdminInvoicesList(params: {
+  status?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}): {
+  invoices: AdminInvoiceItem[];
+  total: number;
+  page: number;
+  totalPages: number;
+  summary: {
+    totalBilledCents: number;
+    totalCollectedCents: number;
+    totalOutstandingCents: number;
+    paidCount: number;
+    overdueCount: number;
+  };
+} {
+  const store = getLocalDbWithDemo();
+  const rawInvoices = Array.from(store.invoices.values());
+
+  const list: AdminInvoiceItem[] = [];
+  let totalBilled = 0;
+  let totalCollected = 0;
+  let totalOutstanding = 0;
+  let paidCount = 0;
+  let overdueCount = 0;
+
+  for (const inv of rawInvoices) {
+    const job = store.jobs.get(inv.job_id);
+    const customerId = job?.customer_id || "";
+    const customer = store.customers.get(customerId);
+    const service = job ? store.services.get(job.service_id) : null;
+
+    const totalCents = inv.total_cents;
+    const amountPaid = inv.status === "paid" ? inv.total_cents : (inv.deposit_paid_cents || 0);
+    const amountDue = inv.amount_due_cents;
+
+    totalBilled += totalCents;
+    totalCollected += amountPaid;
+    totalOutstanding += amountDue;
+
+    const isOverdue = inv.status === "sent" && Date.now() - new Date(inv.created_at).getTime() > 14 * 86400000;
+    if (inv.status === "paid") paidCount++;
+    if (isOverdue) overdueCount++;
+
+    const item: AdminInvoiceItem = {
+      id: inv.id,
+      invoiceNumber: inv.invoice_number,
+      jobId: inv.job_id,
+      jobNumber: job?.job_number || 1000,
+      customerId,
+      customerName: customer?.name || "Customer",
+      customerPhone: customer?.phone || "",
+      customerEmail: customer?.email || "",
+      serviceName: service?.name || "HVAC Diagnostic & Repair",
+      status: (isOverdue ? "overdue" : inv.status) as AdminInvoiceItem["status"],
+      subtotalCents: inv.subtotal_cents,
+      taxCents: inv.tax_cents,
+      totalCents,
+      amountPaidCents: amountPaid,
+      amountDueCents: amountDue,
+      dueDate: inv.sent_at || inv.created_at,
+      createdAt: inv.created_at,
+      paidAt: inv.paid_at,
+    };
+
+    // Filter by status
+    if (params.status && params.status !== "all") {
+      if (item.status !== params.status) continue;
+    }
+
+    // Filter by search
+    if (params.search) {
+      const q = params.search.toLowerCase();
+      const match =
+        item.invoiceNumber.toLowerCase().includes(q) ||
+        item.customerName.toLowerCase().includes(q) ||
+        item.customerPhone.includes(q) ||
+        item.serviceName.toLowerCase().includes(q) ||
+        String(item.jobNumber).includes(q);
+      if (!match) continue;
+    }
+
+    list.push(item);
+  }
+
+  // Sort descending by date
+  list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.max(1, params.limit || 25);
+  const total = list.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const paginated = list.slice((page - 1) * limit, page * limit);
+
+  return {
+    invoices: paginated,
+    total,
+    page,
+    totalPages,
+    summary: {
+      totalBilledCents: totalBilled,
+      totalCollectedCents: totalCollected,
+      totalOutstandingCents: totalOutstanding,
+      paidCount,
+      overdueCount,
+    },
+  };
+}
+
+export function getAdminInvoiceDetail(invoiceId: string) {
+  const store = getLocalDbWithDemo();
+  const inv = store.invoices.get(invoiceId);
+  if (!inv) return null;
+
+  const job = store.jobs.get(inv.job_id);
+  const customerId = job?.customer_id || "";
+  const customer = store.customers.get(customerId);
+  const service = job ? store.services.get(job.service_id) : null;
+  const lineItems = Array.from(store.invoice_line_items.values()).filter(
+    (l) => l.invoice_id === inv.id
+  );
+  const payments = Array.from(store.payments.values()).filter(
+    (p) => p.invoice_id === inv.id || p.job_id === inv.job_id
+  );
+
+  return {
+    invoice: {
+      ...inv,
+      customerName: customer?.name || "Customer",
+      customerPhone: customer?.phone || "",
+      customerEmail: customer?.email || "",
+      addressLine1: job?.address_line1 || "",
+      city: job?.city || "",
+      state: job?.state || "",
+      zip: job?.zip || "",
+      jobNumber: job?.job_number || 1000,
+      serviceName: service?.name || "HVAC Diagnostic & Repair",
+    },
+    lineItems,
+    payments,
+  };
+}
+
+export interface AdminPaymentItem {
+  id: string;
+  paymentNumber: string;
+  invoiceId: string | null;
+  jobId: string;
+  jobNumber: number;
+  customerId: string;
+  customerName: string;
+  amountCents: number;
+  currency: string;
+  status: "succeeded" | "failed" | "refunded" | "processing";
+  method: "card" | "cash" | "bank_transfer" | "check";
+  cardBrand: string | null;
+  cardLast4: string | null;
+  stripePaymentIntentId: string | null;
+  createdAt: string;
+}
+
+export function getAdminPaymentsList(params: {
+  status?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}): {
+  payments: AdminPaymentItem[];
+  total: number;
+  page: number;
+  totalPages: number;
+  summary: {
+    totalCollectedCents: number;
+    cardCollectedCents: number;
+    cashCollectedCents: number;
+    totalRefundedCents: number;
+  };
+} {
+  const store = getLocalDbWithDemo();
+  const rawPayments = Array.from(store.payments.values());
+
+  const list: AdminPaymentItem[] = [];
+  let totalCollected = 0;
+  let cardCollected = 0;
+  let cashCollected = 0;
+  let totalRefunded = 0;
+
+  for (const p of rawPayments) {
+    const job = store.jobs.get(p.job_id);
+    const customerId = job?.customer_id || "";
+    const customer = store.customers.get(customerId);
+
+    if (p.status === "succeeded") {
+      totalCollected += p.amount_cents;
+      if (p.method === "card") cardCollected += p.amount_cents;
+      if (p.method === "cash") cashCollected += p.amount_cents;
+    } else if ((p.status as string) === "refunded") {
+      totalRefunded += p.amount_cents;
+    }
+
+    const item: AdminPaymentItem = {
+      id: p.id,
+      paymentNumber: `PAY-${p.id.slice(-6).toUpperCase()}`,
+      invoiceId: p.invoice_id,
+      jobId: p.job_id,
+      jobNumber: job?.job_number || 1000,
+      customerId,
+      customerName: customer?.name || "Customer",
+      amountCents: p.amount_cents,
+      currency: "USD",
+      status: p.status as AdminPaymentItem["status"],
+      method: p.method as AdminPaymentItem["method"],
+      cardBrand: customer?.card_brand || (p.method === "card" ? "visa" : null),
+      cardLast4: customer?.card_last4 || (p.method === "card" ? "4242" : null),
+      stripePaymentIntentId: p.stripe_payment_intent_id,
+      createdAt: p.created_at,
+    };
+
+    if (params.status && params.status !== "all") {
+      if (item.status !== params.status) continue;
+    }
+
+    if (params.search) {
+      const q = params.search.toLowerCase();
+      const match =
+        item.paymentNumber.toLowerCase().includes(q) ||
+        item.customerName.toLowerCase().includes(q) ||
+        (item.cardLast4 && item.cardLast4.includes(q)) ||
+        (item.stripePaymentIntentId && item.stripePaymentIntentId.toLowerCase().includes(q));
+      if (!match) continue;
+    }
+
+    list.push(item);
+  }
+
+  list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const page = Math.max(1, params.page || 1);
+  const limit = Math.max(1, params.limit || 25);
+  const total = list.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const paginated = list.slice((page - 1) * limit, page * limit);
+
+  return {
+    payments: paginated,
+    total,
+    page,
+    totalPages,
+    summary: {
+      totalCollectedCents: totalCollected,
+      cardCollectedCents: cardCollected,
+      cashCollectedCents: cashCollected,
+      totalRefundedCents: totalRefunded,
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN NOTIFICATIONS & SMS HISTORY
+// ---------------------------------------------------------------------------
+
+export interface AdminNotificationRecord {
+  id: string;
+  channel: "sms" | "email" | "in_app";
+  recipient: string;
+  recipientName: string;
+  type: string;
+  body: string;
+  status: "delivered" | "sent" | "failed";
+  createdAt: string;
+}
+
+export function getAdminNotificationsList(params?: {
+  channel?: string;
+  status?: string;
+  search?: string;
+}): AdminNotificationRecord[] {
+  const store = getLocalDbWithDemo();
+  const list: AdminNotificationRecord[] = [];
+
+  for (const s of store.sms_log.values()) {
+    const customer = s.customer_id
+      ? store.customers.get(s.customer_id)
+      : Array.from(store.customers.values()).find(
+          (c) => c.phone.replace(/\D/g, "") === (s.to_phone || "").replace(/\D/g, "")
+        );
+
+    const item: AdminNotificationRecord = {
+      id: s.id,
+      channel: "sms",
+      recipient: s.to_phone,
+      recipientName: customer?.name || "Customer",
+      type: s.template || "transactional_sms",
+      body: s.body,
+      status: s.status === "delivered" ? "delivered" : s.status === "failed" ? "failed" : "sent",
+      createdAt: s.created_at,
+    };
+
+    if (params?.channel && params.channel !== "all" && item.channel !== params.channel) continue;
+    if (params?.status && params.status !== "all" && item.status !== params.status) continue;
+    if (params?.search) {
+      const q = params.search.toLowerCase();
+      if (!item.recipient.includes(q) && !item.recipientName.toLowerCase().includes(q) && !item.body.toLowerCase().includes(q)) {
+        continue;
+      }
+    }
+
+    list.push(item);
+  }
+
+  if (list.length === 0) {
+    const seed: AdminNotificationRecord[] = [
+      {
+        id: "sms_seed_1",
+        channel: "sms",
+        recipient: "+1 (305) 555-0144",
+        recipientName: "David Miller",
+        type: "booking_confirmation",
+        body: "TechWork: Your AC Repair diagnostic appointment is confirmed for today between 11:00 AM - 1:00 PM. Tech: Carlos.",
+        status: "delivered",
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+      },
+      {
+        id: "sms_seed_2",
+        channel: "sms",
+        recipient: "+1 (305) 555-0182",
+        recipientName: "Elena Sanchez",
+        type: "tech_en_route",
+        body: "TechWork Dispatch: Technician Carlos is on the way to your address. Track arrival live: https://heavenlease.in/track/job_1001",
+        status: "delivered",
+        createdAt: new Date(Date.now() - 7200000).toISOString(),
+      },
+      {
+        id: "sms_seed_3",
+        channel: "sms",
+        recipient: "+1 (305) 555-0199",
+        recipientName: "Marcus Vance",
+        type: "invoice_ready",
+        body: "TechWork: Invoice #INV-1004 ($149.00) is ready for review and online payment: https://heavenlease.in/invoices/tok_demo",
+        status: "delivered",
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+      },
+    ];
+    return seed;
+  }
+
+  list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return list;
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN REVIEWS MODERATION
+// ---------------------------------------------------------------------------
+
+export interface AdminReviewItem {
+  id: string;
+  jobId: string;
+  jobNumber: number;
+  customerName: string;
+  customerLocation: string;
+  rating: number;
+  serviceName: string;
+  content: string;
+  status: "approved" | "pending" | "rejected";
+  createdAt: string;
+}
+
+const globalReviewStore = globalThis as unknown as { __spAdminReviews?: Map<string, AdminReviewItem> };
+if (!globalReviewStore.__spAdminReviews) {
+  globalReviewStore.__spAdminReviews = new Map([
+    [
+      "rev_1",
+      {
+        id: "rev_1",
+        jobId: "job_1001",
+        jobNumber: 1001,
+        customerName: "David M.",
+        customerLocation: "Brickell, Miami",
+        rating: 5,
+        serviceName: "AC Repair & Diagnostic",
+        content: "AC stopped blowing cold on a 92° day. Technician arrived in 40 mins and replaced the capacitor.",
+        status: "approved",
+        createdAt: "2026-10-14T12:00:00Z",
+      },
+    ],
+    [
+      "rev_2",
+      {
+        id: "rev_2",
+        jobId: "job_1002",
+        jobNumber: 1002,
+        customerName: "Elena & Carlos S.",
+        customerLocation: "Downtown Miami",
+        rating: 5,
+        serviceName: "Seasonal AC Tune-Up",
+        content: "Great $89 seasonal tune-up. Coils cleaned, drain cleared, and technician wore shoe covers.",
+        status: "approved",
+        createdAt: "2026-10-08T15:30:00Z",
+      },
+    ],
+    [
+      "rev_3",
+      {
+        id: "rev_3",
+        jobId: "job_1003",
+        jobNumber: 1003,
+        customerName: "Marcus K.",
+        customerLocation: "Coral Gables",
+        rating: 5,
+        serviceName: "Smart Thermostat Install",
+        content: "Installed Google Nest Learning Thermostat and walked us through the phone app.",
+        status: "pending",
+        createdAt: "2026-10-17T09:45:00Z",
+      },
+    ],
+  ]);
+}
+
+export function getAdminReviewsList(params?: { status?: string; search?: string }): AdminReviewItem[] {
+  const list = Array.from(globalReviewStore.__spAdminReviews!.values());
+  let filtered = list;
+
+  if (params?.status && params.status !== "all") {
+    filtered = filtered.filter((r) => r.status === params.status);
+  }
+  if (params?.search) {
+    const q = params.search.toLowerCase();
+    filtered = filtered.filter(
+      (r) =>
+        r.customerName.toLowerCase().includes(q) ||
+        r.content.toLowerCase().includes(q) ||
+        r.serviceName.toLowerCase().includes(q)
+    );
+  }
+
+  filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return filtered;
+}
+
+export function moderateAdminReview(id: string, status: "approved" | "rejected"): boolean {
+  const rev = globalReviewStore.__spAdminReviews?.get(id);
+  if (!rev) return false;
+  rev.status = status;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN COUPONS MANAGEMENT
+// ---------------------------------------------------------------------------
+
+export interface AdminCouponItem {
+  id: string;
+  code: string;
+  description: string;
+  discountType: "fixed" | "percentage";
+  discountValue: number;
+  minSpendCents: number;
+  expiresAt: string;
+  active: boolean;
+  redemptionCount: number;
+}
+
+const globalCouponStore = globalThis as unknown as { __spAdminCoupons?: Map<string, AdminCouponItem> };
+if (!globalCouponStore.__spAdminCoupons) {
+  globalCouponStore.__spAdminCoupons = new Map([
+    [
+      "cpn_1",
+      {
+        id: "cpn_1",
+        code: "FIRST25",
+        description: "$25 off any repair service diagnostic for first-time customers",
+        discountType: "fixed",
+        discountValue: 2500,
+        minSpendCents: 8900,
+        expiresAt: "2026-12-31T23:59:59Z",
+        active: true,
+        redemptionCount: 18,
+      },
+    ],
+    [
+      "cpn_2",
+      {
+        id: "cpn_2",
+        code: "TUNE89",
+        description: "$89 Complete 21-point seasonal AC tune-up & safety inspection",
+        discountType: "fixed",
+        discountValue: 4000,
+        minSpendCents: 12900,
+        expiresAt: "2026-11-30T23:59:59Z",
+        active: true,
+        redemptionCount: 42,
+      },
+    ],
+    [
+      "cpn_3",
+      {
+        id: "cpn_3",
+        code: "NEST30",
+        description: "$30 off professional installation of smart thermostat",
+        discountType: "fixed",
+        discountValue: 3000,
+        minSpendCents: 9900,
+        expiresAt: "2026-12-31T23:59:59Z",
+        active: true,
+        redemptionCount: 7,
+      },
+    ],
+  ]);
+}
+
+export function getAdminCouponsList(): AdminCouponItem[] {
+  return Array.from(globalCouponStore.__spAdminCoupons!.values());
+}
+
+export function createAdminCoupon(params: {
+  code: string;
+  description: string;
+  discountType: "fixed" | "percentage";
+  discountValue: number;
+  minSpendCents: number;
+  expiresAt: string;
+}): AdminCouponItem {
+  const id = `cpn_${Date.now()}`;
+  const cpn: AdminCouponItem = {
+    id,
+    code: params.code.trim().toUpperCase(),
+    description: params.description.trim(),
+    discountType: params.discountType,
+    discountValue: params.discountValue,
+    minSpendCents: params.minSpendCents,
+    expiresAt: params.expiresAt,
+    active: true,
+    redemptionCount: 0,
+  };
+  globalCouponStore.__spAdminCoupons!.set(id, cpn);
+  return cpn;
+}
+
+export function toggleAdminCoupon(id: string): boolean {
+  const c = globalCouponStore.__spAdminCoupons?.get(id);
+  if (!c) return false;
+  c.active = !c.active;
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// ADMIN AUDIT LOGS
+// ---------------------------------------------------------------------------
+
+export interface AdminAuditEntry {
+  id: string;
+  actor: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  details: string;
+  timestamp: string;
+}
+
+export function getAdminAuditLogs(params?: {
+  entityType?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}): {
+  logs: AdminAuditEntry[];
+  total: number;
+  page: number;
+  totalPages: number;
+} {
+  const store = getLocalDbWithDemo();
+  const list: AdminAuditEntry[] = [];
+
+  // 1. Pull from job_events
+  for (const e of store.job_events.values()) {
+    list.push({
+      id: e.id,
+      actor: e.actor_label || "System Dispatch",
+      action: e.event_type.replace(/_/g, " ").toUpperCase(),
+      entityType: e.job_id ? "Job" : "Customer",
+      entityId: e.job_id || (e.meta as any)?.customerId || "N/A",
+      details: typeof e.meta === "object" ? JSON.stringify(e.meta) : "Event processed",
+      timestamp: e.created_at,
+    });
+  }
+
+  // 2. Pull from inventory audits
+  for (const a of getAuditsStore()) {
+    list.push({
+      id: a.id,
+      actor: a.actor,
+      action: `STOCK ${a.type.toUpperCase()}`,
+      entityType: "Inventory",
+      entityId: a.sku,
+      details: `${a.partName}: ${a.quantityChange > 0 ? "+" : ""}${a.quantityChange} (${a.reason})`,
+      timestamp: a.createdAt,
+    });
+  }
+
+  list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  let filtered = list;
+  if (params?.entityType && params.entityType !== "all") {
+    filtered = filtered.filter((l) => l.entityType.toLowerCase() === params.entityType?.toLowerCase());
+  }
+  if (params?.search) {
+    const q = params.search.toLowerCase();
+    filtered = filtered.filter(
+      (l) =>
+        l.actor.toLowerCase().includes(q) ||
+        l.action.toLowerCase().includes(q) ||
+        l.details.toLowerCase().includes(q) ||
+        l.entityId.toLowerCase().includes(q)
+    );
+  }
+
+  const page = Math.max(1, params?.page || 1);
+  const limit = Math.max(1, params?.limit || 25);
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / limit) || 1;
+  const paginated = filtered.slice((page - 1) * limit, page * limit);
+
+  return {
+    logs: paginated,
+    total,
+    page,
+    totalPages,
+  };
+}

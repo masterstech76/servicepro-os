@@ -433,8 +433,8 @@ export default function LandingPage() {
         </section>
 
         {/* Final CTA Banner */}
-        <section className="bg-[#0F172A] text-white py-16 px-4 sm:px-6 text-center">
-          <div className="max-w-3xl mx-auto space-y-6">
+        <section className="bg-gradient-to-b from-slate-900 via-slate-900/95 to-[#0F172A] text-white py-12 px-4 sm:px-6 text-center border-t border-slate-800/80">
+          <div className="max-w-3xl mx-auto space-y-4">
             <h2 className="font-heading text-3xl sm:text-4xl font-black text-white">
               Ready to Get Your AC Running Cold?
             </h2>

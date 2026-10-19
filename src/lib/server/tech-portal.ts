@@ -474,6 +474,174 @@ export function getTechnicianScheduleJobs(
       if (enriched) list.push(enriched);
     }
   }
-
   return list.sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
+}
+
+export interface TechEarningJob {
+  jobId: string;
+  jobNumber: number;
+  serviceName: string;
+  completedAt: string;
+  billedCents: number;
+  commissionRatePct: number;
+  commissionEarnedCents: number;
+  tipsCents: number;
+  totalPayoutCents: number;
+  status: "paid" | "pending";
+}
+
+export interface TechEarningsSummary {
+  period: "this_week" | "this_month" | "all_time";
+  commissionRatePct: number;
+  completedJobsCount: number;
+  totalBilledCents: number;
+  totalCommissionCents: number;
+  totalTipsCents: number;
+  totalEarningsCents: number;
+  pendingPayoutCents: number;
+  paidPayoutCents: number;
+  jobs: TechEarningJob[];
+}
+
+export function getTechEarnings(
+  techId: string,
+  period: "this_week" | "this_month" | "all_time" = "this_month"
+): TechEarningsSummary {
+  const store = getLocalDbWithDemo();
+  const tech = store.technicians.get(techId);
+  const commissionRatePct = tech?.commission_pct || 25;
+
+  const jobsList: TechEarningJob[] = [];
+  let totalBilled = 0;
+  let totalCommission = 0;
+  let totalTips = 0;
+  let pendingPayout = 0;
+  let paidPayout = 0;
+
+  for (const j of store.jobs.values()) {
+    if (j.technician_id === techId && j.status === "completed") {
+      const service = store.services.get(j.service_id);
+      const billedCents = j.total_cents || j.estimated_total_cents || 18900;
+      const commissionCents = Math.round((billedCents * commissionRatePct) / 100);
+      const tipsCents = j.tip_cents || 0;
+      const totalPayoutCents = commissionCents + tipsCents;
+
+      // Status: if completed more than 7 days ago, considered paid
+      const completedTime = new Date(j.completed_at || j.scheduled_end).getTime();
+      const isPaid = Date.now() - completedTime > 7 * 86400000;
+
+      if (isPaid) {
+        paidPayout += totalPayoutCents;
+      } else {
+        pendingPayout += totalPayoutCents;
+      }
+
+      totalBilled += billedCents;
+      totalCommission += commissionCents;
+      totalTips += tipsCents;
+
+      jobsList.push({
+        jobId: j.id,
+        jobNumber: j.job_number || 1000,
+        serviceName: service?.name || "HVAC Diagnostic & Repair",
+        completedAt: j.completed_at || j.scheduled_end,
+        billedCents,
+        commissionRatePct,
+        commissionEarnedCents: commissionCents,
+        tipsCents,
+        totalPayoutCents,
+        status: isPaid ? "paid" : "pending",
+      });
+    }
+  }
+
+  jobsList.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
+
+  return {
+    period,
+    commissionRatePct,
+    completedJobsCount: jobsList.length,
+    totalBilledCents: totalBilled,
+    totalCommissionCents: totalCommission,
+    totalTipsCents: totalTips,
+    totalEarningsCents: totalCommission + totalTips,
+    pendingPayoutCents: pendingPayout,
+    paidPayoutCents: paidPayout,
+    jobs: jobsList,
+  };
+}
+
+export interface TechNotificationItem {
+  id: string;
+  type: "job_assigned" | "schedule_change" | "customer_note" | "inventory_alert";
+  title: string;
+  message: string;
+  jobId?: string;
+  jobNumber?: number;
+  read: boolean;
+  createdAt: string;
+}
+
+const globalTechNotifStore = globalThis as unknown as { __spTechNotifs?: Map<string, TechNotificationItem[]> };
+if (!globalTechNotifStore.__spTechNotifs) {
+  globalTechNotifStore.__spTechNotifs = new Map([
+    [
+      "tech-carlos",
+      [
+        {
+          id: "tn_1",
+          type: "job_assigned",
+          title: "New Job Assigned",
+          message: "You have been assigned to Job #1004 (AC Repair Diagnostic) at 1200 Brickell Ave.",
+          jobId: "job_1004",
+          jobNumber: 1004,
+          read: false,
+          createdAt: new Date(Date.now() - 3600000).toISOString(),
+        },
+        {
+          id: "tn_2",
+          type: "customer_note",
+          title: "Customer Note Added",
+          message: "Gate code is #4492. Beware of friendly dog in side yard.",
+          jobId: "job_1001",
+          jobNumber: 1001,
+          read: true,
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+        },
+        {
+          id: "tn_3",
+          type: "inventory_alert",
+          title: "Van Restock Ready",
+          message: "2x 45/5 Dual Run Capacitors have been allocated for your van at the central warehouse.",
+          read: true,
+          createdAt: new Date(Date.now() - 172800000).toISOString(),
+        },
+      ],
+    ],
+  ]);
+}
+
+export function getTechNotifications(techId: string): TechNotificationItem[] {
+  const notifs = globalTechNotifStore.__spTechNotifs?.get(techId) || [
+    {
+      id: `tn_${Date.now()}`,
+      type: "job_assigned",
+      title: "Today's Schedule Active",
+      message: "Check your schedule tab for your next dispatch appointment window.",
+      read: false,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+  return notifs;
+}
+
+export function markTechNotificationRead(techId: string, notifId: string): boolean {
+  const notifs = globalTechNotifStore.__spTechNotifs?.get(techId);
+  if (!notifs) return false;
+  const n = notifs.find((x) => x.id === notifId);
+  if (n) {
+    n.read = true;
+    return true;
+  }
+  return false;
 }

@@ -12,15 +12,15 @@ export const metadata = {
 
 export default function ServiceAreasHubPage() {
   const neighborhoods = [
-    { name: "Brickell", zip: "33129, 33130, 33131", avgEta: "25 min", status: "Active Dispatch" },
-    { name: "Downtown Miami", zip: "33128, 33132, 33136", avgEta: "30 min", status: "Active Dispatch" },
-    { name: "Coral Gables", zip: "33134, 33146", avgEta: "35 min", status: "Active Dispatch" },
-    { name: "Coconut Grove", zip: "33133", avgEta: "30 min", status: "Active Dispatch" },
-    { name: "Miami Beach", zip: "33139, 33140", avgEta: "40 min", status: "Active Dispatch" },
-    { name: "Kendall", zip: "33143, 33144", avgEta: "40 min", status: "Active Dispatch" },
-    { name: "Doral", zip: "33126, 33125", avgEta: "35 min", status: "Active Dispatch" },
-    { name: "Pinecrest", zip: "33146, 33143", avgEta: "45 min", status: "Active Dispatch" },
-    { name: "Key Biscayne", zip: "33149", avgEta: "45 min", status: "Active Dispatch" },
+    { name: "Brickell", slug: "brickell", zip: "33129, 33130, 33131", avgEta: "25 min", status: "Active Dispatch" },
+    { name: "Downtown Miami", slug: "downtown-miami", zip: "33128, 33132, 33136", avgEta: "30 min", status: "Active Dispatch" },
+    { name: "Coral Gables", slug: "coral-gables", zip: "33134, 33146", avgEta: "35 min", status: "Active Dispatch" },
+    { name: "Coconut Grove", slug: "coconut-grove", zip: "33133", avgEta: "30 min", status: "Active Dispatch" },
+    { name: "Miami Beach", slug: "miami-beach", zip: "33139, 33140", avgEta: "40 min", status: "Active Dispatch" },
+    { name: "Kendall", slug: "kendall", zip: "33143, 33144", avgEta: "40 min", status: "Active Dispatch" },
+    { name: "Doral", slug: "doral", zip: "33126, 33125", avgEta: "35 min", status: "Active Dispatch" },
+    { name: "Pinecrest", slug: "pinecrest", zip: "33146, 33143", avgEta: "45 min", status: "Active Dispatch" },
+    { name: "Key Biscayne", slug: "key-biscayne", zip: "33149", avgEta: "45 min", status: "Active Dispatch" },
   ];
 
   return (
@@ -52,7 +52,12 @@ export default function ServiceAreasHubPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-[#EA580C]" />
-                    <h2 className="font-heading text-lg font-bold text-[#0F172A]">{area.name}</h2>
+                    <Link
+                      href={`/service-areas/${area.slug}`}
+                      className="font-heading text-lg font-bold text-[#0F172A] hover:text-[#EA580C] transition-colors"
+                    >
+                      {area.name}
+                    </Link>
                   </div>
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -65,8 +70,13 @@ export default function ServiceAreasHubPage() {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-500">60-Min Guaranteed</span>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <Link
+                  href={`/service-areas/${area.slug}`}
+                  className="text-xs font-semibold text-slate-600 hover:text-orange-600 flex items-center gap-1"
+                >
+                  Area Details <ArrowRight className="h-3 w-3" />
+                </Link>
                 <Button asChild size="sm" className="rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-[#0F172A] font-bold text-xs h-8 px-3">
                   <Link href="/book">
                     Book Slot
