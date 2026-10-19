@@ -34,10 +34,8 @@ const mockHolds = new Map<string, MockHoldRecord>();
 const mockConfirmedJobs = new Map<string, ConfirmedJobDTO>();
 let mockJobSequence = 1041;
 
-function sleep(ms = 320): Promise<void> {
-  // Fast in automated unit tests, 300-450ms in browser per PHASES.md Phase 1
-  const delay = typeof window === "undefined" ? 20 : ms;
-  return new Promise((resolve) => setTimeout(resolve, delay));
+function sleep(_ms = 0): Promise<void> {
+  return Promise.resolve();
 }
 
 export const mockBookingAdapter: BookingApiAdapter = {

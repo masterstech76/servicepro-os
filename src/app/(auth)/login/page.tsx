@@ -104,7 +104,7 @@ export default function LoginPage() {
               data-testid="demo-login-owner"
               className="w-full justify-start gap-2 border-slate-300 bg-white text-navy-900 hover:bg-slate-100"
             >
-              <ShieldCheck className="h-4 w-4 text-orange-700 shrink-0" />
+              <ShieldCheck className="h-4 w-4 text-orange-500 shrink-0" />
               <span className="truncate">Owner Dispatch</span>
             </Button>
             <Button
@@ -116,7 +116,7 @@ export default function LoginPage() {
               data-testid="demo-login-tech"
               className="w-full justify-start gap-2 border-slate-300 bg-white text-navy-900 hover:bg-slate-100"
             >
-              <Wrench className="h-4 w-4 text-blue-600 shrink-0" />
+              <Wrench className="h-4 w-4 text-orange-500 shrink-0" />
               <span className="truncate">Tech (Carlos M.)</span>
             </Button>
           </div>
@@ -145,7 +145,11 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit" loading={loading} className="w-full">
+          <Button
+            type="submit"
+            loading={loading}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold shadow-md transition-all"
+          >
             Sign in with Email
           </Button>
         </form>
@@ -154,7 +158,7 @@ export default function LoginPage() {
           <Link href="/" className="font-medium text-navy-700 hover:text-navy-900 underline">
             ← Customer Booking
           </Link>
-          <Link href="/demo" className="font-semibold text-orange-700 hover:text-orange-600 underline">
+          <Link href="/demo" className="font-semibold text-orange-600 hover:text-orange-700 underline">
             Interactive Demo Guide →
           </Link>
         </div>

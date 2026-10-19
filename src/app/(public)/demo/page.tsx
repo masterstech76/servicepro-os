@@ -66,7 +66,9 @@ export default function InteractiveDemoGuidePage() {
 
           <div className="flex items-center gap-2.5">
             <Link href="/book">
-              <Button size="sm">Book a Service →</Button>
+              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold shadow-sm">
+                Book a Service →
+              </Button>
             </Link>
           </div>
         </div>

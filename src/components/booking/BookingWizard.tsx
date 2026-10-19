@@ -55,6 +55,13 @@ import {
   PhotoUploader,
   type UploadedPhotoItem,
 } from "@/components/booking/PhotoUploader";
+import { StepService } from "@/components/booking/steps/StepService";
+import { StepZip } from "@/components/booking/steps/StepZip";
+import { StepIssue } from "@/components/booking/steps/StepIssue";
+import { StepSlot } from "@/components/booking/steps/StepSlot";
+import { StepDetails } from "@/components/booking/steps/StepDetails";
+import { StepPayment } from "@/components/booking/steps/StepPayment";
+import { StepConfirmed } from "@/components/booking/steps/StepConfirmed";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "servicepro_booking_wizard_v1";
@@ -858,657 +865,106 @@ export function BookingWizard() {
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-8 shadow-xl">
           {/* STEP 1: Select service */}
           {state.step === 1 && (
-            <section aria-labelledby="step-1-heading" className="space-y-5">
-              <div>
-                <h1
-                  id="step-1-heading"
-                  className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-                >
-                  What do you need help with?
-                </h1>
-                <p className="text-sm text-navy-700 mt-1">
-                  Choose a service below. Upfront pricing with no hidden dispatch fees.
-                </p>
-              </div>
-
-              {loadingServices ? (
-                <div className="space-y-3" role="status" aria-label="Loading services">
-                  <Skeleton className="h-24 w-full rounded-2xl" />
-                  <Skeleton className="h-24 w-full rounded-2xl" />
-                  <Skeleton className="h-24 w-full rounded-2xl" />
-                </div>
-              ) : (
-                <div role="radiogroup" aria-labelledby="step-1-heading" className="space-y-3.5">
-                  {services.map((svc) => (
-                    <ServiceCard
-                      key={svc.id}
-                      service={svc}
-                      selected={state.selectedService?.id === svc.id}
-                      onSelect={(s) => dispatch({ type: "SELECT_SERVICE", service: s })}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
+            <StepService
+              services={services}
+              loadingServices={loadingServices}
+              selectedService={state.selectedService}
+              onSelectService={(s) => dispatch({ type: "SELECT_SERVICE", service: s })}
+            />
           )}
 
           {/* STEP 2: ZIP Code */}
           {state.step === 2 && (
-            <section aria-labelledby="step-2-heading" className="space-y-5">
-              <div>
-                <h1
-                  id="step-2-heading"
-                  className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-                >
-                  Where is the job?
-                </h1>
-                <p className="text-sm text-navy-700 mt-1">
-                  Enter your 5-digit ZIP code to check technician coverage in your area.
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="zip-input">ZIP code</Label>
-                <Input
-                  id="zip-input"
-                  data-testid="zip-input"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={5}
-                  placeholder="33133"
-                  value={state.zip}
-                  onChange={(e) => handleZipInputChange(e.target.value)}
-                  aria-invalid={!!zipError}
-                  aria-describedby="zip-feedback"
-                  className="h-14 text-lg font-bold tracking-wider"
-                />
-              </div>
-
-              <div id="zip-feedback" aria-live="polite" className="min-h-[28px]">
-                {checkingZip && (
-                  <p className="text-sm text-navy-700">Checking coverage…</p>
-                )}
-
-                {!checkingZip && state.zipChecked && state.zipServed && (
-                  <div
-                    data-testid="zip-served-msg"
-                    className="flex items-center gap-2.5 rounded-2xl border border-green-600/30 bg-green-50 px-4 py-3 text-sm font-semibold text-green-900"
-                  >
-                    <CheckCircle2 className="h-5 w-5 text-success shrink-0" aria-hidden="true" />
-                    <span>
-                      Great — we serve {state.zipCity}, {state.zipState}
-                    </span>
-                  </div>
-                )}
-
-                {!checkingZip && zipError && (
-                  <div
-                    role="alert"
-                    data-testid="zip-error-msg"
-                    className="flex flex-col gap-2 rounded-2xl border border-danger/30 bg-red-50 px-4 py-3.5 text-sm text-navy-900"
-                  >
-                    <div className="flex items-center gap-2 font-semibold text-danger">
-                      <XCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-                      <span>{zipError}</span>
-                    </div>
-                    <p className="text-xs text-navy-700">
-                      Need help nearby? Call us at{" "}
-                      <a
-                        href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}
-                        className="font-semibold underline text-orange-700"
-                      >
-                        {businessConfig.phone}
-                      </a>
-                      .
-                    </p>
-                  </div>
-                )}
-              </div>
-            </section>
+            <StepZip
+              zip={state.zip}
+              zipChecked={state.zipChecked}
+              zipServed={state.zipServed}
+              zipCity={state.zipCity}
+              zipState={state.zipState}
+              checkingZip={checkingZip}
+              zipError={zipError}
+              onChangeZip={handleZipInputChange}
+            />
           )}
 
           {/* STEP 3: Describe issue + photo */}
           {state.step === 3 && (
-            <section aria-labelledby="step-3-heading" className="space-y-5">
-              <div>
-                <h1
-                  id="step-3-heading"
-                  className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-                >
-                  Tell us what&apos;s going on
-                </h1>
-                <p className="text-sm text-navy-700 mt-1">
-                  Sharing symptoms helps your technician bring the right parts on the truck.
-                </p>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <Label htmlFor="issue-textarea" className="mb-0">
-                    Issue description
-                  </Label>
-                  <span className="text-xs tabular-nums text-navy-700">
-                    {state.issueText.length}/500
-                  </span>
-                </div>
-                <Textarea
-                  id="issue-textarea"
-                  data-testid="issue-textarea"
-                  maxLength={500}
-                  placeholder="AC is blowing warm air since last night…"
-                  value={state.issueText}
-                  onChange={(e) => {
-                    dispatch({ type: "SET_ISSUE_TEXT", text: e.target.value });
-                    if (issueError) setIssueError(null);
-                  }}
-                  aria-invalid={!!issueError}
-                  aria-describedby={issueError ? "issue-error" : undefined}
-                />
-                {issueError && (
-                  <p id="issue-error" role="alert" className="mt-1.5 text-xs font-medium text-danger">
-                    {issueError}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label>Add photos (optional, up to {businessConfig.booking.maxPhotos})</Label>
-                <p className="text-xs text-navy-700 mb-2">
-                  Photos of the unit, thermostat, or error code label help us prepare.
-                </p>
-                <PhotoUploader
-                  photos={photos}
-                  maxPhotos={businessConfig.booking.maxPhotos}
-                  onChange={setPhotos}
-                />
-              </div>
-            </section>
+            <StepIssue
+              issueText={state.issueText}
+              issueError={issueError}
+              photos={photos}
+              onChangeIssueText={(text) => {
+                dispatch({ type: "SET_ISSUE_TEXT", text });
+                if (issueError) setIssueError(null);
+              }}
+              onChangePhotos={setPhotos}
+            />
           )}
 
           {/* STEP 4: Date & time */}
           {state.step === 4 && (
-            <section aria-labelledby="step-4-heading" className="space-y-5">
-              <div>
-                <h1
-                  id="step-4-heading"
-                  className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-                >
-                  Pick a time
-                </h1>
-                <p className="text-sm text-navy-700 mt-1">
-                  Select a day and arrival window below.
-                </p>
-              </div>
-
-              {/* Horizontal 7-day scroller */}
-              <div
-                className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar"
-                role="group"
-                aria-label="Available days"
-              >
-                {scrollerDays.map((day, idx) => {
-                  const isSelected = state.selectedDay === day.dateStr;
-                  return (
-                    <button
-                      key={day.dateStr}
-                      type="button"
-                      data-testid={`day-tab-${idx}`}
-                      aria-pressed={isSelected}
-                      onClick={() => dispatch({ type: "SET_DAY", day: day.dateStr })}
-                      className={cn(
-                        "shrink-0 rounded-full border px-4 py-2.5 text-xs font-bold transition-all min-h-[44px]",
-                        isSelected
-                          ? "border-2 border-orange-500 bg-orange-500 text-navy-900 shadow-md"
-                          : "border-slate-200 bg-white text-navy-900 hover:bg-slate-50"
-                      )}
-                    >
-                      {day.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {loadingSlots ? (
-                <div className="space-y-3" role="status" aria-label="Loading time slots">
-                  <Skeleton className="h-12 w-full rounded-full" />
-                  <Skeleton className="h-12 w-full rounded-full" />
-                </div>
-              ) : daySlots.length === 0 ? (
-                <div
-                  data-testid="fully-booked-state"
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center space-y-2"
-                >
-                  <p className="text-sm font-semibold text-navy-900">
-                    Fully booked on this day.
-                  </p>
-                  {nextAvailableDay && (
-                    <button
-                      type="button"
-                      data-testid="next-available-day-link"
-                      onClick={() =>
-                        dispatch({ type: "SET_DAY", day: nextAvailableDay.dateStr })
-                      }
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-orange-700 underline hover:text-navy-900 min-h-[44px] px-2"
-                    >
-                      <span>Fully booked — try {nextAvailableDay.label}</span>
-                      <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  {morningSlots.length > 0 && (
-                    <div>
-                      <h2 className="text-sm font-bold text-navy-900 mb-2.5">
-                        Morning
-                      </h2>
-                      <div className="grid grid-cols-3 gap-2.5">
-                        {morningSlots.map((slot) => {
-                          const label = formatBusinessTime(slot.start);
-                          const hr = formatInTimeZone(
-                            new Date(slot.start),
-                            businessConfig.timezone,
-                            "HH"
-                          );
-                          return (
-                            <SlotChip
-                              key={slot.start}
-                              testId={`slot-chip-${hr}`}
-                              label={label}
-                              selected={state.selectedSlotStart === slot.start}
-                              lowAvailability={slot.lowAvailability}
-                              remaining={slot.remaining}
-                              onClick={() =>
-                                dispatch({ type: "SELECT_SLOT", slotStart: slot.start })
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {afternoonSlots.length > 0 && (
-                    <div>
-                      <h2 className="text-sm font-bold text-navy-900 mb-2.5">
-                        Afternoon
-                      </h2>
-                      <div className="grid grid-cols-3 gap-2.5">
-                        {afternoonSlots.map((slot) => {
-                          const label = formatBusinessTime(slot.start);
-                          const hr = formatInTimeZone(
-                            new Date(slot.start),
-                            businessConfig.timezone,
-                            "HH"
-                          );
-                          return (
-                            <SlotChip
-                              key={slot.start}
-                              testId={`slot-chip-${hr}`}
-                              label={label}
-                              selected={state.selectedSlotStart === slot.start}
-                              lowAvailability={slot.lowAvailability}
-                              remaining={slot.remaining}
-                              onClick={() =>
-                                dispatch({ type: "SELECT_SLOT", slotStart: slot.start })
-                              }
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  <p className="text-xs text-navy-700 bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-                    Arrival window starts at the time shown; we&apos;ll text you when the tech is on the way.
-                  </p>
-                </div>
-              )}
-            </section>
+            <StepSlot
+              scrollerDays={scrollerDays}
+              selectedDay={state.selectedDay}
+              loadingSlots={loadingSlots}
+              daySlots={daySlots}
+              morningSlots={morningSlots}
+              afternoonSlots={afternoonSlots}
+              nextAvailableDay={nextAvailableDay}
+              selectedSlotStart={state.selectedSlotStart}
+              onSelectDay={(day) => dispatch({ type: "SET_DAY", day })}
+              onSelectSlot={(slotStart) => dispatch({ type: "SELECT_SLOT", slotStart })}
+            />
           )}
 
           {/* STEP 5: Address & contact */}
           {state.step === 5 && (
-            <section aria-labelledby="step-5-heading" className="space-y-4">
-              <h1
-                id="step-5-heading"
-                className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-              >
-                Service address & contact
-              </h1>
-
-              <div className="relative">
-                <Label htmlFor="address-line1">Service street address</Label>
-                <Input
-                  id="address-line1"
-                  data-testid="address-line1"
-                  placeholder="123 Brickell Ave"
-                  value={state.addressLine1}
-                  onChange={(e) => handleAddressChange(e.target.value)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 180)}
-                  aria-invalid={!!fieldErrors.addressLine1}
-                  aria-describedby={fieldErrors.addressLine1 ? "err-address" : undefined}
-                />
-                {showSuggestions && suggestions.length > 0 && (
-                  <ul
-                    role="listbox"
-                    aria-label="Address suggestions"
-                    className="absolute z-20 mt-1 w-full rounded-xl border border-slate-200 bg-white shadow-lg divide-y divide-slate-100"
-                  >
-                    {suggestions.map((s, idx) => (
-                      <li key={idx}>
-                        <button
-                          type="button"
-                          onMouseDown={() => handleSelectSuggestion(s)}
-                          className="w-full px-3.5 py-2.5 text-left text-sm text-navy-900 hover:bg-orange-50"
-                        >
-                          {s.placeName}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {fieldErrors.addressLine1 && (
-                  <p id="err-address" role="alert" className="mt-1 text-xs font-medium text-danger">
-                    {fieldErrors.addressLine1}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="address-line2">Apt / Suite (optional)</Label>
-                  <Input
-                    id="address-line2"
-                    placeholder="Unit 4B"
-                    value={state.addressLine2}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_CONTACT_FIELD",
-                        field: "addressLine2",
-                        value: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="address-zip">ZIP code</Label>
-                  <Input id="address-zip" value={state.zip} disabled readOnly />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="customer-name">Full name</Label>
-                <Input
-                  id="customer-name"
-                  data-testid="customer-name"
-                  placeholder="Maria Rivera"
-                  value={state.customerName}
-                  onChange={(e) => {
-                    dispatch({
-                      type: "SET_CONTACT_FIELD",
-                      field: "customerName",
-                      value: e.target.value,
-                    });
-                    setFieldErrors((p) => ({ ...p, name: "" }));
-                  }}
-                  aria-invalid={!!fieldErrors.name}
-                  aria-describedby={fieldErrors.name ? "err-name" : undefined}
-                />
-                {fieldErrors.name && (
-                  <p id="err-name" role="alert" className="mt-1 text-xs font-medium text-danger">
-                    {fieldErrors.name}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="customer-phone">Mobile phone (for ETA texts)</Label>
-                <Input
-                  id="customer-phone"
-                  data-testid="customer-phone"
-                  type="tel"
-                  placeholder="(305) 555-0142"
-                  value={state.customerPhone}
-                  onChange={(e) => {
-                    dispatch({
-                      type: "SET_CONTACT_FIELD",
-                      field: "customerPhone",
-                      value: e.target.value,
-                    });
-                    setFieldErrors((p) => ({ ...p, phone: "" }));
-                  }}
-                  aria-invalid={!!fieldErrors.phone}
-                  aria-describedby={fieldErrors.phone ? "err-phone" : undefined}
-                />
-                {fieldErrors.phone && (
-                  <p id="err-phone" role="alert" className="mt-1 text-xs font-medium text-danger">
-                    {fieldErrors.phone}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="customer-email">Email address</Label>
-                <Input
-                  id="customer-email"
-                  data-testid="customer-email"
-                  type="email"
-                  placeholder="maria@example.com"
-                  value={state.customerEmail}
-                  onChange={(e) => {
-                    dispatch({
-                      type: "SET_CONTACT_FIELD",
-                      field: "customerEmail",
-                      value: e.target.value,
-                    });
-                    setFieldErrors((p) => ({ ...p, email: "" }));
-                  }}
-                  aria-invalid={!!fieldErrors.email}
-                  aria-describedby={fieldErrors.email ? "err-email" : undefined}
-                />
-                {fieldErrors.email && (
-                  <p id="err-email" role="alert" className="mt-1 text-xs font-medium text-danger">
-                    {fieldErrors.email}
-                  </p>
-                )}
-              </div>
-            </section>
+            <StepDetails
+              addressLine1={state.addressLine1}
+              addressLine2={state.addressLine2}
+              zip={state.zip}
+              customerName={state.customerName}
+              customerPhone={state.customerPhone}
+              customerEmail={state.customerEmail}
+              fieldErrors={fieldErrors}
+              suggestions={suggestions}
+              showSuggestions={showSuggestions}
+              onAddressChange={handleAddressChange}
+              onSelectSuggestion={handleSelectSuggestion}
+              onFieldChange={(field, val) => {
+                dispatch({ type: "SET_CONTACT_FIELD", field, value: val });
+                if (field === "customerName") setFieldErrors((p) => ({ ...p, name: "" }));
+                if (field === "customerPhone") setFieldErrors((p) => ({ ...p, phone: "" }));
+                if (field === "customerEmail") setFieldErrors((p) => ({ ...p, email: "" }));
+              }}
+              setShowSuggestions={setShowSuggestions}
+            />
           )}
 
           {/* STEP 6: Checkout */}
           {state.step === 6 && (
-            <section aria-labelledby="step-6-heading" className="space-y-5">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h1
-                  id="step-6-heading"
-                  className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-                >
-                  Your booking
-                </h1>
-                <div
-                  data-testid="hold-countdown"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-500/40 px-3.5 py-1.5 text-xs font-bold tabular-nums text-navy-900"
-                >
-                  <Clock className="h-3.5 w-3.5 text-orange-700" aria-hidden="true" />
-                  <span>Hold expires in {formatCountdown(remainingSeconds)}</span>
-                </div>
-              </div>
-
-              {/* Summary Card */}
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-5 shadow-sm space-y-3">
-                <div>
-                  <div className="text-base font-bold text-navy-900">
-                    {state.selectedService?.name} ·{" "}
-                    {state.selectedSlotStart && formatBusinessDate(state.selectedSlotStart)},{" "}
-                    {state.selectedSlotStart && formatBusinessTime(state.selectedSlotStart)}
-                  </div>
-                  <div className="text-sm text-navy-700 mt-0.5">
-                    {state.addressLine1}
-                    {state.addressLine2 ? `, ${state.addressLine2}` : ""}, {state.city}{" "}
-                    {state.zip}
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-200 pt-3 space-y-1.5 text-sm">
-                  <div className="flex items-center justify-between text-navy-700">
-                    <span>Service estimate</span>
-                    <Money cents={estimate.estimateCents} data-testid="checkout-estimate" />
-                  </div>
-                  <div className="flex items-center justify-between font-bold text-base text-navy-900">
-                    <span>Deposit due now ({estimate.depositPctUsed}%)</span>
-                    <Money
-                      cents={estimate.depositCents}
-                      emphasis
-                      data-testid="checkout-deposit"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-navy-700">
-                    <span>Remaining after the job</span>
-                    <Money
-                      cents={estimate.remainingEstimateCents}
-                      data-testid="checkout-remaining"
-                    />
-                  </div>
-                  <p className="text-xs text-navy-700">+ parts/tax if any</p>
-                </div>
-              </div>
-
-              {/* Payment Card */}
-              <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-navy-900 flex items-center gap-1.5">
-                    <CreditCard className="h-4 w-4 text-orange-700" aria-hidden="true" />
-                    <span>Card payment</span>
-                  </span>
-                  <span className="text-xs font-semibold text-navy-700">
-                    Secured by Stripe
-                  </span>
-                </div>
-
-                <div>
-                  <Label htmlFor="mock-card-number">Card number</Label>
-                  <Input
-                    id="mock-card-number"
-                    data-testid="mock-card-number"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="mock-card-expiry">Expiration</Label>
-                    <Input
-                      id="mock-card-expiry"
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="mock-card-cvc">CVC</Label>
-                    <Input
-                      id="mock-card-cvc"
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {paymentError && (
-                  <p role="alert" className="text-xs font-semibold text-danger">
-                    {paymentError}
-                  </p>
-                )}
-              </div>
-
-              {/* Tip Info Banner */}
-              <div className="flex items-start gap-2 rounded-xl bg-slate-100 p-3.5 text-xs text-navy-700">
-                <Info className="h-4 w-4 text-navy-900 shrink-0 mt-0.5" aria-hidden="true" />
-                <span>
-                  You can add a tip ({businessConfig.booking.tipPresets.join("/")}%) after the job is done.
-                </span>
-              </div>
-
-              {/* SMS Consent Notice */}
-              <p className="text-xs text-navy-700 leading-relaxed">
-                By booking you agree to receive booking and service texts from{" "}
-                {businessConfig.businessName}. Msg &amp; data rates may apply. Reply STOP to opt out.
-              </p>
-            </section>
+            <StepPayment
+              remainingSeconds={remainingSeconds}
+              selectedService={state.selectedService}
+              selectedSlotStart={state.selectedSlotStart}
+              addressLine1={state.addressLine1}
+              addressLine2={state.addressLine2}
+              city={state.city}
+              zip={state.zip}
+              estimate={estimate}
+              cardNumber={cardNumber}
+              cardExpiry={cardExpiry}
+              cardCvc={cardCvc}
+              paymentError={paymentError}
+              onChangeCardNumber={setCardNumber}
+              onChangeCardExpiry={setCardExpiry}
+              onChangeCardCvc={setCardCvc}
+            />
           )}
 
           {/* STEP 7: Confirmation */}
           {state.step === 7 && state.confirmedJob && (
-            <section
-              aria-labelledby="step-7-heading"
-              data-testid="booking-confirmed-step"
-              className="space-y-6 text-center py-4"
-            >
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-success shadow-md">
-                <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
-              </div>
-
-              <div>
-                <h1
-                  id="step-7-heading"
-                  className="font-heading text-[28px] sm:text-[32px] leading-tight font-extrabold text-navy-900"
-                >
-                  You&apos;re booked!
-                </h1>
-                <p
-                  data-testid="confirmed-job-number"
-                  className="inline-flex items-center rounded-full bg-orange-50 border border-orange-500/40 px-4 py-1 text-base font-extrabold text-orange-700 mt-2"
-                >
-                  Job #{state.confirmedJob.jobNumber}
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-left space-y-2.5 text-sm shadow-sm">
-                <div className="font-heading font-bold text-base text-navy-900">
-                  {state.confirmedJob.serviceName}
-                </div>
-                <div className="text-navy-900 font-semibold">
-                  {formatBusinessDate(state.confirmedJob.scheduledStart)} ·{" "}
-                  {formatBusinessTimeWithZone(state.confirmedJob.scheduledStart)}
-                </div>
-                <div className="text-navy-700">
-                  {state.confirmedJob.addressLine1}, {state.confirmedJob.city},{" "}
-                  {state.confirmedJob.state} {state.confirmedJob.zip}
-                </div>
-                <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-navy-700">
-                  <span>Deposit paid</span>
-                  <Money cents={state.confirmedJob.depositCents} emphasis />
-                </div>
-              </div>
-
-              <p className="text-sm text-navy-700">
-                We texted a confirmation to{" "}
-                <span className="font-semibold text-navy-900">
-                  {formatDisplayPhone(state.confirmedJob.customerPhone)}
-                </span>
-                .
-              </p>
-
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <Button asChild variant="outline" size="md" className="rounded-full">
-                  <a
-                    href={buildCalendarHref(state.confirmedJob)}
-                    download={`job-${state.confirmedJob.jobNumber}.ics`}
-                  >
-                    <CalendarPlus className="mr-2 h-4 w-4" aria-hidden="true" />
-                    <span>Add to calendar</span>
-                  </a>
-                </Button>
-                <Button asChild variant="secondary" size="md" className="rounded-full">
-                  <a href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}>
-                    <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
-                    <span>Call us</span>
-                  </a>
-                </Button>
-              </div>
-            </section>
+            <StepConfirmed confirmedJob={state.confirmedJob} />
           )}
         </div>
       </main>

@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import { Snowflake, Wrench, Zap, Sparkles } from "lucide-react";
 import type { ServiceDTO } from "@/lib/api/types";
 import { formatMoneyCents } from "@/lib/domain/format";
@@ -38,23 +39,32 @@ export function ServiceCard({ service, selected, onSelect }: ServiceCardProps) {
       data-testid={`service-card-${service.id}`}
       onClick={() => onSelect(service)}
       className={cn(
-        "w-full text-left rounded-2xl border p-5 transition-all duration-200 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 focus-visible:outline-offset-2 min-h-[84px]",
+        "w-full text-left rounded-2xl border p-4 sm:p-5 transition-all duration-200 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 focus-visible:outline-offset-2 min-h-[84px]",
         selected
           ? "border-2 border-orange-500 bg-orange-50/90 shadow-lg"
           : "border-slate-200/80 bg-white hover:border-orange-500/60 hover:shadow-md shadow-sm"
       )}
     >
       <div className="flex items-start justify-between gap-3.5">
-        <div className="flex items-start gap-3.5">
-          <div
-            className={cn(
-              "mt-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm transition-colors",
-              selected ? "bg-orange-500 text-navy-900" : "bg-navy-900 text-orange-500"
-            )}
-          >
-            <Icon className="h-5 w-5" aria-hidden="true" />
+        <div className="flex items-start gap-3.5 flex-1 min-w-0">
+          <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 overflow-hidden rounded-xl border border-slate-200/80 bg-navy-900 shadow-sm">
+            <Image
+              src={`/images/${service.id}.jpg`}
+              alt={service.name}
+              fill
+              sizes="64px"
+              className="object-cover"
+            />
+            <div
+              className={cn(
+                "absolute bottom-1 right-1 flex h-5 w-5 items-center justify-center rounded-md shadow transition-colors",
+                selected ? "bg-orange-500 text-navy-900" : "bg-navy-900/90 text-orange-500"
+              )}
+            >
+              <Icon className="h-3 w-3" aria-hidden="true" />
+            </div>
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="font-heading text-lg font-bold leading-6 text-navy-900">
               {service.name}
             </div>

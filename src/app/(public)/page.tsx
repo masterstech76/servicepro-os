@@ -20,20 +20,20 @@ import { businessConfig } from "@config/business.config";
 import { formatMoneyCents } from "@/lib/domain/format";
 import { Button } from "@/components/ui/button";
 import { PhoneLink } from "@/components/shared/PhoneLink";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 
-const HERO_IMAGE_URL =
-  "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1920&auto=format&fit=crop&q=80";
+const HERO_IMAGE_URL = "/images/hero.jpg";
 
-const CTA_BAND_IMAGE_URL =
-  "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=1920&auto=format&fit=crop&q=80";
+const CTA_BAND_IMAGE_URL = "/images/service-bg.jpg";
 
-const SERVICE_IMAGES: string[] = [
-  "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=900&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=900&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1558002038-1055907df827?w=900&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=900&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=900&auto=format&fit=crop&q=80",
-];
+const SERVICE_IMAGES: Record<string, string> = {
+  "svc-ac-repair": "/images/svc-ac-repair.jpg",
+  "svc-ac-tuneup": "/images/svc-ac-tuneup.jpg",
+  "svc-thermostat-install": "/images/svc-thermostat-install.jpg",
+  "svc-duct-cleaning": "/images/svc-duct-cleaning.jpg",
+  "svc-refrigerant-recharge": "/images/svc-refrigerant-recharge.jpg",
+};
 
 function getServiceIcon(category: string, id: string) {
   const lower = `${category} ${id}`.toLowerCase();
@@ -110,57 +110,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-navy-900 selection:bg-orange-500 selection:text-navy-900">
-      {/* Sticky Glass Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link
-            href="/"
-            className="flex items-center gap-3 font-heading font-bold text-lg sm:text-xl text-navy-900 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500 rounded-xl"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-900 text-orange-500 shadow-md">
-              <Snowflake className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div className="flex flex-col">
-              <span className="leading-tight tracking-tight">{businessConfig.businessName}</span>
-              <span className="text-[11px] font-sans font-semibold text-navy-700">
-                {businessConfig.city}, {businessConfig.state} • Lic #{businessConfig.licenseNumber}
-              </span>
-            </div>
-          </Link>
-
-          <nav
-            aria-label="Primary navigation"
-            className="hidden md:flex items-center gap-7 text-sm font-semibold text-navy-700"
-          >
-            <a href="#services" className="hover:text-navy-900 transition-colors">
-              Services & Pricing
-            </a>
-            <a href="#why-us" className="hover:text-navy-900 transition-colors">
-              Why Choose Us
-            </a>
-            <a href="#how-it-works" className="hover:text-navy-900 transition-colors">
-              How It Works
-            </a>
-            <a href="#reviews" className="hover:text-navy-900 transition-colors">
-              Reviews
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-2.5">
-            <PhoneLink phone={businessConfig.phone} label="Call" />
-            <Button
-              asChild
-              size="sm"
-              className="hidden sm:inline-flex rounded-full px-5 font-bold shadow-md hover:shadow-lg transition-all"
-            >
-              <Link href="/book">
-                <span>Book Now</span>
-                <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden="true" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="flex-1">
         {/* Hero Section with Full-Width Unsplash Image & Navy Gradient Overlay */}
@@ -331,7 +281,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {businessConfig.services.map((service, index) => {
                 const Icon = getServiceIcon(service.category, service.id);
-                const imageUrl = SERVICE_IMAGES[index % SERVICE_IMAGES.length];
+                const imageUrl = SERVICE_IMAGES[service.id] ?? "/images/service-bg.jpg";
                 const formattedPrice = formatMoneyCents(service.price, { omitZeroCents: true });
                 const priceBadgeText =
                   service.pricing === "hourly"
@@ -613,74 +563,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-navy-800 bg-navy-900 text-slate-200 py-14 px-4 sm:px-6 text-sm">
-        <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-10">
-          <div>
-            <div className="flex items-center gap-2.5 font-heading font-bold text-white text-lg mb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-500 text-navy-900">
-                <Snowflake className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <span>{businessConfig.businessName}</span>
-            </div>
-            <p className="text-slate-300 leading-relaxed">{businessConfig.seo.description}</p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-navy-800 px-3.5 py-1.5 text-xs font-semibold text-slate-200">
-              <ShieldCheck className="h-4 w-4 text-orange-500" aria-hidden="true" />
-              <span>State License #{businessConfig.licenseNumber}</span>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-heading font-bold text-white text-base mb-3">
-              Dispatch Center & Hours
-            </h3>
-            <div className="space-y-2 text-slate-300">
-              <p className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-orange-500 shrink-0 mt-1" aria-hidden="true" />
-                <span>{businessConfig.address}</span>
-              </p>
-              <p className="flex items-start gap-2">
-                <Clock className="h-4 w-4 text-orange-500 shrink-0 mt-1" aria-hidden="true" />
-                <span>
-                  Mon–Fri 7:00 AM – 7:00 PM
-                  <br />
-                  Sat 8:00 AM – 4:00 PM • Sun Closed
-                </span>
-              </p>
-              <p className="pt-1">
-                <a
-                  href={cleanPhoneHref}
-                  className="inline-flex items-center gap-2 font-bold text-white hover:text-orange-500 transition-colors"
-                >
-                  <Phone className="h-4 w-4 text-orange-500" aria-hidden="true" />
-                  <span>{businessConfig.phone}</span>
-                </a>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:items-end justify-between">
-            <div className="space-y-2 md:text-right">
-              <h3 className="font-heading font-bold text-white text-base mb-3">Quick Links</h3>
-              <div className="flex flex-col gap-2 text-sm text-slate-300">
-                <Link href="/book" className="hover:text-white underline-offset-4 hover:underline">
-                  Book Service Online
-                </Link>
-                <Link href="/demo" className="hover:text-white underline-offset-4 hover:underline">
-                  Interactive Platform Demo (/demo)
-                </Link>
-                <Link href="/login" className="hover:text-white underline-offset-4 hover:underline">
-                  Staff & Technician Login (/login)
-                </Link>
-              </div>
-            </div>
-
-            <p className="text-xs text-slate-300 mt-6">
-              © {new Date().getFullYear()} {businessConfig.businessName}. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
