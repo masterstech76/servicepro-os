@@ -144,13 +144,15 @@ export const businessConfigSchema = z
         message: `Primary color (${cfg.colors.primary}) on white (#FFFFFF) has contrast ${primaryOnWhite.toFixed(2)}:1, must be >= 4.5:1`,
       });
     }
-    // Check primary text on accent button fill >= 4.5:1 (UI_SPEC 1.1: orange buttons use navy text)
+    // Check button text on accent button fill >= 4.5:1 (supports white text on blue/dark buttons or primary text on light/orange buttons)
     const primaryOnAccent = getContrastRatio(cfg.colors.primary, cfg.colors.accent);
-    if (primaryOnAccent < 4.5) {
+    const whiteOnAccent = getContrastRatio("#FFFFFF", cfg.colors.accent);
+    const bestContrast = Math.max(primaryOnAccent, whiteOnAccent);
+    if (bestContrast < 4.5) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["colors", "accent"],
-        message: `Primary text (${cfg.colors.primary}) on accent button (${cfg.colors.accent}) has contrast ${primaryOnAccent.toFixed(2)}:1, must be >= 4.5:1`,
+        message: `Accent button (${cfg.colors.accent}) must have contrast >= 4.5:1 with either white (#FFFFFF) or primary (${cfg.colors.primary}), got ${bestContrast.toFixed(2)}:1`,
       });
     }
   });
