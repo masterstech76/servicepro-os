@@ -10,38 +10,44 @@ export async function GET() {
   try {
     const supabase = getSupabaseAdminClient();
     if (supabase) {
-      const { data: biz } = await supabase
-        .from("businesses")
-        .select("id")
-        .eq("slug", businessConfig.slug)
-        .single();
+      try {
+        const { data: biz } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("slug", businessConfig.slug)
+          .single();
 
-      const bizRow = biz as { id: string } | null;
-      if (bizRow) {
-        const { data: rows } = await supabase
-          .from("services")
-          .select("*")
-          .eq("business_id", bizRow.id)
-          .eq("active", true)
-          .order("sort_order", { ascending: true });
+        const bizRow = biz as { id: string } | null;
+        if (bizRow) {
+          const { data: rows } = await supabase
+            .from("services")
+            .select("*")
+            .eq("business_id", bizRow.id)
+            .eq("active", true)
+            .order("sort_order", { ascending: true });
 
-        const list = (rows ?? []).map((r: Record<string, unknown>) => ({
-          id: String(r.id),
-          name: String(r.name),
-          category: String(r.category ?? "General"),
-          skillTag: String(r.skill_tag),
-          pricing: r.pricing_type as "flat" | "hourly",
-          priceCents: Number(r.price_cents),
-          durationMinutes: Number(r.duration_minutes),
-          minBillableMinutes: Number(r.min_billable_minutes ?? 60),
-          depositPctOverride:
-            r.deposit_pct_override !== null && r.deposit_pct_override !== undefined
-              ? Number(r.deposit_pct_override)
-              : null,
-          description: String(r.description ?? ""),
-        }));
+          if (rows && rows.length > 0) {
+            const list = rows.map((r: Record<string, unknown>) => ({
+              id: String(r.id),
+              name: String(r.name),
+              category: String(r.category ?? "General"),
+              skillTag: String(r.skill_tag),
+              pricing: r.pricing_type as "flat" | "hourly",
+              priceCents: Number(r.price_cents),
+              durationMinutes: Number(r.duration_minutes),
+              minBillableMinutes: Number(r.min_billable_minutes ?? 60),
+              depositPctOverride:
+                r.deposit_pct_override !== null && r.deposit_pct_override !== undefined
+                  ? Number(r.deposit_pct_override)
+                  : null,
+              description: String(r.description ?? ""),
+            }));
 
-        return NextResponse.json({ services: list });
+            return NextResponse.json({ services: list });
+          }
+        }
+      } catch (e) {
+        console.warn("[api/services] Supabase query failed, falling back to local DB:", e);
       }
     }
 

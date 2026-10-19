@@ -52,7 +52,8 @@ export function ServiceCard({ service, selected, onSelect }: ServiceCardProps) {
               src={`/images/${service.id}.jpg`}
               alt={service.name}
               fill
-              sizes="64px"
+              sizes="(max-width: 640px) 56px, 64px"
+              loading="lazy"
               className="object-cover"
             />
             <div
