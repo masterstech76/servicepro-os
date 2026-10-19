@@ -8,12 +8,12 @@ for (let z = 33125; z <= 33146; z++) {
 miamiZips.push("33149");
 
 const rawConfig: BusinessConfig = {
-  businessName: "Cool Air HVAC Miami",
-  slug: "cool-air-hvac-miami",
-  legalName: "Cool Air Conditioning & Heating Services LLC",
+  businessName: "TechWork",
+  slug: "techwork",
+  legalName: "TechWork Services LLC",
   licenseNumber: "CAC1819420",
   phone: "(305) 555-0100",
-  email: "service@heavenlease.in",
+  email: "service@techwork.in",
   address: "1200 Brickell Ave, Suite 400, Miami, FL 33131",
   city: "Miami",
   state: "FL",
@@ -128,7 +128,7 @@ const rawConfig: BusinessConfig = {
   sms: {
     driver: "console",
     fromEnv: "TWILIO_FROM_NUMBER",
-    reviewUrl: "https://g.page/r/cool-air-hvac-miami/review",
+    reviewUrl: "https://g.page/r/techwork/review",
   },
   stripe: {
     publishableKeyEnv: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
@@ -141,9 +141,9 @@ const rawConfig: BusinessConfig = {
     defaultZoom: 11,
   },
   seo: {
-    title: "Cool Air HVAC Miami — Same-Day AC Repair & Service",
-    description: "Licensed & insured Miami HVAC technicians. Book online in 60 seconds with upfront pricing.",
-    heroHeadline: "Fast, Upfront AC Repair & Service in Miami",
+    title: "TechWork — Same-Day AC Repair & Field Service",
+    description: "Licensed & insured HVAC technicians. Book online in 60 seconds with upfront pricing.",
+    heroHeadline: "Fast, Upfront Service by TechWork Pros",
     heroSubheadline: "Licensed local technicians at your door today. Book online in 60 seconds — no phone tag.",
   },
 };
