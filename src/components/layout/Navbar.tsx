@@ -44,16 +44,16 @@ export function Navbar() {
           className="hidden md:flex items-center gap-7 text-sm font-semibold text-navy-700"
         >
           <Link href="/#services" className="hover:text-navy-900 transition-colors">
-            Services & Pricing
+            Services
           </Link>
-          <Link href="/#why-us" className="hover:text-navy-900 transition-colors">
-            Why Choose Us
-          </Link>
-          <Link href="/#how-it-works" className="hover:text-navy-900 transition-colors">
-            How It Works
+          <Link href="/#pricing" className="hover:text-navy-900 transition-colors">
+            Pricing
           </Link>
           <Link href="/#reviews" className="hover:text-navy-900 transition-colors">
             Reviews
+          </Link>
+          <Link href="/#contact" className="hover:text-navy-900 transition-colors">
+            Contact
           </Link>
         </nav>
 
