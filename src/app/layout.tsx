@@ -6,12 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-inter",
-});
+const inter = { variable: "font-sans" };
 
 export const metadata: Metadata = {
   title: businessConfig.seo.title,
