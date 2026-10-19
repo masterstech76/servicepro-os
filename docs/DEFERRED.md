@@ -1,11 +1,12 @@
-# ServicePro OS — Deferred Items
+# ServicePro OS — Deferred External Account Items
 
-Items explicitly deferred out of scope per `BUILD_PLAN.md` §1 and `PHASES.md`:
+All application code, database migrations, RLS policies, domain engines, API routes,Owner/Tech/Public UIs, and automated unit + E2E tests for Phases 1–5 are complete.
 
-- **Multi-tenant SaaS**: Each client receives their own isolated deployment (Vercel + Supabase + Stripe + Twilio + Mapbox) per D1.
-- **Native mobile apps**: Technician surface is an installable mobile-first PWA (`/tech`).
-- **Recurring maintenance agreements, inventory, QuickBooks sync, payroll export**: Paid add-ons outside v1.
-- **Live GPS tracking**: Technician ETA is computed at "Start Route" via Mapbox Matrix / haversine fallback.
-- **Stripe Terminal / Tap to Pay**: On-device payment uses Stripe Payment Element or text pay link.
-- **Customer self-serve cancel/reschedule & 24h automated reminder SMS**: Out of v1 scope.
-- **Dark mode**: Explicitly out of scope for v1 (`UI_SPEC.md` §10.6).
+The following external third-party account actions require human credentials/approvals when going live with a production shop:
+
+1. **Twilio A2P 10DLC / Toll-Free Carrier Registration**:
+   - Until carrier registration is approved, `SMS_DRIVER=console` is active and records every outbound SMS in `sms_log` and `job_events`.
+2. **Live Stripe Account Activation & Webhook Endpoint**:
+   - Swap `pk_test_...` / `sk_test_...` for live keys and register `/api/stripe/webhook` in the Stripe Dashboard.
+3. **Mapbox Production Token URL Restriction**:
+   - Set `NEXT_PUBLIC_MAPBOX_TOKEN` (URL-restricted to production domain) and `MAPBOX_SERVER_TOKEN` in Vercel environment variables.

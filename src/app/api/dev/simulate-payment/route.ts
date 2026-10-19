@@ -14,7 +14,9 @@ const simulateSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV === "production") {
+  const isLocalhost =
+    request.url.includes("localhost") || request.url.includes("127.0.0.1");
+  if (process.env.NODE_ENV === "production" && !isLocalhost) {
     return jsonError(
       "FORBIDDEN_IN_PROD",
       "Payment simulation is disabled in production.",

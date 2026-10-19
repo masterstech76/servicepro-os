@@ -13,6 +13,10 @@ import {
   getRevenueReport,
 } from "@/lib/server/operations";
 import { acePlumbingAustinConfig } from "@config/examples/ace-plumbing-austin";
+import { businessConfigSchema } from "@config/business.schema";
+import { processStripeWebhookEvent } from "@/lib/server/stripe-webhook";
+import { getLocalDb, rpcHoldSlot } from "@/lib/server/local-db-fallback";
+import { fromZonedTime } from "date-fns-tz";
 
 describe("Phases 3, 4 & 5 — Full-Stack Server Operations & White-Label Config", () => {
   beforeEach(() => {
@@ -167,9 +171,113 @@ describe("Phases 3, 4 & 5 — Full-Stack Server Operations & White-Label Config"
     expect(byDay.rows.length).toBeGreaterThanOrEqual(10);
   });
 
-  it("validates Ace Plumbing Austin white-label config schema & contrast rules", () => {
+  it("handles Stripe webhook idempotency/replay and SLOT_LOST auto-refund path", async () => {
+    const store = getLocalDb();
+    const bizId = "00000000-0000-4000-8000-000000000001";
+    store.nowOverride = fromZonedTime("2027-05-03T04:00:00", "America/New_York");
+
+    // Hold a 1-capacity slot (07:00 AM on Monday, 3h > 2h min_notice)
+    const slotIso = fromZonedTime("2027-05-03T07:00:00", "America/New_York").toISOString();
+    const holdId = await rpcHoldSlot(
+      {
+        p_business: bizId,
+        p_service: "svc-ac-repair",
+        p_zip: "33133",
+        p_start: slotIso,
+        p_ip_hash: "ip_wh_1",
+        p_payload: {
+          customer: { name: "Alex Mercer", phone: "+13055550177", email: "alex@example.com" },
+          address: { line1: "500 Brickell Ave", city: "Miami", state: "FL" },
+          estimatedTotalCents: 9900,
+        },
+      },
+      store
+    );
+
+    const evtPayload = {
+      id: "evt_stripe_test_001",
+      type: "payment_intent.succeeded",
+      data: {
+        object: {
+          id: "pi_test_001",
+          amount: 1980,
+          metadata: { hold_id: holdId },
+          payment_method_details: { card: { brand: "visa", last4: "4242" } },
+        },
+      },
+    };
+
+    const firstRun = await processStripeWebhookEvent(evtPayload, store);
+    expect(firstRun.duplicate).toBe(false);
+    expect(firstRun.action).toBe("job_created");
+    expect(firstRun.jobId).toBeTruthy();
+
+    // Replay identical event ID -> idempotent duplicate
+    const replayRun = await processStripeWebhookEvent(evtPayload, store);
+    expect(replayRun.duplicate).toBe(true);
+    expect(replayRun.action).toBe("ignored");
+
+    // Test SLOT_LOST when hold expired and slot capacity is now 0
+    const slot2Iso = fromZonedTime("2027-05-04T07:00:00", "America/New_York").toISOString();
+    const holdLostId = await rpcHoldSlot(
+      {
+        p_business: bizId,
+        p_service: "svc-ac-repair",
+        p_zip: "33133",
+        p_start: slot2Iso,
+        p_ip_hash: "ip_wh_2",
+        p_payload: {
+          customer: { name: "Late Buyer", phone: "+13055550188", email: "late@example.com" },
+        },
+      },
+      store
+    );
+
+    // Advance time 15 minutes so holdLostId is expired, and occupy the 07:00 slot with a job
+    store.nowOverride = fromZonedTime("2027-05-03T04:15:00", "America/New_York");
+    const existingJob = store.jobs.get(firstRun.jobId!)!;
+    store.jobs.set("job_occupying_slot2", {
+      ...existingJob,
+      id: "job_occupying_slot2",
+      job_number: 9999,
+      scheduled_start: slot2Iso,
+      scheduled_end: fromZonedTime("2027-05-04T08:30:00", "America/New_York").toISOString(),
+      deposit_payment_intent_id: "pi_other_customer",
+    });
+
+    // Now the late buyer's webhook arrives -> SLOT_LOST auto-refund + slot_lost SMS
+    const slotLostRes = await processStripeWebhookEvent(
+      {
+        id: "evt_stripe_slot_lost_002",
+        type: "payment_intent.succeeded",
+        data: {
+          object: {
+            id: "pi_late_buyer",
+            amount: 1980,
+            metadata: { hold_id: holdLostId },
+          },
+        },
+      },
+      store
+    );
+    expect(slotLostRes.action).toBe("slot_lost_refunded");
+    expect(slotLostRes.refundId).toContain("re_slot_lost_");
+  });
+
+  it("validates Ace Plumbing Austin white-label config schema & rejects low-contrast color pairs", () => {
     expect(acePlumbingAustinConfig.businessName).toBe("Ace Plumbing Austin");
     expect(acePlumbingAustinConfig.timezone).toBe("America/Chicago");
     expect(acePlumbingAustinConfig.services).toHaveLength(3);
+
+    // Low-contrast primary color (#CBD5E1 on #FFFFFF) should fail schema validation
+    const invalidContrast = businessConfigSchema.safeParse({
+      ...acePlumbingAustinConfig,
+      colors: {
+        ...acePlumbingAustinConfig.colors,
+        primary: "#CBD5E1",
+      },
+    });
+    expect(invalidContrast.success).toBe(false);
   });
 });
+

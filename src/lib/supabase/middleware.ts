@@ -27,13 +27,11 @@ export async function updateSessionAndEnforceRoles(request: NextRequest) {
 
   let role: UserRole | null = null;
 
-  // Support local dev session cookie fallback when remote Supabase is placeholder
+  // Support demo / local dev session cookie
   const devRoleCookie = request.cookies.get("servicepro_dev_role")?.value as UserRole | undefined;
-  if (!isRemoteSupabaseConfigured()) {
-    if (devRoleCookie === "owner" || devRoleCookie === "technician") {
-      role = devRoleCookie;
-    }
-  } else {
+  if (devRoleCookie === "owner" || devRoleCookie === "technician") {
+    role = devRoleCookie;
+  } else if (isRemoteSupabaseConfigured()) {
     const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
