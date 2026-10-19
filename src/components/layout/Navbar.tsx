@@ -57,12 +57,17 @@ export function Navbar() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2.5">
-          <PhoneLink phone={businessConfig.phone} label="Call" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/login"
+            className="text-xs sm:text-sm font-semibold text-navy-700 hover:text-navy-900 px-2 py-1.5 rounded-lg transition-colors"
+          >
+            Sign In
+          </Link>
           <Button
             asChild
             size="sm"
-            className="hidden sm:inline-flex rounded-full px-5 font-bold shadow-md hover:shadow-lg transition-all"
+            className="rounded-full px-4 sm:px-5 font-bold shadow-md hover:shadow-lg transition-all"
           >
             <Link href="/book">
               <span>Book Now</span>
