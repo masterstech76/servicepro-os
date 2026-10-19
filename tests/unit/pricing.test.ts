@@ -86,8 +86,8 @@ describe("Pricing & Deposit Engine (BUILD_PLAN Section 14)", () => {
     expect(invoice.amountDueCents).toBe(25140); // $251.40
   });
 
-  it("validates Cool Air HVAC Miami businessConfig and contrast rules", () => {
-    expect(businessConfig.businessName).toBe("Cool Air HVAC Miami");
+  it("validates active businessConfig and contrast rules", () => {
+    expect(businessConfig.businessName).toBe("TechWork");
     expect(businessConfig.timezone).toBe("America/New_York");
     expect(businessConfig.zipCodes).toContain("33133");
     expect(businessConfig.zipCodes).toContain("33149");
