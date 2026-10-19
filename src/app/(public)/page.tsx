@@ -20,8 +20,6 @@ import { businessConfig } from "@config/business.config";
 import { formatMoneyCents } from "@/lib/domain/format";
 import { Button } from "@/components/ui/button";
 import { PhoneLink } from "@/components/shared/PhoneLink";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 
 const HERO_IMAGE_URL = "/images/hero.jpg";
 
@@ -110,8 +108,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-navy-900 selection:bg-orange-500 selection:text-navy-900">
-      <Navbar />
-
       <main className="flex-1">
         {/* Hero Section with Full-Width Unsplash Image & Navy Gradient Overlay */}
         <section className="relative overflow-hidden bg-navy-900 text-white pt-14 pb-24 sm:pt-24 sm:pb-32 px-4 sm:px-6">
@@ -562,8 +558,6 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

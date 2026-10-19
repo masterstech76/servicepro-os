@@ -1,11 +1,26 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Snowflake, ArrowRight } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
 import { PhoneLink } from "@/components/shared/PhoneLink";
 
 export function Navbar() {
+  const pathname = usePathname();
+
+  // Hide global navbar on dashboard, tech portal, login, and dedicated booking wizard screens
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/tech") ||
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/book")
+  ) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4 sm:px-6">

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { businessConfig } from "@config/business.config";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -39,8 +41,10 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={inter.variable} style={cssVars}>
-      <body className="font-sans min-h-screen bg-white text-navy-900 antialiased">
-        {children}
+      <body className="font-sans min-h-screen bg-white text-navy-900 antialiased flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex flex-col">{children}</div>
+        <Footer />
         <Toaster
           position="top-center"
           toastOptions={{

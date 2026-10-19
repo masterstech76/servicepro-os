@@ -55,13 +55,13 @@ import {
   PhotoUploader,
   type UploadedPhotoItem,
 } from "@/components/booking/PhotoUploader";
-import { StepService } from "@/components/booking/steps/StepService";
-import { StepZip } from "@/components/booking/steps/StepZip";
-import { StepIssue } from "@/components/booking/steps/StepIssue";
-import { StepSlot } from "@/components/booking/steps/StepSlot";
-import { StepDetails } from "@/components/booking/steps/StepDetails";
-import { StepPayment } from "@/components/booking/steps/StepPayment";
-import { StepConfirmed } from "@/components/booking/steps/StepConfirmed";
+import { Step1Service } from "@/components/booking/steps/Step1Service";
+import { Step2Zip } from "@/components/booking/steps/Step2Zip";
+import { Step3Issue } from "@/components/booking/steps/Step3Issue";
+import { Step4Slot } from "@/components/booking/steps/Step4Slot";
+import { Step5Details } from "@/components/booking/steps/Step5Details";
+import { Step6Payment } from "@/components/booking/steps/Step6Payment";
+import { Step7Confirm } from "@/components/booking/steps/Step7Confirm";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "servicepro_booking_wizard_v1";
@@ -865,7 +865,7 @@ export function BookingWizard() {
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-8 shadow-xl">
           {/* STEP 1: Select service */}
           {state.step === 1 && (
-            <StepService
+            <Step1Service
               services={services}
               loadingServices={loadingServices}
               selectedService={state.selectedService}
@@ -875,7 +875,7 @@ export function BookingWizard() {
 
           {/* STEP 2: ZIP Code */}
           {state.step === 2 && (
-            <StepZip
+            <Step2Zip
               zip={state.zip}
               zipChecked={state.zipChecked}
               zipServed={state.zipServed}
@@ -889,7 +889,7 @@ export function BookingWizard() {
 
           {/* STEP 3: Describe issue + photo */}
           {state.step === 3 && (
-            <StepIssue
+            <Step3Issue
               issueText={state.issueText}
               issueError={issueError}
               photos={photos}
@@ -903,7 +903,7 @@ export function BookingWizard() {
 
           {/* STEP 4: Date & time */}
           {state.step === 4 && (
-            <StepSlot
+            <Step4Slot
               scrollerDays={scrollerDays}
               selectedDay={state.selectedDay}
               loadingSlots={loadingSlots}
@@ -919,7 +919,7 @@ export function BookingWizard() {
 
           {/* STEP 5: Address & contact */}
           {state.step === 5 && (
-            <StepDetails
+            <Step5Details
               addressLine1={state.addressLine1}
               addressLine2={state.addressLine2}
               zip={state.zip}
@@ -943,7 +943,7 @@ export function BookingWizard() {
 
           {/* STEP 6: Checkout */}
           {state.step === 6 && (
-            <StepPayment
+            <Step6Payment
               remainingSeconds={remainingSeconds}
               selectedService={state.selectedService}
               selectedSlotStart={state.selectedSlotStart}
@@ -964,7 +964,7 @@ export function BookingWizard() {
 
           {/* STEP 7: Confirmation */}
           {state.step === 7 && state.confirmedJob && (
-            <StepConfirmed confirmedJob={state.confirmedJob} />
+            <Step7Confirm confirmedJob={state.confirmedJob} />
           )}
         </div>
       </main>

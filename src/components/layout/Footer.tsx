@@ -1,9 +1,24 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Snowflake, ShieldCheck, MapPin, Clock, Phone } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide global footer on dashboard, tech portal, login, and dedicated booking wizard screens
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/tech") ||
+    pathname?.startsWith("/login") ||
+    pathname?.startsWith("/book")
+  ) {
+    return null;
+  }
+
   const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
 
   return (
