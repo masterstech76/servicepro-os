@@ -144,25 +144,24 @@ export default function LandingPage() {
             </p>
 
             {/* Primary & Secondary CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 asChild
                 size="lg"
-                className="w-full sm:w-auto min-w-[270px] rounded-full text-base font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
+                className="w-full sm:w-auto min-w-[280px] rounded-xl text-base font-bold shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
               >
                 <Link href="/book" data-testid="hero-book-cta">
-                  <span>Book online in 60 seconds</span>
+                  <span>Schedule Service Online</span>
                   <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
                 </Link>
               </Button>
 
-              <a
-                href={cleanPhoneHref}
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2.5 rounded-full border border-white/25 bg-navy-800/80 backdrop-blur-md px-7 text-base font-semibold text-white shadow-lg hover:bg-navy-800 transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500"
+              <Link
+                href="/demo"
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-navy-800/80 backdrop-blur-md px-7 text-base font-semibold text-white shadow-lg hover:bg-navy-800 hover:border-white/40 transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500"
               >
-                <Phone className="h-5 w-5 text-orange-500" aria-hidden="true" />
-                <span>Call {businessConfig.phone}</span>
-              </a>
+                <span>Interactive Demo Hub →</span>
+              </Link>
             </div>
 
             {/* Trust Row with Avatars */}
@@ -537,26 +536,22 @@ export default function LandingPage() {
               Same-Day & Emergency Dispatch
             </span>
             <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
-              Need emergency service? Call now or book your arrival window online.
+              Need emergency service? Book your arrival window online.
             </h2>
             <p className="mx-auto max-w-2xl text-sm sm:text-lg text-slate-200 mb-8">
-              Licensed {businessConfig.city} technicians are on standby with fully stocked trucks.
+              Licensed technicians on standby with fully stocked trucks.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              <a
-                href={cleanPhoneHref}
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2.5 rounded-full bg-orange-500 px-8 text-base font-bold text-navy-900 shadow-xl hover:bg-orange-600 transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-white"
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button
+                asChild
+                size="lg"
+                className="w-full sm:w-auto min-w-[280px] rounded-xl text-base font-bold shadow-xl hover:shadow-2xl transition-all"
               >
-                <Phone className="h-5 w-5" aria-hidden="true" />
-                <span>Call {businessConfig.phone}</span>
-              </a>
-              <Link
-                href="/book"
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-white/25 bg-navy-800/85 backdrop-blur-md px-8 text-base font-semibold text-white hover:bg-navy-800 transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500"
-              >
-                <span>Schedule Online</span>
-                <ArrowRight className="h-5 w-5" aria-hidden="true" />
-              </Link>
+                <Link href="/book">
+                  <span>Book an Arrival Window</span>
+                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                </Link>
+              </Button>
             </div>
           </div>
         </section>

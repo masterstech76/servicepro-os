@@ -57,20 +57,20 @@ export function Navbar() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="text-xs sm:text-sm font-semibold text-navy-700 hover:text-navy-900 px-2 py-1.5 rounded-lg transition-colors"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-navy-900 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-orange-500"
           >
-            Sign In
+            Staff Sign In
           </Link>
           <Button
             asChild
             size="sm"
-            className="rounded-full px-4 sm:px-5 font-bold shadow-md hover:shadow-lg transition-all"
+            className="rounded-xl px-5 font-bold shadow-md hover:shadow-lg transition-all"
           >
             <Link href="/book">
-              <span>Book Now</span>
+              <span>Book Online</span>
               <ArrowRight className="ml-1.5 h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
