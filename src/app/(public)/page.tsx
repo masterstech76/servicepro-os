@@ -116,7 +116,8 @@ export default function LandingPage() {
             alt={`${businessConfig.businessName} certified technician servicing HVAC equipment in ${businessConfig.city}`}
             fill
             priority
-            sizes="100vw"
+            quality={80}
+            sizes="(max-width: 768px) 100vw, 1200px"
             className="object-cover object-center"
           />
           <div
@@ -520,7 +521,9 @@ export default function LandingPage() {
             src={CTA_BAND_IMAGE_URL}
             alt={`Emergency dispatch team at ${businessConfig.businessName}`}
             fill
-            sizes="100vw"
+            quality={75}
+            loading="lazy"
+            sizes="(max-width: 768px) 100vw, 1200px"
             className="object-cover object-center"
           />
           <div
