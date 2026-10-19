@@ -151,16 +151,16 @@ export default function LandingPage() {
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
                   <Link
-                    href="/book"
+                    href="#services"
                     className="flex-1 max-w-[280px] flex items-center justify-between rounded-2xl bg-orange-500 hover:bg-orange-600 text-navy-900 px-6 py-4 shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all text-left font-black"
                   >
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0">
-                        <Calendar className="h-5 w-5 text-navy-900" />
+                        <Wrench className="h-5 w-5 text-navy-900" />
                       </div>
                       <div>
-                        <div className="text-base leading-tight">Book Online</div>
-                        <div className="text-xs text-navy-900/80 font-semibold">Schedule in 60 Seconds</div>
+                        <div className="text-base leading-tight">Explore Services</div>
+                        <div className="text-xs text-navy-900/80 font-semibold">View Upfront Pricing</div>
                       </div>
                     </div>
                     <ArrowRight className="h-5 w-5 text-navy-900 ml-2 shrink-0" />
@@ -172,7 +172,7 @@ export default function LandingPage() {
                   >
                     <Phone className="h-5 w-5 text-orange-600" />
                     <div className="text-left">
-                      <div className="text-[11px] text-slate-500 leading-none uppercase tracking-wider font-semibold">Call Now</div>
+                      <div className="text-[11px] text-slate-500 leading-none uppercase tracking-wider font-semibold">24/7 Dispatch</div>
                       <div className="font-black text-sm text-navy-900 leading-tight mt-0.5">{businessConfig.phone}</div>
                     </div>
                   </a>
@@ -368,23 +368,13 @@ export default function LandingPage() {
                         <div className="text-base font-black text-navy-900">{svc.price}</div>
                         <div className="text-[10px] text-slate-400 font-medium">Flat Rate</div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={svc.href}
-                          className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-                        >
-                          Details
-                        </Link>
-                        <Button
-                          asChild
-                          size="sm"
-                          className="bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold text-xs rounded-xl h-8 px-3"
-                        >
-                          <Link href={`/book?serviceId=${svc.id}`}>
-                            Book
-                          </Link>
-                        </Button>
-                      </div>
+                      <Link
+                        href={svc.href}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-xl border border-orange-200 transition-colors"
+                      >
+                        <span>View Details</span>
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </Link>
                     </div>
                   </div>
                 );
