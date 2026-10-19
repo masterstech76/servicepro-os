@@ -18,6 +18,7 @@ import {
   Building2,
   CheckCircle2,
   HelpCircle,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -158,33 +159,69 @@ interface ServicesCatalogClientProps {
 
 export function ServicesCatalogClient({ businessPhone, city }: ServicesCatalogClientProps) {
   const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
   const cleanPhoneHref = `tel:${businessPhone.replace(/\D/g, "")}`;
 
   const filteredServices = React.useMemo(() => {
-    if (selectedCategory === "all") return ALL_SERVICES;
-    return ALL_SERVICES.filter((svc) => svc.category === selectedCategory);
-  }, [selectedCategory]);
+    let list = ALL_SERVICES;
+    if (selectedCategory !== "all") {
+      list = list.filter((svc) => svc.category === selectedCategory);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(
+        (svc) =>
+          svc.title.toLowerCase().includes(q) ||
+          svc.desc.toLowerCase().includes(q) ||
+          svc.categoryLabel.toLowerCase().includes(q) ||
+          svc.price.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [selectedCategory, searchQuery]);
 
   return (
-    <div className="space-y-16">
-      {/* Category Filter Pills */}
-      <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 px-2 scrollbar-none">
-        {CATEGORIES.map((cat) => {
-          const isActive = selectedCategory === cat.id;
-          return (
+    <div className="space-y-12">
+      {/* Amazon-Style Search + Category Filter Bar */}
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search AC diagnostics, tune-up specials, duct cleaning..."
+            className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 bg-white shadow-sm text-sm text-navy-950 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+          />
+          {searchQuery && (
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? "bg-navy-900 text-white shadow-sm"
-                  : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-              }`}
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg px-2 py-1"
             >
-              {cat.label}
+              Clear
             </button>
-          );
-        })}
+          )}
+        </div>
+
+        {/* Category Filter Pills */}
+        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-1 px-2 scrollbar-none">
+          {CATEGORIES.map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? "bg-navy-900 text-white shadow-sm"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Featured Emergency Full-Width Card (Section 2) */}
