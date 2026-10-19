@@ -41,17 +41,24 @@ export default function TermsPage() {
           </p>
         </div>
 
-        <div className="space-y-3">
-          <h2 className="font-heading text-xl font-bold text-[#0F172A]">3. One-Year Workmanship Warranty</h2>
+        <div id="guarantee" className="space-y-3 scroll-mt-24">
+          <h2 className="font-heading text-xl font-bold text-[#0F172A]">3. Service Guarantee &amp; 1-Year Workmanship Warranty</h2>
           <p>
-            All residential replacement parts and labor performed by our licensed technicians are backed by our 1-year limited workmanship guarantee. Warranty excludes damage resulting from power surges, floods, or unauthorized third-party tampering.
+            All residential replacement parts and labor performed by our licensed technicians are backed by our 30-day "Fixed Right" guarantee and 1-year limited workmanship warranty. If an issue recurs within the warranty window, we return promptly at zero additional dispatch cost.
           </p>
         </div>
 
-        <div className="space-y-3">
-          <h2 className="font-heading text-xl font-bold text-[#0F172A]">4. Payment Terms</h2>
+        <div id="cancellation" className="space-y-3 scroll-mt-24">
+          <h2 className="font-heading text-xl font-bold text-[#0F172A]">4. Cancellation &amp; Rescheduling Policy</h2>
           <p>
-            Payment in full is due upon job completion and digital sign-off. We accept major credit cards, debit cards, and authorized bank payments processed securely via Stripe.
+            Appointments may be cancelled or rescheduled online through your Customer Portal account at no penalty up to 2 hours prior to the scheduled service window. Cancellations made within 2 hours of arrival may forfeit the initial diagnostic deposit to cover dispatched travel costs.
+          </p>
+        </div>
+
+        <div id="refunds" className="space-y-3 scroll-mt-24">
+          <h2 className="font-heading text-xl font-bold text-[#0F172A]">5. Payment &amp; Refund Policy</h2>
+          <p>
+            Payment in full is due upon job completion and customer sign-off. We accept all major credit/debit cards and ACH via Stripe. Diagnostic deposits are 100% credited toward approved repair work. If a service cannot be completed due to technician inability or unavailable parts, any collected deposit is promptly refunded within 3-5 business days.
           </p>
         </div>
 
