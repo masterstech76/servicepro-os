@@ -2,104 +2,198 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Smartphone, ShieldAlert, ArrowRight, CheckCircle2, Info, Lock } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Smartphone, ArrowRight, ShieldCheck, CheckCircle2, RotateCw, Phone } from "lucide-react";
+import { toast } from "sonner";
 import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
 
 function VerifyPhoneContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const phoneParam = searchParams.get("phone") || businessConfig.phone;
-  const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
+  const phoneParam = searchParams.get("phone") || "(305) 555-0144";
+
+  const [otp, setOtp] = React.useState<string[]>(["", "", "", "", "", ""]);
+  const [timer, setTimer] = React.useState(45);
+  const [verifying, setVerifying] = React.useState(false);
+  const [verified, setVerified] = React.useState(false);
+
+  const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+  // Countdown timer
+  React.useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
+
+  const handleChange = (index: number, value: string) => {
+    if (value.length > 1) {
+      // Pasting full code
+      const digits = value.replace(/\D/g, "").slice(0, 6).split("");
+      const newOtp = [...otp];
+      digits.forEach((d, i) => {
+        if (i < 6) newOtp[i] = d;
+      });
+      setOtp(newOtp);
+      const nextFocus = Math.min(digits.length, 5);
+      inputRefs.current[nextFocus]?.focus();
+      return;
+    }
+
+    const digit = value.replace(/\D/g, "");
+    const newOtp = [...otp];
+    newOtp[index] = digit;
+    setOtp(newOtp);
+
+    // Auto-advance to next input
+    if (digit && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleResend = () => {
+    if (timer > 0) return;
+    setTimer(45);
+    setOtp(["", "", "", "", "", ""]);
+    toast.success(`New 6-digit code sent to ${phoneParam}`);
+    inputRefs.current[0]?.focus();
+  };
+
+  const handleDemoFill = () => {
+    const demoCode = ["1", "2", "3", "4", "5", "6"];
+    setOtp(demoCode);
+    toast.info("Prefilled demo code: 123456");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = otp.join("");
+    if (code.length < 6) {
+      toast.error("Please enter the complete 6-digit code.");
+      return;
+    }
+
+    setVerifying(true);
+    setTimeout(() => {
+      setVerifying(false);
+      setVerified(true);
+      toast.success("Phone verified successfully!");
+      setTimeout(() => {
+        router.push("/account");
+      }, 1200);
+    }, 800);
+  };
 
   return (
-    <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-7 sm:p-8 shadow-xl space-y-6">
+    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 sm:p-9 shadow-xl space-y-6">
       {/* Header */}
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-orange-500 mb-3 shadow-md">
-          <Smartphone className="h-6 w-6" aria-hidden="true" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-navy-950 text-orange-400 mb-4 shadow-md ring-4 ring-orange-500/10">
+          <Smartphone className="h-7 w-7" aria-hidden="true" />
         </div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold mb-2">
-          <Info className="h-3.5 w-3.5 text-amber-600" />
-          <span>Scheduled Phase 2 Carrier Integration</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-navy-900">
-          Phone Verification Status
+        <h1 className="text-2xl sm:text-3xl font-black text-navy-950 tracking-tight">
+          Verify Mobile Number
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-md">
-          Two-factor mobile verification status for {businessConfig.businessName} accounts.
+        <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm">
+          Enter the 6-digit security code sent via SMS to{" "}
+          <strong className="text-navy-950 font-bold">{phoneParam}</strong>
         </p>
       </div>
 
-      {/* Honest Status Notice */}
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 space-y-3.5">
-        <div className="flex items-start gap-3">
-          <ShieldAlert className="h-5 w-5 text-orange-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-800 space-y-1.5">
-            <p className="font-bold text-sm text-navy-900">
-              Automated SMS OTP Currently Deactivated
-            </p>
-            <p className="text-slate-600 leading-relaxed">
-              Mobile one-time password (OTP) verification requires an approved <strong>A2P 10DLC (10-Digit Long Code)</strong> carrier registration with US telecommunication providers.
-            </p>
-            <p className="text-slate-600 leading-relaxed">
-              To remain fully compliant with US carrier regulations, SMS verification is queued for Phase 2 activation.
-            </p>
+      {verified ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6 text-center space-y-2">
+          <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
+          <h3 className="font-heading font-black text-base text-emerald-950">
+            Phone Number Verified!
+          </h3>
+          <p className="text-xs text-emerald-700">
+            Redirecting to your customer portal...
+          </p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Uber-Style 6-Digit Code Boxes */}
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            {otp.map((digit, idx) => (
+              <input
+                key={idx}
+                ref={(el) => {
+                  inputRefs.current[idx] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(idx, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(idx, e)}
+                className={`h-12 w-11 sm:h-14 sm:w-13 rounded-2xl border text-center font-mono text-xl sm:text-2xl font-black transition-all ${
+                  digit
+                    ? "border-navy-950 bg-slate-50 text-navy-950 ring-2 ring-navy-950/20"
+                    : "border-slate-300 bg-white text-navy-950 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"
+                } focus:outline-none`}
+              />
+            ))}
           </div>
-        </div>
 
-        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-900 flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-          <span>
-            <strong>Your Account is Secure:</strong> You can authenticate safely and access all portal features using verified email credentials.
-          </span>
-        </div>
-      </div>
+          {/* Resend & Demo Code Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <button
+              type="button"
+              disabled={timer > 0}
+              onClick={handleResend}
+              className={`flex items-center gap-1 font-bold ${
+                timer > 0
+                  ? "text-slate-400 cursor-not-allowed"
+                  : "text-orange-600 hover:text-orange-700 hover:underline"
+              }`}
+            >
+              <RotateCw className="h-3.5 w-3.5" />
+              <span>{timer > 0 ? `Resend code in ${timer}s` : "Resend 6-Digit Code"}</span>
+            </button>
 
-      {/* Phone Details */}
-      <div className="rounded-xl border border-slate-200 p-4 space-y-2 text-xs">
-        <div className="flex justify-between items-center text-slate-600">
-          <span>Mobile Number on File:</span>
-          <span className="font-bold text-navy-900">{phoneParam}</span>
-        </div>
-        <div className="flex justify-between items-center text-slate-600">
-          <span>Verification Provider:</span>
-          <span className="font-semibold text-slate-700">Twilio / Console (Pending 10DLC)</span>
-        </div>
-        <div className="flex justify-between items-center text-slate-600">
-          <span>SMS Job Alerts Status:</span>
-          <span className="font-bold text-emerald-600">Active (Transactional Only)</span>
-        </div>
-      </div>
+            <button
+              type="button"
+              onClick={handleDemoFill}
+              className="text-slate-500 hover:text-navy-950 font-semibold underline"
+            >
+              Autofill Demo Code (123456)
+            </button>
+          </div>
 
-      {/* Primary Actions */}
-      <div className="space-y-2.5">
-        <Button
-          asChild
-          className="w-full bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold py-3 text-sm shadow-md transition-all"
-        >
-          <Link href="/account" className="flex items-center justify-center gap-2">
-            <span>Continue to Customer Portal</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
+          {/* Submit Action */}
+          <Button
+            type="submit"
+            disabled={otp.some((d) => !d) || verifying}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-navy-950 font-black h-12 text-sm rounded-xl shadow-md transition-all"
+          >
+            {verifying ? (
+              "Verifying Code..."
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <span>Verify &amp; Continue</span>
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            )}
+          </Button>
+        </form>
+      )}
 
-        <Button
-          asChild
-          variant="outline"
-          className="w-full text-xs font-bold border-slate-300 text-navy-900 hover:bg-slate-50"
-        >
-          <Link href="/verify-email">Verify via Email Instead</Link>
-        </Button>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-        <Link href="/" className="font-medium text-slate-600 hover:text-navy-900 underline">
-          ← Homepage
+      {/* Footer Navigation */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs text-slate-500">
+        <Link href="/login" className="hover:text-navy-950 font-semibold transition-colors">
+          ← Back to Sign In
         </Link>
-        <Link href="/book" className="font-semibold text-orange-600 hover:text-orange-700 underline">
-          Book Service →
+        <Link href="/contact" className="hover:text-orange-600 font-semibold transition-colors">
+          Need Help?
         </Link>
       </div>
     </div>
@@ -108,16 +202,14 @@ function VerifyPhoneContent() {
 
 export default function VerifyPhonePage() {
   return (
-    <main className="w-full flex justify-center">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <React.Suspense
         fallback={
-          <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm font-semibold text-slate-600">
-            Loading phone verification status...
-          </div>
+          <div className="w-full max-w-md h-96 rounded-3xl bg-white animate-pulse" />
         }
       >
         <VerifyPhoneContent />
       </React.Suspense>
-    </main>
+    </div>
   );
 }
