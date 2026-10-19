@@ -21,6 +21,7 @@ import {
   ChevronRight,
   MapPin,
   Wind,
+  Search,
 } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ export default function LandingPage() {
       id: "svc-duct-cleaning",
       name: "Air Duct Cleaning & Sanitizing",
       desc: "Whole-home negative air pressure duct vacuuming, antimicrobial fogging, and dryer vent sweep.",
-      price: "$299",
+      price: "$249",
       rateType: "Flat Rate",
       href: "/services/duct-cleaning",
       icon: Wind,
@@ -81,8 +82,8 @@ export default function LandingPage() {
       id: "svc-refrigerant-recharge",
       name: "Refrigerant Recharge & Leak Test",
       desc: "Nitrogen pressure leak detection, Schrader valve tightening, and R410A / R22 subcooling balance.",
-      price: "$189",
-      rateType: "Diagnostic + First Lb",
+      price: "$125/hr",
+      rateType: "EPA Certified Service",
       href: "/services/refrigerant-recharge",
       icon: Snowflake,
       image: "/images/svc-refrigerant-recharge.jpg",
@@ -177,8 +178,60 @@ export default function LandingPage() {
                   Same-day AC repair, 21-point seasonal maintenance, and certified duct cleaning across {businessConfig.city}. Upfront flat rates with guaranteed 2-hour arrival windows.
                 </p>
 
+                {/* Amazon-Style Quick Discovery Search */}
+                <div className="pt-1 pb-1 space-y-3">
+                  <div className="relative max-w-xl">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="What HVAC issue are you experiencing? (e.g. AC leaking, warm air, tune-up)..."
+                      className="w-full h-12 pl-12 pr-28 rounded-2xl border-2 border-slate-200 bg-white text-sm text-navy-950 placeholder:text-slate-400 focus:outline-none focus:border-orange-500 shadow-sm transition-all"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          const val = (e.target as HTMLInputElement).value;
+                          window.location.href = `/services?q=${encodeURIComponent(val)}`;
+                        }
+                      }}
+                    />
+                    <Link
+                      href="/services"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 px-4 rounded-xl bg-navy-900 hover:bg-navy-950 text-white text-xs font-bold inline-flex items-center justify-center transition-all"
+                    >
+                      Find Pro
+                    </Link>
+                  </div>
+
+                  {/* Fast Category Navigation Pills */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href="/services/ac-repair"
+                      className="px-3 py-1 rounded-full bg-slate-100 hover:bg-orange-50 hover:text-orange-700 text-slate-700 text-xs font-bold transition-all border border-slate-200"
+                    >
+                      ❄️ AC Repair ($129)
+                    </Link>
+                    <Link
+                      href="/services/ac-tuneup"
+                      className="px-3 py-1 rounded-full bg-slate-100 hover:bg-orange-50 hover:text-orange-700 text-slate-700 text-xs font-bold transition-all border border-slate-200"
+                    >
+                      🔧 Tune-Up ($89)
+                    </Link>
+                    <Link
+                      href="/services/emergency-hvac"
+                      className="px-3 py-1 rounded-full bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition-all border border-red-200"
+                    >
+                      ⚡ 24/7 Emergency
+                    </Link>
+                    <Link
+                      href="/services/duct-cleaning"
+                      className="px-3 py-1 rounded-full bg-slate-100 hover:bg-orange-50 hover:text-orange-700 text-slate-700 text-xs font-bold transition-all border border-slate-200"
+                    >
+                      🌬️ Duct Cleaning ($249)
+                    </Link>
+                  </div>
+                </div>
+
                 {/* 2 Purposeful Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-1">
                   <Button
                     asChild
                     className="h-14 px-8 rounded-2xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black text-sm sm:text-base shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all"
@@ -201,19 +254,19 @@ export default function LandingPage() {
                   </Button>
                 </div>
 
-                {/* Trust Proof Row */}
-                <div className="pt-2 flex flex-wrap items-center gap-4 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="flex text-amber-500">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <span className="font-bold text-navy-900">4.9/5 from 1,200+ Verified Customers</span>
+                {/* Angi Trust Verification Row */}
+                <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 font-bold text-slate-800">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    <span>Angi Certified · Lic #CAC1819420</span>
                   </div>
-                  <div className="text-slate-400">•</div>
-                  <div className="font-medium text-slate-600">
-                    Fully Bonded &amp; $2M Insured
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 font-bold text-slate-800">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                    <span>4.9★ (1,200+ Reviews)</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 font-bold text-slate-800">
+                    <CheckCircle2 className="h-4 w-4 text-orange-600" />
+                    <span>$2M Insured &amp; Bonded</span>
                   </div>
                 </div>
               </div>
