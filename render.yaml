@@ -11,11 +11,25 @@ services:
         value: production
       - key: NEXT_PUBLIC_API_MODE
         value: real
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://heavenlease.in
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
       - key: SMS_DRIVER
         value: console
+      - key: CRON_SECRET
+        sync: false
+      - key: INITIAL_OWNER_EMAIL
+        sync: false
+      - key: INITIAL_OWNER_PASSWORD
+        sync: false
