@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { BarChart3, Calendar, Download, TrendingUp } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -130,6 +131,33 @@ export default function AdminReportsPage() {
             Financial performance, technician commissions (labor-only), and tip
             pass-through ({report?.fromDate} → {report?.toDate})
           </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 p-1 text-xs font-bold">
+          <Link
+            href="/admin/reports"
+            className="px-3 py-1.5 rounded-lg bg-navy-900 text-white shadow-sm"
+          >
+            Overview
+          </Link>
+          <Link
+            href="/admin/reports/jobs"
+            className="px-3 py-1.5 rounded-lg text-navy-700 hover:text-navy-900"
+          >
+            Jobs
+          </Link>
+          <Link
+            href="/admin/reports/revenue"
+            className="px-3 py-1.5 rounded-lg text-navy-700 hover:text-navy-900"
+          >
+            Revenue
+          </Link>
+          <Link
+            href="/admin/reports/technicians"
+            className="px-3 py-1.5 rounded-lg text-navy-700 hover:text-navy-900"
+          >
+            Technicians
+          </Link>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

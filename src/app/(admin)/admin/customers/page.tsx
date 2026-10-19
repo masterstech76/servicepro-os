@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { CreditCard, MessageSquare, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Money } from "@/components/shared/Money";
@@ -171,14 +172,22 @@ export default function AdminCustomersPage() {
                       </button>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => void deleteCustomer(c)}
-                        className="rounded p-1 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                        title="Delete Customer"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/admin/customers/${c.id}`}
+                          className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-navy-900 hover:bg-slate-100"
+                        >
+                          View 360 &rarr;
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => void deleteCustomer(c)}
+                          className="rounded p-1 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                          title="Delete Customer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

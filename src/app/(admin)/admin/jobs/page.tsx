@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { formatInTimeZone } from "date-fns-tz";
-import { Download, Search } from "lucide-react";
+import { Download, Plus, Search } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -76,16 +77,25 @@ export default function AdminJobsListPage() {
             Search, filter, inspect invoices, or export your complete job history
           </p>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={exportCsv}
-          className="gap-1.5"
-        >
-          <Download className="h-4 w-4" />
-          Export CSV ({jobs.length})
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/jobs/create"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 px-3.5 py-2 text-xs font-bold text-navy-950 shadow-sm hover:bg-orange-400"
+          >
+            <Plus className="h-4 w-4" />
+            Create Work Order
+          </Link>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={exportCsv}
+            className="gap-1.5"
+          >
+            <Download className="h-4 w-4" />
+            Export CSV ({jobs.length})
+          </Button>
+        </div>
       </div>
 
       {/* Demo Data Manager Toolbar */}
@@ -149,6 +159,7 @@ export default function AdminJobsListPage() {
                   <th className="px-4 py-3">Technician</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3 text-right">Amount</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -200,6 +211,15 @@ export default function AdminJobsListPage() {
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-navy-900">
                       <Money cents={job.totalCents ?? job.estimatedTotalCents} />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/admin/jobs/${job.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-navy-900 hover:bg-slate-100 inline-block"
+                      >
+                        Inspect &rarr;
+                      </Link>
                     </td>
                   </tr>
                 ))}

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { CalendarOff, Plus, Trash2, UserPlus, Wrench } from "lucide-react";
+import Link from "next/link";
+import { Calendar, CalendarOff, Plus, Trash2, UserPlus, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -354,6 +355,23 @@ export default function AdminTechniciansPage() {
                   </div>
                 ))
               )}
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs font-bold">
+              <Link
+                href={`/admin/technicians/${tech.id}`}
+                className="inline-flex items-center gap-1 text-navy-800 hover:text-orange-600"
+              >
+                <Wrench className="h-3.5 w-3.5 text-orange-600" />
+                Profile & Details &rarr;
+              </Link>
+              <Link
+                href={`/admin/technicians/${tech.id}/schedule`}
+                className="inline-flex items-center gap-1 text-navy-800 hover:text-orange-600"
+              >
+                <Calendar className="h-3.5 w-3.5 text-blue-600" />
+                Shift Roster &rarr;
+              </Link>
             </div>
           </div>
         ))}
