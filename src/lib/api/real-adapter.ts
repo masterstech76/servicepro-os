@@ -27,14 +27,14 @@ async function parseJsonOrThrow<T>(res: Response): Promise<T> {
 
 export const realBookingAdapter: BookingApiAdapter = {
   async getServices(): Promise<ServiceDTO[]> {
-    const res = await fetch("/api/services", { cache: "no-store" });
+    const res = await fetch("/api/services", { next: { revalidate: 60 } });
     const data = await parseJsonOrThrow<{ services: ServiceDTO[] }>(res);
     return data.services;
   },
 
   async checkZip(zip: string): Promise<ZipCheckDTO> {
     const res = await fetch(`/api/service-area?zip=${encodeURIComponent(zip.trim())}`, {
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
     return parseJsonOrThrow<ZipCheckDTO>(res);
   },
