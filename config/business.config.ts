@@ -13,7 +13,7 @@ const rawConfig: BusinessConfig = {
   legalName: "Cool Air Conditioning & Heating Services LLC",
   licenseNumber: "CAC1819420",
   phone: "(305) 555-0100",
-  email: "service@coolairmiami.com",
+  email: "service@servicepro.in",
   address: "1200 Brickell Ave, Suite 400, Miami, FL 33131",
   city: "Miami",
   state: "FL",

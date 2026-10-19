@@ -26,7 +26,7 @@ export function verifyEnv(options?: { includeRuntimeSecrets?: boolean }): {
 
   // 2. Check required env vars with sensible build defaults if unset
   if (!process.env.NEXT_PUBLIC_APP_URL) {
-    process.env.NEXT_PUBLIC_APP_URL = process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
+    process.env.NEXT_PUBLIC_APP_URL = process.env.RENDER_EXTERNAL_URL || "https://servicepro.in";
   }
   if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_placeholder_key_for_demo";
