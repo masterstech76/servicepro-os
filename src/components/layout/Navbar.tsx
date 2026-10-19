@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Calendar,
-  User,
   ChevronDown,
 } from "lucide-react";
 import { businessConfig } from "@config/business.config";
@@ -186,14 +185,6 @@ export function Navbar() {
               <span className="text-slate-400 font-normal">24/7 Dispatch:</span>
               <span className="font-extrabold">{businessConfig.phone}</span>
             </a>
-
-            <Link
-              href="/login"
-              className="hidden md:inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 shadow-sm hover:bg-slate-50 hover:border-slate-400 transition-all"
-            >
-              <User className="h-3.5 w-3.5 text-slate-600" />
-              <span>Sign In</span>
-            </Link>
 
             <Button
               asChild

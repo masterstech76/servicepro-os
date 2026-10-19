@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Snowflake, Phone, ShieldCheck } from "lucide-react";
+import { Phone, Calendar, ShieldCheck } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 
 export function Footer() {
@@ -27,240 +27,77 @@ export function Footer() {
 
   const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
 
+  const navLinks = [
+    { label: "About", href: "/about" },
+    { label: "Services", href: "/services" },
+    { label: "Areas", href: "/areas" },
+    { label: "Reviews", href: "/reviews" },
+    { label: "Specials", href: "/specials" },
+    { label: "How It Works", href: "/how-it-works" },
+    { label: "FAQ", href: "/faq" },
+    { label: "Contact", href: "/contact" },
+    { label: "Terms", href: "/terms" },
+    { label: "Privacy", href: "/privacy" },
+    { label: "Guarantee", href: "/terms#guarantee" },
+    { label: "Cancellation", href: "/terms#cancellation" },
+    { label: "Refund", href: "/terms#refund" },
+  ];
+
   return (
-    <footer className="border-t border-slate-800 bg-[#0F172A] text-slate-300 pt-10 pb-8 px-4 sm:px-6 text-sm">
-      <div className="mx-auto max-w-7xl space-y-10">
-        {/* Brand Bar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
-          <div className="flex items-center gap-2.5 font-heading font-black text-xl text-white">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F97316] text-[#0F172A]">
-              <Snowflake className="h-5 w-5" />
-            </div>
-            <span>{businessConfig.businessName}</span>
+    <footer className="border-t border-slate-800 bg-[#0F172A] text-slate-400 py-6 px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-4">
+        {/* ROW 1: Facebook-Style Dense Wrapping Links */}
+        <nav
+          aria-label="Footer links"
+          className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-xs"
+        >
+          {navLinks.map((item, idx) => (
+            <React.Fragment key={item.label}>
+              <Link
+                href={item.href}
+                className="hover:text-white transition-colors py-0.5"
+              >
+                {item.label}
+              </Link>
+              {idx < navLinks.length - 1 && (
+                <span className="text-slate-600 select-none">•</span>
+              )}
+            </React.Fragment>
+          ))}
+        </nav>
+
+        {/* THIN DIVIDER LINE */}
+        <div className="border-t border-slate-800/90" />
+
+        {/* ROW 2: Utility & Dispatch Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 pt-1">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-center sm:text-left">
+            <span>© {new Date().getFullYear()} heavenlease.in</span>
+            <span className="text-slate-600">•</span>
+            <span className="flex items-center gap-1 text-slate-300">
+              <ShieldCheck className="h-3.5 w-3.5 text-orange-400" />
+              <span>License #{businessConfig.licenseNumber}</span>
+            </span>
+            <span className="text-slate-600">•</span>
+            <span>Bonded &amp; Insured</span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs">
-            <span className="text-slate-400">
-              Emergency Dispatch &amp; Support:
-            </span>
+          <div className="flex items-center gap-4 font-medium">
             <a
               href={cleanPhoneHref}
-              className="inline-flex items-center gap-1.5 font-bold text-white hover:text-orange-400 transition-colors"
+              className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
             >
-              <Phone className="h-3.5 w-3.5 text-[#F97316]" />
+              <Phone className="h-3.5 w-3.5 text-orange-400" />
               <span>{businessConfig.phone}</span>
             </a>
-          </div>
-        </div>
-
-        {/* LAYER 1: TRUST CARDS STRIP (3 Cards) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="h-10 w-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/20">
-              <span className="font-bold text-sm">4.9★</span>
-            </div>
-            <div>
-              <div className="text-xs font-bold text-white">Top-Rated Service</div>
-              <div className="text-[11px] text-slate-400">1,200+ Verified Homeowner Reviews</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="h-10 w-10 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/20">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-white">Licensed &amp; Insured</div>
-              <div className="text-[11px] text-slate-400">State Mechanical Lic #{businessConfig.licenseNumber}</div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-900/80 border border-slate-800">
-            <div className="h-10 w-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
-              <span className="font-black text-xs">100%</span>
-            </div>
-            <div>
-              <div className="text-xs font-bold text-white">Service Guarantee</div>
-              <div className="text-[11px] text-slate-400">Fixed Right or 100% Diagnostic Refund</div>
-            </div>
-          </div>
-        </div>
-
-        {/* LAYER 2: The 4 Category Columns */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800">
-          {/* Category 1: Company */}
-          <div className="space-y-3">
-            <h3 className="font-heading font-bold text-white text-sm uppercase tracking-wider">
-              1. Company
-            </h3>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li>
-                <Link
-                  href="/about"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Our Services
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/areas"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Service Areas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/reviews"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Customer Reviews
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Category 2: Help & Support */}
-          <div className="space-y-3">
-            <h3 className="font-heading font-bold text-white text-sm uppercase tracking-wider">
-              2. Help &amp; Support
-            </h3>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li>
-                <Link
-                  href="/faq"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Help Center / FAQ
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Contact Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms#guarantee"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Service Guarantee
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Report a Problem
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Category 3: Customer Account */}
-          <div className="space-y-3">
-            <h3 className="font-heading font-bold text-white text-sm uppercase tracking-wider">
-              3. Customer Account
-            </h3>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li>
-                <Link
-                  href="/account"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  My Account
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/book"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Book a Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/account/appointments"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  My Appointments
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/account/invoices"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Payments &amp; Invoices
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Category 4: Legal & Policies */}
-          <div className="space-y-3">
-            <h3 className="font-heading font-bold text-white text-sm uppercase tracking-wider">
-              4. Legal &amp; Policies
-            </h3>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li>
-                <Link
-                  href="/privacy"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms#cancellation"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Cancellation Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms#refunds"
-                  className="hover:text-white transition-colors block py-0.5"
-                >
-                  Payment &amp; Refund Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
-          <div>
-            © {new Date().getFullYear()} {businessConfig.legalName}. All rights reserved.
-          </div>
-          <div className="flex items-center gap-2 text-slate-400">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#F97316]" />
-            <span>State HVAC License #{businessConfig.licenseNumber} • Certified &amp; Insured</span>
+            <span className="text-slate-600">•</span>
+            <Link
+              href="/book"
+              className="inline-flex items-center gap-1 font-bold text-orange-400 hover:text-orange-300 transition-colors"
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span>Book Now &gt;</span>
+            </Link>
           </div>
         </div>
       </div>

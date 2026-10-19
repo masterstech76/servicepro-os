@@ -1,4 +1,6 @@
 import * as React from "react";
+import Link from "next/link";
+import { User, CheckCircle2 } from "lucide-react";
 import type { AddressSuggestionDTO } from "@/lib/api/types";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,12 +38,33 @@ export function StepDetails({
 }: StepDetailsProps) {
   return (
     <section aria-labelledby="step-5-heading" className="space-y-4">
-      <h1
-        id="step-5-heading"
-        className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
-      >
-        Service address & contact
-      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h1
+          id="step-5-heading"
+          className="font-heading text-[26px] sm:text-[30px] leading-tight font-extrabold text-navy-900"
+        >
+          Service address &amp; contact
+        </h1>
+      </div>
+
+      {/* Returning Customer Sign In Box */}
+      <div className="rounded-2xl border border-orange-200/90 bg-gradient-to-r from-orange-50/80 to-amber-50/50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+        <div className="space-y-0.5">
+          <div className="text-xs font-black text-navy-900 flex items-center gap-1.5">
+            <User className="h-3.5 w-3.5 text-orange-600" />
+            <span>Have an account? Sign in to complete booking</span>
+          </div>
+          <p className="text-[11px] text-slate-600">
+            Sign in to automatically sync your service address, appointment history, and invoices.
+          </p>
+        </div>
+        <Link
+          href="/login?redirectTo=/book"
+          className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white border border-slate-300 hover:border-orange-500 hover:text-orange-600 text-navy-900 font-bold text-xs shadow-xs transition-all whitespace-nowrap"
+        >
+          Sign In First →
+        </Link>
+      </div>
 
       <div className="relative">
         <Label htmlFor="address-line1">Service street address</Label>

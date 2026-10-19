@@ -541,34 +541,6 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* ========================================================
-            7. FINAL CTA: Contained Card (max-w-7xl)
-            ======================================================== */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="rounded-3xl bg-gradient-to-r from-navy-950 via-navy-900 to-navy-950 text-white p-8 sm:p-12 text-center space-y-4 shadow-xl border border-navy-800">
-            <h2 className="font-heading text-2xl sm:text-4xl font-black text-white">
-              Ready to Restore Crisp 56° Cold Air?
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-              Book your arrival window in 60 seconds with upfront pricing, certified master technicians, and a 1-year guarantee.
-            </p>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="md" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black px-7 h-12 shadow-lg">
-                <Link href="/book" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Book Online Now</span>
-                </Link>
-              </Button>
-              <a
-                href={cleanPhoneHref}
-                className="inline-flex h-12 items-center justify-center px-6 rounded-xl border border-slate-700 bg-navy-900/80 text-white font-bold text-xs sm:text-sm hover:bg-white hover:text-navy-900 transition-all"
-              >
-                Call 24/7 Dispatch ({businessConfig.phone})
-              </a>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );

@@ -286,6 +286,26 @@ export function BookingWizard() {
     }
   }, []);
 
+  // Prefill contact details if customer is logged in
+  React.useEffect(() => {
+    fetch("/api/account/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.profile) {
+          if (data.profile.name) {
+            dispatch({ type: "SET_CONTACT_FIELD", field: "customerName", value: data.profile.name });
+          }
+          if (data.profile.phone) {
+            dispatch({ type: "SET_CONTACT_FIELD", field: "customerPhone", value: data.profile.phone });
+          }
+          if (data.profile.email) {
+            dispatch({ type: "SET_CONTACT_FIELD", field: "customerEmail", value: data.profile.email });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Save to sessionStorage
   React.useEffect(() => {
     if (!hydrated) return;
