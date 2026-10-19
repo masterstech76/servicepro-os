@@ -30,11 +30,13 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseAdminClient();
     if (supabase) {
-      const { data: hold } = await supabase
+      const { data: hold, error: holdErr } = await supabase
         .from("slot_holds")
         .select("*")
         .eq("id", parsed.holdId)
         .maybeSingle();
+
+      if (holdErr) throw new Error(holdErr.message);
 
       const holdRow = hold as {
         id: string;
@@ -48,10 +50,7 @@ export async function POST(request: Request) {
 
       const depositCents = Number(holdRow.payload?.depositCents ?? 1980);
 
-      const { data: jobId, error } = await (supabase.rpc as unknown as (
-        fn: string,
-        args: Record<string, unknown>
-      ) => Promise<{ data: string | null; error: { message: string } | null }>)(
+      const { data: jobId, error } = await supabase.rpc(
         "convert_hold_to_job",
         {
           p_hold: holdRow.id,
@@ -73,7 +72,10 @@ export async function POST(request: Request) {
       for (const draftPath of draftPaths) {
         const fileName = draftPath.split("/").pop() ?? "photo.jpg";
         const destPath = `${holdRow.business_id}/${jobId}/issue/${fileName}`;
-        await supabase.storage.from("job-photos").move(draftPath, destPath);
+        const { error: mvErr } = await supabase.storage
+          .from("job-photos")
+          .move(draftPath, destPath);
+        if (mvErr) throw new Error("PHOTO_MOVE_FAILED: " + mvErr.message);
         movedPaths.push(destPath);
       }
 
@@ -85,11 +87,12 @@ export async function POST(request: Request) {
         if (jobPhotoError) throw new Error(jobPhotoError.message);
       }
 
-      const { data: job } = await supabase
+      const { data: job, error: jobErr } = await supabase
         .from("jobs")
         .select("job_number")
         .eq("id", jobId)
         .single();
+      if (jobErr) throw new Error(jobErr.message);
 
       return NextResponse.json({
         jobId,

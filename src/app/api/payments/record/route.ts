@@ -4,8 +4,12 @@ import { collectJobPayment } from "@/lib/server/operations";
 
 const recordPaymentSchema = z.object({
   jobId: z.string().min(1),
-  method: z.enum(["cash", "check"]),
+  method: z.enum(["cash", "check", "card_on_file", "tap_card"]),
   tipCents: z.number().int().min(0).default(0),
+  cardBrand: z.string().optional(),
+  cardLast4: z.string().optional(),
+  cardholderName: z.string().optional(),
+  checkReference: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -23,6 +27,10 @@ export async function POST(req: NextRequest) {
       jobId: parsed.data.jobId,
       method: parsed.data.method,
       tipCents: parsed.data.tipCents,
+      cardBrand: parsed.data.cardBrand,
+      cardLast4: parsed.data.cardLast4,
+      cardholderName: parsed.data.cardholderName,
+      checkReference: parsed.data.checkReference,
       actorLabel: "owner/tech",
     });
 

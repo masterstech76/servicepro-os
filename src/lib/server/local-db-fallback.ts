@@ -49,6 +49,7 @@ export interface LocalDbStore {
   advisory_locks: Map<string, Promise<void>>;
   jobSequence: number;
   nowOverride: Date | null;
+  demoCleared?: boolean;
 }
 
 const globalForDb = globalThis as unknown as { __serviceProLocalDb?: LocalDbStore };
@@ -60,6 +61,7 @@ export function saveLocalDbToDisk(store = getLocalDb()): void {
   try {
     const snapshot = {
       jobSequence: store.jobSequence,
+      demoCleared: Boolean(store.demoCleared),
       businesses: Array.from(store.businesses.entries()),
       service_areas: Array.from(store.service_areas.entries()),
       business_hours: Array.from(store.business_hours.entries()),
@@ -84,7 +86,7 @@ export function saveLocalDbToDisk(store = getLocalDb()): void {
   }
 }
 
-function createInitialStore(): LocalDbStore {
+function createInitialStore(loadDisk = false): LocalDbStore {
   const store: LocalDbStore = {
     businesses: new Map(),
     profiles: new Map(),
@@ -108,21 +110,52 @@ function createInitialStore(): LocalDbStore {
     advisory_locks: new Map(),
     jobSequence: 1000,
     nowOverride: null,
+    demoCleared: false,
   };
 
   seedStoreFromConfigAndDemo(store);
+
+  if (
+    loadDisk &&
+    !process.env.VITEST &&
+    process.env.NODE_ENV !== "test" &&
+    fs.existsSync(PERSIST_FILE)
+  ) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(PERSIST_FILE, "utf8")) as Record<string, unknown>;
+      if (typeof raw.jobSequence === "number") store.jobSequence = raw.jobSequence;
+      if (typeof raw.demoCleared === "boolean") store.demoCleared = raw.demoCleared;
+      if (Array.isArray(raw.customers)) store.customers = new Map(raw.customers);
+      if (Array.isArray(raw.jobs)) store.jobs = new Map(raw.jobs);
+      if (Array.isArray(raw.invoices)) store.invoices = new Map(raw.invoices);
+      if (Array.isArray(raw.invoice_line_items)) {
+        store.invoice_line_items = new Map(raw.invoice_line_items);
+      }
+      if (Array.isArray(raw.payments)) store.payments = new Map(raw.payments);
+      if (Array.isArray(raw.slot_holds)) store.slot_holds = new Map(raw.slot_holds);
+      if (Array.isArray(raw.job_events)) store.job_events = new Map(raw.job_events);
+      if (Array.isArray(raw.sms_log)) store.sms_log = new Map(raw.sms_log);
+      if (Array.isArray(raw.stripe_events)) store.stripe_events = new Map(raw.stripe_events);
+      if (Array.isArray(raw.business_closures)) {
+        store.business_closures = new Map(raw.business_closures);
+      }
+    } catch {
+      // Ignore corrupt snapshot
+    }
+  }
+
   return store;
 }
 
 export function getLocalDb(): LocalDbStore {
   if (!globalForDb.__serviceProLocalDb) {
-    globalForDb.__serviceProLocalDb = createInitialStore();
+    globalForDb.__serviceProLocalDb = createInitialStore(true);
   }
   return globalForDb.__serviceProLocalDb;
 }
 
 export function resetLocalDb(): LocalDbStore {
-  globalForDb.__serviceProLocalDb = createInitialStore();
+  globalForDb.__serviceProLocalDb = createInitialStore(false);
   return globalForDb.__serviceProLocalDb;
 }
 
@@ -753,6 +786,15 @@ export async function rpcConvertHoldToJob(
       (c) => c.business_id === hold.business_id && c.email.toLowerCase() === email
     );
 
+    const cardBrand = String(payload.cardBrand ?? custPayload.cardBrand ?? "visa");
+    const cardLast4 = String(payload.cardLast4 ?? custPayload.cardLast4 ?? "4242");
+    const stripeCustomerId = String(
+      payload.stripeCustomerId ?? `cus_${hold.id.replace(/[^a-zA-Z0-9]/g, "").slice(-10)}`
+    );
+    const stripePaymentMethodId = String(
+      payload.stripePaymentMethodId ?? `pm_${hold.id.replace(/[^a-zA-Z0-9]/g, "").slice(-10)}`
+    );
+
     if (!customer) {
       const custId = `cust_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       customer = {
@@ -761,10 +803,10 @@ export async function rpcConvertHoldToJob(
         name: custPayload.name ?? "Customer",
         phone: custPayload.phone ?? "+13055550100",
         email,
-        stripe_customer_id: null,
-        stripe_payment_method_id: null,
-        card_brand: null,
-        card_last4: null,
+        stripe_customer_id: stripeCustomerId,
+        stripe_payment_method_id: stripePaymentMethodId,
+        card_brand: cardBrand,
+        card_last4: cardLast4,
         sms_opt_out: false,
         sms_consent_at: now.toISOString(),
         created_at: now.toISOString(),
@@ -773,6 +815,12 @@ export async function rpcConvertHoldToJob(
     } else {
       customer.name = custPayload.name ?? customer.name;
       customer.phone = custPayload.phone ?? customer.phone;
+      customer.card_brand = customer.card_brand ?? cardBrand;
+      customer.card_last4 = customer.card_last4 ?? cardLast4;
+      customer.stripe_customer_id = customer.stripe_customer_id ?? stripeCustomerId;
+      customer.stripe_payment_method_id =
+        customer.stripe_payment_method_id ?? stripePaymentMethodId;
+      store.customers.set(customer.id, customer);
     }
 
     store.jobSequence += 1;
@@ -835,7 +883,12 @@ export async function rpcConvertHoldToJob(
       event_type: "created",
       from_status: null,
       to_status: "unassigned",
-      meta: { hold_id: p_hold, deposit_cents: p_deposit_cents },
+      meta: {
+        hold_id: p_hold,
+        deposit_cents: p_deposit_cents,
+        card_brand: customer.card_brand,
+        card_last4: customer.card_last4,
+      },
       created_at: now.toISOString(),
     });
 
@@ -850,12 +903,13 @@ export async function rpcConvertHoldToJob(
       status: "succeeded",
       amount_cents: p_deposit_cents,
       stripe_payment_intent_id: p_payment_intent,
-      stripe_charge_id: null,
+      stripe_charge_id: `ch_${p_payment_intent.replace(/[^a-zA-Z0-9]/g, "").slice(-10)}`,
       stripe_refund_id: null,
       recorded_by: null,
       created_at: now.toISOString(),
     });
 
+    saveLocalDbToDisk(store);
     return jobId;
   });
 }

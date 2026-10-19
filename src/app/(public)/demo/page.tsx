@@ -19,6 +19,7 @@ import {
 import { businessConfig } from "@config/business.config";
 import { acePlumbingAustinConfig } from "@config/examples/ace-plumbing-austin";
 import { Button } from "@/components/ui/button";
+import { DemoDataManager } from "@/components/admin/DemoDataManager";
 
 export default function InteractiveDemoGuidePage() {
   const router = useRouter();
@@ -72,6 +73,9 @@ export default function InteractiveDemoGuidePage() {
       </header>
 
       <div className="mx-auto max-w-6xl px-4 pt-8 space-y-8">
+        {/* Demo Data Reset & Delete Toolbar */}
+        <DemoDataManager />
+
         {/* Hero Banner */}
         <section className="rounded-card border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
           <span className="inline-flex items-center gap-1.5 rounded-pill bg-orange-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-orange-800">

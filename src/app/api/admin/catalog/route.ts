@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
-import { getLocalDbWithDemo } from "@/lib/server/demo-dataset";
+import {
+  getLocalDbWithDemo,
+  getDemoDataStats,
+  clearDemoDataset,
+  restoreDemoDataset,
+  deleteJobRecord,
+  deleteCustomerRecord,
+} from "@/lib/server/demo-dataset";
+import { saveLocalDbToDisk } from "@/lib/server/local-db-fallback";
 
 export async function GET() {
   const store = getLocalDbWithDemo();
@@ -30,6 +38,10 @@ export async function GET() {
   const smsLogs = Array.from(store.sms_log.values()).sort((a, b) =>
     b.created_at.localeCompare(a.created_at)
   );
+  const payments = Array.from(store.payments.values()).sort((a, b) =>
+    b.created_at.localeCompare(a.created_at)
+  );
+  const demoStats = getDemoDataStats(store);
 
   return NextResponse.json({
     business,
@@ -39,6 +51,8 @@ export async function GET() {
     closures,
     customers,
     smsLogs,
+    payments,
+    demoStats,
   });
 }
 
@@ -51,6 +65,44 @@ export async function POST(request: Request) {
   };
 
   switch (body.action) {
+    case "clear_demo_data": {
+      const stats = clearDemoDataset(store);
+      return NextResponse.json({ ok: true, cleared: stats });
+    }
+
+    case "restore_demo_data": {
+      const stats = restoreDemoDataset(store);
+      return NextResponse.json({ ok: true, restored: stats });
+    }
+
+    case "delete_job": {
+      const jobId = String(body.payload?.jobId ?? "");
+      const ok = deleteJobRecord(jobId, store);
+      return NextResponse.json({ ok, jobId });
+    }
+
+    case "delete_customer": {
+      const customerId = String(body.payload?.customerId ?? "");
+      const ok = deleteCustomerRecord(customerId, store);
+      return NextResponse.json({ ok, customerId });
+    }
+
+    case "update_customer_card": {
+      const customerId = String(body.payload?.customerId ?? "");
+      const cust = store.customers.get(customerId);
+      if (!cust) {
+        return NextResponse.json(
+          { error: { code: "CUSTOMER_NOT_FOUND", message: "Customer not found" } },
+          { status: 404 }
+        );
+      }
+      if (body.payload?.cardBrand) cust.card_brand = String(body.payload.cardBrand);
+      if (body.payload?.cardLast4) cust.card_last4 = String(body.payload.cardLast4);
+      store.customers.set(customerId, cust);
+      saveLocalDbToDisk(store);
+      return NextResponse.json({ ok: true, customer: cust });
+    }
+
     case "upsert_service": {
       const p = body.payload;
       const id = String(p.id || `svc-${Date.now().toString(36)}`);
@@ -74,6 +126,7 @@ export async function POST(request: Request) {
         sort_order: existing?.sort_order ?? store.services.size,
         created_at: existing?.created_at ?? new Date().toISOString(),
       });
+      saveLocalDbToDisk(store);
       return NextResponse.json({ ok: true, service: store.services.get(id) });
     }
 
@@ -90,11 +143,12 @@ export async function POST(request: Request) {
         id,
         business_id: biz.id,
         zip,
-        city: String(body.payload.city ?? biz.name.includes("Miami") ? "Miami" : "Local"),
+        city: String(body.payload.city ?? (biz.name.includes("Miami") ? "Miami" : "Local")),
         state: String(body.payload.state ?? "FL"),
         surcharge_cents: Number(body.payload.surcharge_cents ?? 0),
         active: body.payload.active !== undefined ? Boolean(body.payload.active) : true,
       });
+      saveLocalDbToDisk(store);
       return NextResponse.json({ ok: true, serviceArea: store.service_areas.get(id) });
     }
 
@@ -108,12 +162,14 @@ export async function POST(request: Request) {
         closed_on: date,
         reason,
       });
+      saveLocalDbToDisk(store);
       return NextResponse.json({ ok: true, closure: store.business_closures.get(id) });
     }
 
     case "remove_closure": {
       const id = String(body.payload.id ?? "");
       store.business_closures.delete(id);
+      saveLocalDbToDisk(store);
       return NextResponse.json({ ok: true });
     }
 
@@ -129,6 +185,7 @@ export async function POST(request: Request) {
         biz.cancellation_window_hours = Number(p.cancellation_window_hours);
       }
       store.businesses.set(biz.id, biz);
+      saveLocalDbToDisk(store);
       return NextResponse.json({ ok: true, business: biz });
     }
 
@@ -138,6 +195,7 @@ export async function POST(request: Request) {
       if (cust) {
         cust.sms_opt_out = Boolean(body.payload.smsOptOut);
         store.customers.set(custId, cust);
+        saveLocalDbToDisk(store);
       }
       return NextResponse.json({ ok: true, customer: cust });
     }

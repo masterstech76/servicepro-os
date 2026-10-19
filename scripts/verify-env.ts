@@ -23,27 +23,40 @@ function loadEnvFile(filename: string) {
 loadEnvFile(".env.local");
 loadEnvFile(".env");
 
-const REQUIRED_VARS = [
+// Build-time required public/driver configuration variables.
+// Runtime-only server secrets (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY)
+// are validated at request runtime via assertRuntimeSecrets() so `next build` on Vercel succeeds
+// even when server secrets are scoped to runtime-only environment variables.
+const BUILD_REQUIRED_VARS = [
+  "NEXT_PUBLIC_APP_URL",
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
+  "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
   "SMS_DRIVER",
-  ...(process.env.NODE_ENV === "production" ? ["CRON_SECRET"] : []),
-];
+] as const;
 
-export function verifyEnv(): { valid: boolean; missing: string[] } {
+const RUNTIME_SECRET_VARS = [
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "CRON_SECRET",
+] as const;
+
+export function verifyEnv(options?: { includeRuntimeSecrets?: boolean }): {
+  valid: boolean;
+  missing: string[];
+} {
   // 1. Validate business.config.ts against business.schema.ts
   businessConfigSchema.parse(businessConfig);
 
-  // 2. Check required env vars
-  const required = [
-    ...REQUIRED_VARS,
-    ...(process.env.NODE_ENV === "production" && !REQUIRED_VARS.includes("CRON_SECRET")
-      ? ["CRON_SECRET"]
-      : []),
+  // 2. Check required env vars (single source of truth)
+  const keysToCheck: string[] = [
+    ...BUILD_REQUIRED_VARS,
+    ...(options?.includeRuntimeSecrets ? RUNTIME_SECRET_VARS : []),
   ];
+
   const missing: string[] = [];
-  for (const key of required) {
+  for (const key of keysToCheck) {
     const val = process.env[key];
     if (!val || val.trim() === "") {
       missing.push(key);
@@ -62,7 +75,16 @@ export function verifyEnv(): { valid: boolean; missing: string[] } {
   };
 }
 
-if (require.main === module) {
+export function assertRuntimeSecrets(): void {
+  const result = verifyEnv({ includeRuntimeSecrets: true });
+  if (!result.valid) {
+    throw new Error(
+      `Missing required runtime environment variables: ${result.missing.join(", ")}`
+    );
+  }
+}
+
+if (typeof require !== "undefined" && require.main === module) {
   const result = verifyEnv();
   if (!result.valid) {
     console.error(

@@ -8,7 +8,10 @@ import {
   CreditCard,
   Lock,
   MapPin,
+  Printer,
+  ShieldCheck,
   Snowflake,
+  Sparkles,
   UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,7 +32,15 @@ export default function CustomerPayInvoicePage() {
   const [loading, setLoading] = React.useState(true);
   const [paying, setPaying] = React.useState(false);
   const [tipCents, setTipCents] = React.useState(0);
+  const [lastTxId, setLastTxId] = React.useState<string | null>(null);
+
+  // Payment method selection
+  const [payMethod, setPayMethod] = React.useState<"card_on_file" | "new_card" | "check">("card_on_file");
   const [cardName, setCardName] = React.useState("");
+  const [cardNumber, setCardNumber] = React.useState("");
+  const [cardExpiry, setCardExpiry] = React.useState("");
+  const [cardCvc, setCardCvc] = React.useState("");
+  const [checkRef, setCheckRef] = React.useState("");
 
   const loadInvoice = React.useCallback(async () => {
     setLoading(true);
@@ -44,6 +55,9 @@ export default function CustomerPayInvoicePage() {
         setJob(data.job);
         setTipCents(data.job.invoice?.tipCents ?? 0);
         setCardName(data.job.customer.name);
+        if (!data.job.customer.cardLast4) {
+          setPayMethod("new_card");
+        }
       }
     } finally {
       setLoading(false);
@@ -91,21 +105,90 @@ export default function CustomerPayInvoicePage() {
   );
   const liveAmountDueCents = isPaid ? 0 : baseDueWithoutTip + tipCents;
 
+  function detectCardBrand(num: string): string {
+    const clean = num.replace(/\D/g, "");
+    if (/^4/.test(clean)) return "Visa";
+    if (/^5[1-5]/.test(clean)) return "Mastercard";
+    if (/^3[47]/.test(clean)) return "Amex";
+    if (/^6(?:011|5)/.test(clean)) return "Discover";
+    return "Card";
+  }
+
+  function formatCardInput(val: string) {
+    const raw = val.replace(/\D/g, "").slice(0, 16);
+    const parts = raw.match(/.{1,4}/g);
+    return parts ? parts.join(" ") : raw;
+  }
+
+  function formatExpiryInput(val: string) {
+    const raw = val.replace(/\D/g, "").slice(0, 4);
+    if (raw.length > 2) return `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    return raw;
+  }
+
+  function fillTestCard(type: "success" | "decline") {
+    if (type === "success") {
+      setCardNumber("4242 4242 4242 4242");
+      setCardExpiry("12/28");
+      setCardCvc("123");
+      setPayMethod("new_card");
+      toast.info("Filled Stripe test card: 4242 (Success)");
+    } else {
+      setCardNumber("4000 0000 0000 9995");
+      setCardExpiry("12/28");
+      setCardCvc("999");
+      setPayMethod("new_card");
+      toast.warning("Filled Stripe test card: 9995 (Simulate Card Error)");
+    }
+  }
+
   async function handlePayNow(e: React.FormEvent) {
     e.preventDefault();
     setPaying(true);
     try {
+      let methodParam: "card_on_file" | "tap_card" | "check" = "tap_card";
+      let cardBrandParam: string | undefined = undefined;
+      let cardLast4Param: string | undefined = undefined;
+
+      if (payMethod === "card_on_file") {
+        methodParam = "card_on_file";
+      } else if (payMethod === "check") {
+        methodParam = "check";
+      } else {
+        methodParam = "tap_card";
+        const cleanDigits = cardNumber.replace(/\D/g, "");
+        if (cleanDigits.length < 15) {
+          toast.error("Please enter a valid 15 or 16-digit card number");
+          return;
+        }
+        cardBrandParam = detectCardBrand(cleanDigits);
+        cardLast4Param = cleanDigits.slice(-4);
+      }
+
       const res = await fetch(`/api/invoices/public/${encodeURIComponent(token)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipCents }),
+        body: JSON.stringify({
+          tipCents,
+          method: methodParam,
+          cardBrand: cardBrandParam,
+          cardLast4: cardLast4Param,
+          cardholderName: cardName,
+          checkReference: payMethod === "check" ? checkRef : undefined,
+        }),
       });
+
       if (!res.ok) {
-        toast.error("Payment could not be processed. Please try again.");
+        const err = (await res.json()) as { error?: { message?: string } };
+        toast.error(err.error?.message ?? "Payment could not be processed. Please try again.");
         return;
       }
-      const data = (await res.json()) as { job: EnrichedJob };
+
+      const data = (await res.json()) as { job: EnrichedJob; transactionId?: string };
       setJob(data.job);
+      if (data.transactionId) {
+        setLastTxId(data.transactionId);
+      }
       toast.success("Payment complete! Thank you for choosing Cool Air HVAC.");
     } finally {
       setPaying(false);
@@ -137,22 +220,62 @@ export default function CustomerPayInvoicePage() {
         {isPaid ? (
           <section
             data-testid="invoice-paid-receipt"
-            className="rounded-2xl border border-emerald-200 bg-emerald-50/90 p-6 text-center space-y-3 shadow-xl"
+            className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-xl space-y-4"
           >
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md">
-              <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md">
+                <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+              </div>
+              <h1 className="font-heading text-xl font-extrabold text-navy-900">
+                Paid in Full — Thank You!
+              </h1>
+              <p className="text-sm text-navy-700">
+                Receipt for <strong>{job.service.name}</strong> has been sent to{" "}
+                <span className="font-medium">{job.customer.email ?? job.customer.phone}</span>.
+              </p>
             </div>
-            <h1 className="font-heading text-xl font-extrabold text-navy-900">
-              Paid in Full — Thank You!
-            </h1>
-            <p className="text-sm text-navy-700">
-              Receipt for <strong>{job.service.name}</strong> has been sent to{" "}
-              <span className="font-medium">{job.customer.email ?? job.customer.phone}</span>.
-            </p>
-            <div className="pt-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-emerald-700 border border-emerald-200 shadow-sm">
-                Total Paid: <Money cents={inv.totalCents} />
-              </span>
+
+            {/* Receipt Summary Card */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs space-y-2">
+              <div className="flex justify-between text-navy-700">
+                <span>Invoice Number</span>
+                <span className="font-bold text-navy-900">#{inv.invoiceNumber}</span>
+              </div>
+              <div className="flex justify-between text-navy-700">
+                <span>Job Reference</span>
+                <span className="font-bold text-navy-900">Job #{job.jobNumber}</span>
+              </div>
+              {lastTxId || job.payments[job.payments.length - 1]?.stripePaymentIntentId ? (
+                <div className="flex justify-between text-navy-700">
+                  <span>Transaction ID</span>
+                  <span className="font-mono font-bold text-navy-900">
+                    {lastTxId ?? job.payments[job.payments.length - 1]?.stripePaymentIntentId}
+                  </span>
+                </div>
+              ) : null}
+              <div className="flex justify-between text-navy-700">
+                <span>Payment Method</span>
+                <span className="font-semibold text-navy-900 uppercase">
+                  {job.customer.cardBrand ? `${job.customer.cardBrand} •••• ${job.customer.cardLast4}` : "Card on File"}
+                </span>
+              </div>
+              <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-sm text-navy-900">
+                <span>Total Paid</span>
+                <Money cents={inv.totalCents} className="text-emerald-700 font-extrabold" />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => window.print()}
+                className="gap-1.5 rounded-full text-xs"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                Print / Save Receipt
+              </Button>
             </div>
           </section>
         ) : null}
@@ -254,7 +377,7 @@ export default function CustomerPayInvoicePage() {
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-sm font-bold text-navy-900 flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-orange-700" />
-                  Payment Method
+                  Select Payment Method
                 </h2>
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
                   <Lock className="h-3.5 w-3.5" />
@@ -262,23 +385,149 @@ export default function CustomerPayInvoicePage() {
                 </span>
               </div>
 
-              {job.customer.cardLast4 ? (
+              {/* Method Tabs */}
+              <div className="grid grid-cols-3 gap-2">
+                {job.customer.cardLast4 ? (
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod("card_on_file")}
+                    className={`rounded-xl border p-2.5 text-xs font-bold transition-all text-left ${
+                      payMethod === "card_on_file"
+                        ? "border-navy-900 bg-navy-900 text-white shadow-sm"
+                        : "border-slate-200 bg-white text-navy-900 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span className="block text-[10px] uppercase tracking-wide opacity-80">Saved Card</span>
+                    •••• {job.customer.cardLast4}
+                  </button>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={() => setPayMethod("new_card")}
+                  className={`rounded-xl border p-2.5 text-xs font-bold transition-all text-left ${
+                    payMethod === "new_card"
+                      ? "border-navy-900 bg-navy-900 text-white shadow-sm"
+                      : "border-slate-200 bg-white text-navy-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <span className="block text-[10px] uppercase tracking-wide opacity-80">New Card</span>
+                  Credit / Debit
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPayMethod("check")}
+                  className={`rounded-xl border p-2.5 text-xs font-bold transition-all text-left ${
+                    payMethod === "check"
+                      ? "border-navy-900 bg-navy-900 text-white shadow-sm"
+                      : "border-slate-200 bg-white text-navy-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <span className="block text-[10px] uppercase tracking-wide opacity-80">Offline</span>
+                  Check / Bank
+                </button>
+              </div>
+
+              {payMethod === "card_on_file" && job.customer.cardLast4 ? (
                 <div className="rounded-xl border border-orange-500 bg-orange-50/50 p-3.5 flex items-center justify-between">
                   <div className="text-xs">
                     <p className="font-bold text-navy-900 uppercase">
                       Saved {job.customer.cardBrand ?? "Card"} •••• {job.customer.cardLast4}
                     </p>
-                    <p className="text-navy-700">Authorized during booking</p>
+                    <p className="text-navy-700">Authorized during deposit booking</p>
                   </div>
                   <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-[11px] font-bold text-navy-900">
-                    Active
+                    Ready to Charge
                   </span>
+                </div>
+              ) : null}
+
+              {payMethod === "new_card" ? (
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="pay-cardnum">Card Number</Label>
+                      <span className="text-[11px] font-bold text-navy-700">
+                        {detectCardBrand(cardNumber)}
+                      </span>
+                    </div>
+                    <Input
+                      id="pay-cardnum"
+                      placeholder="4242 •••• •••• 4242"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardInput(e.target.value))}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="pay-expiry">Expiry Date</Label>
+                      <Input
+                        id="pay-expiry"
+                        placeholder="MM/YY"
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(formatExpiryInput(e.target.value))}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="pay-cvc">CVC Security Code</Label>
+                      <Input
+                        id="pay-cvc"
+                        placeholder="123"
+                        maxLength={4}
+                        value={cardCvc}
+                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ""))}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Quick Test Card Fill Buttons */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => fillTestCard("success")}
+                      className="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      Fill Test Card 4242
+                    </button>
+                    <span className="text-slate-300">·</span>
+                    <button
+                      type="button"
+                      onClick={() => fillTestCard("decline")}
+                      className="text-[11px] font-semibold text-slate-500 hover:underline"
+                    >
+                      Test Decline
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {payMethod === "check" ? (
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <Label htmlFor="pay-check-ref">Check / Reference Number</Label>
+                    <Input
+                      id="pay-check-ref"
+                      placeholder="e.g. Check # 1042"
+                      value={checkRef}
+                      onChange={(e) => setCheckRef(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-xs text-navy-700">
+                    Hand payment to your technician on site or mail check to{" "}
+                    <strong>{businessConfig.businessName}</strong>.
+                  </p>
                 </div>
               ) : null}
 
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="pay-cardholder">Name on card</Label>
+                  <Label htmlFor="pay-cardholder">Cardholder / Payer Name</Label>
                   <Input
                     id="pay-cardholder"
                     value={cardName}

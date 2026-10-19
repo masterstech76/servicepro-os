@@ -10,13 +10,18 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  DollarSign,
   ExternalLink,
   FileText,
   History,
   Image as ImageIcon,
   MapPin,
+  Receipt,
+  RotateCcw,
   Send,
   ShieldAlert,
+  Sparkles,
+  Trash2,
   UserCheck,
   X,
 } from "lucide-react";
@@ -37,9 +42,10 @@ interface JobDrawerProps {
   job: EnrichedJob | null;
   onClose: () => void;
   onJobUpdated: (updated: EnrichedJob) => void;
+  onJobDeleted?: (jobId: string) => void;
 }
 
-export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
+export function JobDrawer({ job, onClose, onJobUpdated, onJobDeleted }: JobDrawerProps) {
   const [activeTab, setActiveTab] = React.useState<
     "details" | "photos" | "invoice" | "history"
   >("details");
@@ -53,6 +59,20 @@ export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
   const [partDesc, setPartDesc] = React.useState("");
   const [partPriceDollars, setPartPriceDollars] = React.useState("");
   const [busyAction, setBusyAction] = React.useState(false);
+
+  // Payments & Refund Modals
+  const [refundModal, setRefundModal] = React.useState<{
+    open: boolean;
+    amountDollars: string;
+    reason: string;
+  } | null>(null);
+  const [showCheckModal, setShowCheckModal] = React.useState(false);
+  const [checkRefInput, setCheckRefInput] = React.useState("");
+  const [showNewCardModal, setShowNewCardModal] = React.useState(false);
+  const [newCardNumber, setNewCardNumber] = React.useState("");
+  const [newCardBrand, setNewCardBrand] = React.useState("Visa");
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [deletingJob, setDeletingJob] = React.useState(false);
 
   React.useEffect(() => {
     if (!job) return;
@@ -237,30 +257,113 @@ export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
   }
 
   async function handleCollectPayment(
-    method: "card_on_file" | "cash" | "send_pay_link"
+    method: "card_on_file" | "cash" | "send_pay_link" | "check" | "tap_card",
+    extras?: { cardBrand?: string; cardLast4?: string; checkReference?: string }
   ) {
     if (!job) return;
     setBusyAction(true);
     try {
-      const res = await fetch(`/api/jobs/${job.id}/finish`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method }),
-      });
-      const data = (await res.json()) as {
-        job?: EnrichedJob;
-        payLinkUrl?: string;
-      };
-      if (data.job) {
-        onJobUpdated(data.job);
-        if (method === "send_pay_link") {
-          toast.success(`Payment link texted to ${job.customer.phone}`);
+      if (method === "send_pay_link" || method === "card_on_file" || method === "cash") {
+        const res = await fetch(`/api/jobs/${job.id}/finish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ method }),
+        });
+        const data = (await res.json()) as {
+          job?: EnrichedJob;
+          payLinkUrl?: string;
+        };
+        if (data.job) {
+          onJobUpdated(data.job);
+          if (method === "send_pay_link") {
+            toast.success(`Payment link texted to ${job.customer.phone}`);
+          } else {
+            toast.success("Payment collected & receipt sent!");
+          }
+        }
+      } else {
+        const res = await fetch("/api/payments/record", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jobId: job.id,
+            method,
+            tipCents: 0,
+            cardBrand: extras?.cardBrand,
+            cardLast4: extras?.cardLast4,
+            checkReference: extras?.checkReference,
+          }),
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          job?: EnrichedJob;
+          error?: { message?: string };
+        };
+        if (data.job) {
+          onJobUpdated(data.job);
+          toast.success("Payment recorded & transaction saved!");
         } else {
-          toast.success("Payment collected & receipt sent!");
+          toast.error(data.error?.message ?? "Payment failed to record");
         }
       }
     } finally {
       setBusyAction(false);
+      setShowCheckModal(false);
+      setShowNewCardModal(false);
+    }
+  }
+
+  async function handleIssueRefund(amountCents?: number, reason?: string) {
+    if (!job) return;
+    setBusyAction(true);
+    try {
+      const res = await fetch("/api/stripe/refund", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId: job.id,
+          amountCents,
+          reason: reason || "Owner initiated refund",
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        refundId?: string;
+        amountCents?: number;
+        mode?: string;
+        job?: EnrichedJob;
+        error?: { message?: string };
+      };
+      if (data.ok && data.job) {
+        toast.success(
+          `Refund of ${formatMoney(data.amountCents ?? 0)} issued (${data.mode === "stripe" ? "Stripe" : "Simulated"})!`
+        );
+        onJobUpdated(data.job);
+        setRefundModal(null);
+      } else {
+        toast.error(data.error?.message ?? "Refund could not be processed");
+      }
+    } finally {
+      setBusyAction(false);
+    }
+  }
+
+  async function handleDeleteJob() {
+    if (!job) return;
+    setDeletingJob(true);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, { method: "DELETE" });
+      const data = (await res.json()) as { ok?: boolean; error?: { message?: string } };
+      if (data.ok) {
+        toast.success(`Job #${job.jobNumber} deleted successfully`);
+        onJobDeleted?.(job.id);
+        onClose();
+      } else {
+        toast.error(data.error?.message ?? "Could not delete job");
+      }
+    } finally {
+      setDeletingJob(false);
+      setConfirmDelete(false);
     }
   }
 
@@ -281,11 +384,20 @@ export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
         {/* Drawer Header */}
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4 bg-slate-50/70">
           <div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className="font-mono text-xs font-bold uppercase tracking-wider text-navy-700">
                 Job #{job.jobNumber}
               </span>
               <StatusBadge status={job.status} />
+              {job.isDemo ? (
+                <span className="rounded-full bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 text-[10px] font-bold">
+                  DEMO DATA
+                </span>
+              ) : (
+                <span className="rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                  LIVE BOOKING
+                </span>
+              )}
               {job.isUnassignedUrgent ? (
                 <span className="inline-flex items-center gap-1 rounded-pill bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">
                   <AlertTriangle className="h-3 w-3" />
@@ -301,15 +413,26 @@ export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
               {job.addressLine1}, {job.city}, {job.state} {job.zip}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            data-testid="close-job-drawer"
-            className="rounded-input p-2 text-navy-700 hover:bg-slate-200"
-            aria-label="Close job drawer"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="rounded-input p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Delete this job"
+              aria-label="Delete this job"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              data-testid="close-job-drawer"
+              className="rounded-input p-2 text-navy-700 hover:bg-slate-200"
+              aria-label="Close job drawer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* 4 Tabs */}
@@ -862,38 +985,171 @@ export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
                 </Button>
               </form>
 
+              {/* Payment Transactions Ledger */}
+              <div className="rounded-card border border-slate-200 bg-white p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-orange-600" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-navy-900">
+                      Payment Transactions Ledger ({job.payments.length})
+                    </h4>
+                  </div>
+                  {job.depositPaymentIntentId ? (
+                    <span className="font-mono text-[10px] text-navy-700 bg-slate-100 px-2 py-0.5 rounded">
+                      PI: {job.depositPaymentIntentId}
+                    </span>
+                  ) : null}
+                </div>
+
+                {job.payments.length === 0 ? (
+                  <p className="text-xs text-navy-700 py-2">
+                    No payment transactions recorded yet.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {job.payments.map((p) => {
+                      const isRefund = p.kind === "refund";
+                      const txId = p.stripeRefundId ?? p.stripeChargeId ?? p.stripePaymentIntentId ?? p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          className={`rounded-lg border p-2.5 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+                            isRefund
+                              ? "border-red-200 bg-red-50/50"
+                              : "border-slate-100 bg-slate-50/60"
+                          }`}
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span
+                                className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
+                                  isRefund
+                                    ? "bg-red-600 text-white"
+                                    : p.kind === "deposit"
+                                    ? "bg-navy-900 text-white"
+                                    : "bg-emerald-700 text-white"
+                                }`}
+                              >
+                                {p.kind}
+                              </span>
+                              <span className="font-semibold text-navy-900 capitalize">
+                                {p.method.replace(/_/g, " ")}
+                              </span>
+                              <span className="text-navy-700 font-mono text-[11px]">
+                                {txId}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-navy-700">
+                              Recorded by {p.recordedBy ?? "system"} ·{" "}
+                              {formatInTimeZone(new Date(p.createdAt), tz, "MMM d, yyyy h:mm a")}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span
+                              className={`font-bold tabular-nums text-sm ${
+                                isRefund ? "text-red-700" : "text-emerald-700"
+                              }`}
+                            >
+                              {isRefund ? "-" : "+"}
+                              {formatMoney(p.amountCents)}
+                            </span>
+
+                            {!isRefund && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setRefundModal({
+                                    open: true,
+                                    amountDollars: (p.amountCents / 100).toFixed(2),
+                                    reason: "Customer refund request",
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-700 hover:underline px-1.5 py-0.5 rounded hover:bg-red-50"
+                              >
+                                <RotateCcw className="h-3 w-3" />
+                                Refund
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               {/* Payment Collection Actions */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => handleCollectPayment("card_on_file")}
-                  disabled={busyAction}
-                  className="gap-1.5"
-                >
-                  <CreditCard className="h-3.5 w-3.5" />
-                  Charge Saved Card
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleCollectPayment("send_pay_link")}
-                  disabled={busyAction}
-                  className="gap-1.5"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  SMS Pay Link
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleCollectPayment("cash")}
-                  disabled={busyAction}
-                >
-                  Record Cash
-                </Button>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-navy-700">
+                    Collect Balance Payment
+                  </h4>
+                  {job.customer.cardLast4 ? (
+                    <span className="text-[11px] text-navy-700 font-medium">
+                      Card on file: {job.customer.cardBrand ?? "Card"} •••• {job.customer.cardLast4}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => handleCollectPayment("card_on_file")}
+                    disabled={busyAction}
+                    className="gap-1 text-xs"
+                  >
+                    <CreditCard className="h-3.5 w-3.5" />
+                    Saved Card
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowNewCardModal(true)}
+                    disabled={busyAction}
+                    className="gap-1 text-xs"
+                  >
+                    <DollarSign className="h-3.5 w-3.5" />
+                    New Card
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setShowCheckModal(true)}
+                    disabled={busyAction}
+                    className="gap-1 text-xs"
+                  >
+                    Check / ACH
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleCollectPayment("cash")}
+                    disabled={busyAction}
+                    className="text-xs"
+                  >
+                    Cash
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleCollectPayment("send_pay_link")}
+                    disabled={busyAction}
+                    className="gap-1 text-xs col-span-2 sm:col-span-1"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    SMS Link
+                  </Button>
+                </div>
               </div>
             </div>
           ) : null}
@@ -926,6 +1182,242 @@ export function JobDrawer({ job, onClose, onJobUpdated }: JobDrawerProps) {
             </div>
           ) : null}
         </div>
+
+        {/* Modal: Issue Refund */}
+        {refundModal?.open ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading font-bold text-navy-900 text-base flex items-center gap-2">
+                  <RotateCcw className="h-4 w-4 text-red-600" />
+                  Issue Payment Refund
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setRefundModal(null)}
+                  className="rounded-input p-1.5 text-navy-700 hover:bg-slate-100"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <Label htmlFor="refund-amount">Refund Amount ($)</Label>
+                  <Input
+                    id="refund-amount"
+                    type="number"
+                    step="0.01"
+                    value={refundModal.amountDollars}
+                    onChange={(e) =>
+                      setRefundModal({ ...refundModal, amountDollars: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="refund-reason">Reason</Label>
+                  <Input
+                    id="refund-reason"
+                    value={refundModal.reason}
+                    onChange={(e) =>
+                      setRefundModal({ ...refundModal, reason: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setRefundModal(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  loading={busyAction}
+                  onClick={() => {
+                    const cents = Math.round(Number(refundModal.amountDollars) * 100);
+                    void handleIssueRefund(cents, refundModal.reason);
+                  }}
+                >
+                  Confirm Refund
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Modal: Record Check */}
+        {showCheckModal ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading font-bold text-navy-900 text-base">
+                  Record Check Payment
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowCheckModal(false)}
+                  className="rounded-input p-1.5 text-navy-700 hover:bg-slate-100"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <Label htmlFor="check-ref-input">Check / Reference #</Label>
+                  <Input
+                    id="check-ref-input"
+                    placeholder="e.g. Check #4402"
+                    value={checkRefInput}
+                    onChange={(e) => setCheckRefInput(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCheckModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  loading={busyAction}
+                  onClick={() =>
+                    void handleCollectPayment("check", { checkReference: checkRefInput })
+                  }
+                >
+                  Record Check
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Modal: Charge New Card */}
+        {showNewCardModal ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading font-bold text-navy-900 text-base flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-orange-600" />
+                  Charge New Card
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCardModal(false)}
+                  className="rounded-input p-1.5 text-navy-700 hover:bg-slate-100"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <Label htmlFor="new-card-num">Card Number</Label>
+                  <Input
+                    id="new-card-num"
+                    placeholder="4242 4242 4242 4242"
+                    value={newCardNumber}
+                    onChange={(e) => setNewCardNumber(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewCardNumber("4242 4242 4242 4242");
+                      setNewCardBrand("Visa");
+                    }}
+                    className="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Fill Test 4242
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowNewCardModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  loading={busyAction}
+                  onClick={() => {
+                    const clean = newCardNumber.replace(/\D/g, "");
+                    const last4 = clean.slice(-4) || "4242";
+                    void handleCollectPayment("tap_card", {
+                      cardBrand: newCardBrand,
+                      cardLast4: last4,
+                    });
+                  }}
+                >
+                  Charge Card
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Modal: Confirm Delete Job */}
+        {confirmDelete ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/60 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700">
+                  <Trash2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-heading font-bold text-navy-900 text-base">
+                    Delete Job #{job.jobNumber}?
+                  </h3>
+                  <p className="text-xs text-navy-700 mt-0.5">
+                    This permanently removes this job and all associated invoices, events, and photos. Real customer profiles remain safe.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Keep Job
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  loading={deletingJob}
+                  onClick={handleDeleteJob}
+                >
+                  Yes, Delete Job
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getLocalDbWithDemo } from "@/lib/server/demo-dataset";
+import { getLocalDbWithDemo, deleteJobRecord } from "@/lib/server/demo-dataset";
 import { saveLocalDbToDisk } from "@/lib/server/local-db-fallback";
 import { enrichJob } from "@/lib/server/operations";
 import { requireRole } from "@/lib/server/auth-guard";
@@ -99,4 +99,23 @@ export async function PATCH(
   saveLocalDbToDisk(store);
 
   return NextResponse.json({ job: enrichJob(job.id, store) });
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const auth = await requireRole(request, ["owner"]);
+  if (!auth.ok) return auth.response;
+
+  const store = getLocalDbWithDemo();
+  const ok = deleteJobRecord(params.id, store);
+  if (!ok) {
+    return NextResponse.json(
+      { error: { code: "JOB_NOT_FOUND", message: "Job not found" } },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json({ ok: true, deletedJobId: params.id });
 }

@@ -2,12 +2,23 @@ import { addDays, addHours, addMinutes, subDays } from "date-fns";
 import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { businessConfig } from "@config/business.config";
 import { computeInvoiceTotals } from "@/lib/domain/pricing";
-import { getLocalDb, type LocalDbStore } from "./local-db-fallback";
+import { getLocalDb, saveLocalDbToDisk, type LocalDbStore } from "./local-db-fallback";
 import type { Database } from "@/lib/supabase/types";
 
 const seededStores = new WeakSet<LocalDbStore>();
 
+export function isDemoJobId(id: string): boolean {
+  return id.startsWith("job_today_") || id.startsWith("job_hist_");
+}
+
+export function isDemoCustomerId(id: string): boolean {
+  return id.startsWith("cust_demo_");
+}
+
 export function ensureDemoDatasetLoaded(store = getLocalDb()): LocalDbStore {
+  if (store.demoCleared) {
+    return store;
+  }
   if (!seededStores.has(store) && !store.jobs.has("job_today_1")) {
     seededStores.add(store);
     populateRichDemoDataset(store);
@@ -17,6 +28,226 @@ export function ensureDemoDatasetLoaded(store = getLocalDb()): LocalDbStore {
 
 export function getLocalDbWithDemo(): LocalDbStore {
   return ensureDemoDatasetLoaded(getLocalDb());
+}
+
+export interface DemoDataStats {
+  demoJobsCount: number;
+  realJobsCount: number;
+  demoCustomersCount: number;
+  realCustomersCount: number;
+  demoInvoicesCount: number;
+  demoPaymentsCount: number;
+  demoCleared: boolean;
+  demoJobs: number;
+  realJobs: number;
+  demoCustomers: number;
+  realCustomers: number;
+}
+
+export function getDemoDataStats(store = getLocalDbWithDemo()): DemoDataStats {
+  let demoJobsCount = 0;
+  let realJobsCount = 0;
+  for (const j of store.jobs.values()) {
+    if (isDemoJobId(j.id)) demoJobsCount += 1;
+    else realJobsCount += 1;
+  }
+
+  let demoCustomersCount = 0;
+  let realCustomersCount = 0;
+  for (const c of store.customers.values()) {
+    if (isDemoCustomerId(c.id)) demoCustomersCount += 1;
+    else realCustomersCount += 1;
+  }
+
+  let demoInvoicesCount = 0;
+  for (const inv of store.invoices.values()) {
+    if (isDemoJobId(inv.job_id)) demoInvoicesCount += 1;
+  }
+
+  let demoPaymentsCount = 0;
+  for (const pay of store.payments.values()) {
+    if (isDemoJobId(pay.job_id)) demoPaymentsCount += 1;
+  }
+
+  return {
+    demoJobsCount,
+    realJobsCount,
+    demoCustomersCount,
+    realCustomersCount,
+    demoInvoicesCount,
+    demoPaymentsCount,
+    demoCleared: Boolean(store.demoCleared),
+    demoJobs: demoJobsCount,
+    realJobs: realJobsCount,
+    demoCustomers: demoCustomersCount,
+    realCustomers: realCustomersCount,
+  };
+}
+
+/**
+ * Deletes ONLY demo jobs, demo invoices, demo payments, demo events, and demo customers
+ * while preserving 100% of real user bookings, real customers, services, technicians, and settings.
+ */
+export function clearDemoDataset(store = getLocalDb()): {
+  deletedJobs: number;
+  deletedCustomers: number;
+  deletedInvoices: number;
+  deletedPayments: number;
+  demoJobsRemoved: number;
+  demoCustomersRemoved: number;
+  stats: DemoDataStats;
+} {
+  let deletedJobs = 0;
+  let deletedCustomers = 0;
+  let deletedInvoices = 0;
+  let deletedPayments = 0;
+
+  const demoJobIds = new Set<string>();
+  for (const jobId of Array.from(store.jobs.keys())) {
+    if (isDemoJobId(jobId)) {
+      demoJobIds.add(jobId);
+      store.jobs.delete(jobId);
+      deletedJobs += 1;
+    }
+  }
+
+  const demoInvoiceIds = new Set<string>();
+  for (const [invId, inv] of Array.from(store.invoices.entries())) {
+    if (demoJobIds.has(inv.job_id) || invId.startsWith("inv_job_")) {
+      demoInvoiceIds.add(invId);
+      store.invoices.delete(invId);
+      deletedInvoices += 1;
+    }
+  }
+
+  for (const [liId, li] of Array.from(store.invoice_line_items.entries())) {
+    if (demoInvoiceIds.has(li.invoice_id)) {
+      store.invoice_line_items.delete(liId);
+    }
+  }
+
+  for (const [payId, pay] of Array.from(store.payments.entries())) {
+    if (demoJobIds.has(pay.job_id)) {
+      store.payments.delete(payId);
+      deletedPayments += 1;
+    }
+  }
+
+  for (const [evtId, evt] of Array.from(store.job_events.entries())) {
+    if (demoJobIds.has(evt.job_id)) {
+      store.job_events.delete(evtId);
+    }
+  }
+
+  for (const [smsId, sms] of Array.from(store.sms_log.entries())) {
+    if (sms.job_id && demoJobIds.has(sms.job_id)) {
+      store.sms_log.delete(smsId);
+    }
+  }
+
+  // Only delete demo customers that are not referenced by any remaining real job
+  const activeRealCustomerIds = new Set<string>();
+  for (const job of store.jobs.values()) {
+    activeRealCustomerIds.add(job.customer_id);
+  }
+
+  for (const custId of Array.from(store.customers.keys())) {
+    if (isDemoCustomerId(custId) && !activeRealCustomerIds.has(custId)) {
+      store.customers.delete(custId);
+      deletedCustomers += 1;
+    }
+  }
+
+  store.demoCleared = true;
+  saveLocalDbToDisk(store);
+
+  return {
+    deletedJobs,
+    deletedCustomers,
+    deletedInvoices,
+    deletedPayments,
+    demoJobsRemoved: deletedJobs,
+    demoCustomersRemoved: deletedCustomers,
+    stats: getDemoDataStats(store),
+  };
+}
+
+/**
+ * Restores the demo dataset alongside any existing real bookings/customers.
+ */
+export function restoreDemoDataset(store = getLocalDb()): DemoDataStats & {
+  demoJobsRestored: number;
+  demoCustomersRestored: number;
+} {
+  const maxExistingJobNum = Array.from(store.jobs.values()).reduce(
+    (max, j) => Math.max(max, j.job_number),
+    1029
+  );
+  store.demoCleared = false;
+  seededStores.delete(store);
+  populateRichDemoDataset(store);
+  if (store.jobSequence < maxExistingJobNum) {
+    store.jobSequence = maxExistingJobNum;
+  }
+  saveLocalDbToDisk(store);
+  const stats = getDemoDataStats(store);
+  return {
+    ...stats,
+    demoJobsRestored: stats.demoJobsCount,
+    demoCustomersRestored: stats.demoCustomersCount,
+  };
+}
+
+/**
+ * Deletes a single job (demo or real) and its dependent invoice, line items, payments, and events.
+ */
+export function deleteJobRecord(jobId: string, store = getLocalDbWithDemo()): boolean {
+  if (!store.jobs.has(jobId)) return false;
+  store.jobs.delete(jobId);
+
+  for (const [invId, inv] of Array.from(store.invoices.entries())) {
+    if (inv.job_id === jobId) {
+      store.invoices.delete(invId);
+      for (const [liId, li] of Array.from(store.invoice_line_items.entries())) {
+        if (li.invoice_id === invId) {
+          store.invoice_line_items.delete(liId);
+        }
+      }
+    }
+  }
+
+  for (const [payId, pay] of Array.from(store.payments.entries())) {
+    if (pay.job_id === jobId) {
+      store.payments.delete(payId);
+    }
+  }
+
+  for (const [evtId, evt] of Array.from(store.job_events.entries())) {
+    if (evt.job_id === jobId) {
+      store.job_events.delete(evtId);
+    }
+  }
+
+  saveLocalDbToDisk(store);
+  return true;
+}
+
+/**
+ * Deletes a single customer and any jobs belonging to that customer.
+ */
+export function deleteCustomerRecord(
+  customerId: string,
+  store = getLocalDbWithDemo()
+): boolean {
+  if (!store.customers.has(customerId)) return false;
+  for (const [jobId, job] of Array.from(store.jobs.entries())) {
+    if (job.customer_id === customerId) {
+      deleteJobRecord(jobId, store);
+    }
+  }
+  store.customers.delete(customerId);
+  saveLocalDbToDisk(store);
+  return true;
 }
 
 const DEMO_CUSTOMERS = [

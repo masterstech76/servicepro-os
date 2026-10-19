@@ -17,6 +17,8 @@ import { POST as postHoldSlot } from "@/app/api/slots/hold/route";
 import { POST as postCheckout } from "@/app/api/jobs/checkout/route";
 import { POST as postSimulatePayment } from "@/app/api/dev/simulate-payment/route";
 import { GET as getJobByIntent } from "@/app/api/jobs/by-intent/route";
+import { POST as postSignUploads } from "@/app/api/uploads/sign/route";
+import { PUT as putUpload } from "@/app/api/uploads/put/route";
 
 describe("Phase 2 — Slot Engine, Concurrency, Expiry, DST, RLS & API Routes", () => {
   let db: LocalDbStore;
@@ -363,6 +365,15 @@ describe("Phase 2 — Slot Engine, Concurrency, Expiry, DST, RLS & API Routes", 
       surchargeCents: 0,
     });
 
+    const resSurcharge = await getServiceArea(
+      new Request("http://localhost:3000/api/service-area?zip=33149")
+    );
+    expect(resSurcharge.status).toBe(200);
+    const surchargeData = await resSurcharge.json();
+    expect(surchargeData.served).toBe(true);
+    expect(surchargeData.zip).toBe("33149");
+    expect(surchargeData.surchargeCents).toBeGreaterThan(0);
+
     const resUnserved = await getServiceArea(
       new Request("http://localhost:3000/api/service-area?zip=90210")
     );
@@ -400,8 +411,47 @@ describe("Phase 2 — Slot Engine, Concurrency, Expiry, DST, RLS & API Routes", 
     expect(resHold.status).toBe(200);
     const { holdId } = await resHold.json();
 
+    // /api/uploads/sign + /api/uploads/put (hold ownership verification)
+    const missingHoldPut = await putUpload(
+      new Request(
+        `http://localhost:3000/api/uploads/put?path=${encodeURIComponent(
+          `${bizId}/drafts/nonexistent-hold-id/unauth.jpg`
+        )}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "image/jpeg" },
+          body: new Uint8Array([1, 2, 3]),
+        }
+      )
+    );
+    expect(missingHoldPut.status).toBe(404);
+
+    const resSign = await postSignUploads(
+      new Request("http://localhost:3000/api/uploads/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          holdId,
+          files: [{ name: "test-photo.jpg", type: "image/jpeg", size: 512 }],
+        }),
+      })
+    );
+    expect(resSign.status).toBe(200);
+    const { uploads } = await resSign.json();
+    expect(uploads).toHaveLength(1);
+    const signedUpload = uploads[0];
+
+    const resPut = await putUpload(
+      new Request(`http://localhost:3000${signedUpload.uploadUrl}`, {
+        method: "PUT",
+        headers: { "Content-Type": "image/jpeg" },
+        body: new Uint8Array([0xff, 0xd8, 0xff, 0xd9]),
+      })
+    );
+    expect(resPut.status).toBe(200);
+
     // /api/jobs/checkout
-    const draftPhotoPath = `${bizId}/drafts/${holdId}/test-photo.jpg`;
+    const draftPhotoPath = signedUpload.path as string;
     const resCheckout = await postCheckout(
       new Request("http://localhost:3000/api/jobs/checkout", {
         method: "POST",
@@ -444,7 +494,10 @@ describe("Phase 2 — Slot Engine, Concurrency, Expiry, DST, RLS & API Routes", 
     expect(resSim.status).toBe(200);
     const simData = await resSim.json();
     expect(simData.jobNumber).toBeGreaterThan(1000);
-    expect(simData.movedPhotoPaths[0]).toContain(`/${simData.jobId}/issue/test-photo.jpg`);
+    const expectedFileName = draftPhotoPath.split("/").pop()!;
+    expect(simData.movedPhotoPaths[0]).toBe(
+      `${bizId}/${simData.jobId}/issue/${expectedFileName}`
+    );
 
     // /api/jobs/by-intent
     const resByIntent = await getJobByIntent(

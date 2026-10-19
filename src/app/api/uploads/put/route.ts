@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getLocalDb } from "@/lib/server/local-db-fallback";
+import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { getLocalDb, getDbNow } from "@/lib/server/local-db-fallback";
 
 export const runtime = "nodejs";
 
@@ -8,6 +9,19 @@ const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const VALID_PATH_REGEX = /^[a-zA-Z0-9\/\-_.]+\.(jpg|jpeg|png|webp)$/;
 
 export async function PUT(request: Request) {
+  // When Supabase is configured, uploads must use signed URLs from /api/uploads/sign directly to Supabase Storage.
+  if (getSupabaseAdminClient()) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "DIRECT_UPLOAD_REQUIRED",
+          message: "Use signed Supabase storage URL when Supabase is configured",
+        },
+      },
+      { status: 403 }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const path = searchParams.get("path") ?? "";
   if (!path) {
@@ -29,10 +43,49 @@ export async function PUT(request: Request) {
     );
   }
 
-  const contentType = (request.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  const m = path.match(/\/drafts\/([^\/]+)\//);
+  if (!m) {
+    return NextResponse.json(
+      { error: { code: "INVALID_PATH", message: "Invalid upload path" } },
+      { status: 400 }
+    );
+  }
+  const holdId = m[1];
+
+  const db = getLocalDb();
+  const h = db.slot_holds.get(holdId);
+  const now = getDbNow(db);
+  if (!h || h.converted_job_id !== null || new Date(h.expires_at) <= now) {
+    return NextResponse.json(
+      { error: { code: "HOLD_NOT_FOUND", message: "Slot hold not found or expired" } },
+      { status: 404 }
+    );
+  }
+
+  if (!db.storage_objects.has(path)) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "FORBIDDEN",
+          message: "Upload path was not pre-signed for this hold",
+        },
+      },
+      { status: 403 }
+    );
+  }
+
+  const contentType = (request.headers.get("content-type") ?? "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase();
   if (!ALLOWED_MIME_TYPES.has(contentType)) {
     return NextResponse.json(
-      { error: { code: "UNSUPPORTED_MEDIA_TYPE", message: "Only JPEG, PNG, and WEBP images are allowed" } },
+      {
+        error: {
+          code: "UNSUPPORTED_MEDIA_TYPE",
+          message: "Only JPEG, PNG, and WEBP images are allowed",
+        },
+      },
       { status: 415 }
     );
   }
@@ -45,7 +98,6 @@ export async function PUT(request: Request) {
     );
   }
 
-  const db = getLocalDb();
   db.storage_objects.set(path, {
     bucket: "job-photos",
     path,

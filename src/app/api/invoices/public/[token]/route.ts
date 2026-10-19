@@ -98,12 +98,21 @@ export async function POST(
 
   const body = (await request.json()) as {
     tipCents?: number;
+    method?: "card_on_file" | "tap_card" | "check";
+    cardBrand?: string;
+    cardLast4?: string;
+    cardholderName?: string;
+    checkReference?: string;
   };
 
   const res = await collectJobPayment({
     jobId: inv.job_id,
-    method: "tap_card",
+    method: body.method ?? "tap_card",
     tipCents: body.tipCents ?? inv.tip_cents,
+    cardBrand: body.cardBrand,
+    cardLast4: body.cardLast4,
+    cardholderName: body.cardholderName,
+    checkReference: body.checkReference,
     actorLabel: "customer",
   });
 
@@ -116,6 +125,7 @@ export async function POST(
 
   return NextResponse.json({
     ok: true,
+    transactionId: res.transactionId,
     job: res.job,
     invoice: res.job?.invoice ?? null,
   });

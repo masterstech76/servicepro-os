@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getLocalDbWithDemo } from "@/lib/server/demo-dataset";
+import { saveLocalDbToDisk } from "@/lib/server/local-db-fallback";
+import { enrichJob } from "@/lib/server/operations";
+import { issueStripeRefund } from "@/lib/server/stripe";
 
 const refundSchema = z.object({
   jobId: z.string().min(1),
@@ -29,7 +32,15 @@ export async function POST(req: NextRequest) {
     }
 
     const amountCents = parsed.data.amountCents ?? job.deposit_cents;
-    const refundId = `re_owner_${Date.now()}`;
+
+    // Call Stripe API or simulated refund
+    const refundResult = await issueStripeRefund({
+      paymentIntentId: job.deposit_payment_intent_id,
+      amountCents,
+      reason: parsed.data.reason ?? "Owner refund",
+    });
+
+    const refundId = refundResult.refundId;
     const payId = `pay_ref_${Date.now()}`;
     const nowIso = new Date().toISOString();
 
@@ -59,14 +70,18 @@ export async function POST(req: NextRequest) {
       event_type: "refund_issued",
       from_status: job.status,
       to_status: job.status,
-      meta: { refund_id: refundId, amount_cents: amountCents, reason: parsed.data.reason ?? "Owner refund" },
+      meta: { refund_id: refundId, amount_cents: amountCents, reason: parsed.data.reason ?? "Owner refund", mode: refundResult.mode },
       created_at: nowIso,
     });
+
+    saveLocalDbToDisk(store);
 
     return NextResponse.json({
       ok: true,
       refundId,
       amountCents,
+      mode: refundResult.mode,
+      job: enrichJob(job.id, store),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Refund failed";

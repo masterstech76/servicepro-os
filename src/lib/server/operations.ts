@@ -15,12 +15,19 @@ import {
   type TechSuggestionResult,
 } from "@/lib/domain/dispatch-score";
 import { sendServiceSms } from "@/lib/server/sms";
-import { getLocalDbWithDemo } from "@/lib/server/demo-dataset";
+import {
+  getLocalDbWithDemo,
+  isDemoCustomerId,
+  isDemoJobId,
+} from "@/lib/server/demo-dataset";
+import { saveLocalDbToDisk } from "@/lib/server/local-db-fallback";
+import { chargeCustomerOffSession } from "@/lib/server/stripe";
 import type { JobStatus, PaymentKind, PaymentStatus } from "@/lib/supabase/types";
 
 export interface EnrichedJob {
   id: string;
   jobNumber: number;
+  isDemo?: boolean;
   status: JobStatus;
   scheduledStart: string;
   scheduledEnd: string;
@@ -37,6 +44,7 @@ export interface EnrichedJob {
   afterPhotos: string[];
   estimatedTotalCents: number;
   depositCents: number;
+  depositPaymentIntentId: string | null;
   totalCents: number | null;
   tipCents: number;
   billableMinutes: number | null;
@@ -57,6 +65,7 @@ export interface EnrichedJob {
     cardBrand: string | null;
     cardLast4: string | null;
     smsOptOut: boolean;
+    isDemo?: boolean;
   };
   service: {
     id: string;
@@ -105,6 +114,9 @@ export interface EnrichedJob {
     status: PaymentStatus;
     amountCents: number;
     stripePaymentIntentId: string | null;
+    stripeChargeId?: string | null;
+    stripeRefundId?: string | null;
+    recordedBy?: string | null;
     createdAt: string;
   }>;
   events: Array<{
@@ -161,6 +173,9 @@ export function enrichJob(
       status: p.status,
       amountCents: p.amount_cents,
       stripePaymentIntentId: p.stripe_payment_intent_id,
+      stripeChargeId: p.stripe_charge_id,
+      stripeRefundId: p.stripe_refund_id,
+      recordedBy: p.recorded_by ?? null,
       createdAt: p.created_at,
     }));
 
@@ -194,6 +209,7 @@ export function enrichJob(
   return {
     id: job.id,
     jobNumber: job.job_number,
+    isDemo: isDemoJobId(job.id),
     status: job.status,
     scheduledStart: job.scheduled_start,
     scheduledEnd: job.scheduled_end,
@@ -210,6 +226,7 @@ export function enrichJob(
     afterPhotos: job.after_photos,
     estimatedTotalCents: job.estimated_total_cents,
     depositCents: job.deposit_cents,
+    depositPaymentIntentId: job.deposit_payment_intent_id ?? null,
     totalCents: job.total_cents,
     tipCents: job.tip_cents,
     billableMinutes: job.billable_minutes,
@@ -230,6 +247,7 @@ export function enrichJob(
       cardBrand: customer.card_brand,
       cardLast4: customer.card_last4,
       smsOptOut: customer.sms_opt_out,
+      isDemo: isDemoCustomerId(customer.id),
     },
     service: {
       id: service.id,
@@ -1020,10 +1038,15 @@ export async function collectJobPayment(params: {
   method: "card_on_file" | "tap_card" | "cash" | "check" | "send_pay_link" | "bill_later";
   tipCents?: number;
   actorLabel?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+  cardholderName?: string;
+  checkReference?: string;
 }): Promise<{
   ok: boolean;
   errorCode?: string;
   payLinkUrl?: string;
+  transactionId?: string;
   job?: EnrichedJob;
 }> {
   const store = getLocalDbWithDemo();
@@ -1034,6 +1057,17 @@ export async function collectJobPayment(params: {
   const service = store.services.get(job.service_id);
   if (!biz || !customer || !service) {
     return { ok: false, errorCode: "MISSING_RELATIONS" };
+  }
+
+  // Update customer saved card if new card details were provided
+  if (params.cardBrand || params.cardLast4) {
+    customer.card_brand = params.cardBrand ?? customer.card_brand ?? "visa";
+    customer.card_last4 = params.cardLast4 ?? customer.card_last4 ?? "4242";
+    customer.stripe_payment_method_id =
+      customer.stripe_payment_method_id ?? `pm_card_${Date.now()}`;
+    customer.stripe_customer_id =
+      customer.stripe_customer_id ?? `cus_${customer.id.slice(-8)}`;
+    store.customers.set(customer.id, customer);
   }
 
   let inv = Array.from(store.invoices.values()).find(
@@ -1095,15 +1129,18 @@ export async function collectJobPayment(params: {
         n: job.job_number,
         invoiceNumber: inv.invoice_number,
         amountDollars: (inv.amount_due_cents / 100).toFixed(2),
-        payUrl: `http://localhost:3000${payLinkUrl}`,
+        payUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}${payLinkUrl}`,
       },
     });
+    saveLocalDbToDisk(store);
     return {
       ok: true,
       payLinkUrl,
       job: enrichJob(job.id, store) ?? undefined,
     };
   }
+
+  let transactionId: string | undefined;
 
   if (inv.amount_due_cents > 0) {
     const payMethod: "card" | "cash" | "check" =
@@ -1112,6 +1149,24 @@ export async function collectJobPayment(params: {
         : params.method === "check"
         ? "check"
         : "card";
+
+    let stripePiId: string | null = null;
+    let stripeChargeId: string | null = null;
+
+    if (payMethod === "card") {
+      const chargeRes = await chargeCustomerOffSession({
+        jobId: job.id,
+        invoiceId: inv.id,
+        amountCents: inv.amount_due_cents,
+        stripeCustomerId: customer.stripe_customer_id,
+        stripePaymentMethodId: customer.stripe_payment_method_id,
+      });
+      stripePiId = chargeRes.paymentIntentId;
+      stripeChargeId = `ch_final_${job.job_number}_${Date.now().toString(36)}`;
+      transactionId = stripePiId;
+    } else {
+      transactionId = `${payMethod}_${job.job_number}_${Date.now().toString(36)}`;
+    }
 
     const payId = `pay_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     store.payments.set(payId, {
@@ -1123,12 +1178,10 @@ export async function collectJobPayment(params: {
       method: payMethod,
       status: "succeeded",
       amount_cents: inv.amount_due_cents,
-      stripe_payment_intent_id:
-        payMethod === "card" ? `pi_final_${job.job_number}_${Date.now()}` : null,
-      stripe_charge_id:
-        payMethod === "card" ? `ch_final_${job.job_number}_${Date.now()}` : null,
+      stripe_payment_intent_id: stripePiId,
+      stripe_charge_id: stripeChargeId,
       stripe_refund_id: null,
-      recorded_by: null,
+      recorded_by: params.actorLabel ?? null,
       created_at: nowIso,
     });
 
@@ -1158,6 +1211,10 @@ export async function collectJobPayment(params: {
     to_status: job.status,
     meta: {
       method: params.method,
+      card_brand: customer.card_brand,
+      card_last4: customer.card_last4,
+      transaction_id: transactionId ?? null,
+      check_reference: params.checkReference ?? null,
       total_cents: inv.total_cents + inv.tip_cents,
       tip_cents: inv.tip_cents,
     },
@@ -1177,7 +1234,12 @@ export async function collectJobPayment(params: {
     },
   });
 
-  return { ok: true, job: enrichJob(job.id, store) ?? undefined };
+  saveLocalDbToDisk(store);
+  return {
+    ok: true,
+    transactionId,
+    job: enrichJob(job.id, store) ?? undefined,
+  };
 }
 
 export function getRevenueReport(params: {

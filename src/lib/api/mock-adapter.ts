@@ -83,8 +83,10 @@ export const mockBookingAdapter: BookingApiAdapter = {
       return [];
     }
 
-    const service =
-      businessConfig.services.find((s) => s.id === serviceId) ?? businessConfig.services[0];
+    const service = businessConfig.services.find((s) => s.id === serviceId);
+    if (!service) {
+      return [];
+    }
     const tz = businessConfig.timezone;
     const slots: AvailableSlotDTO[] = [];
 
@@ -292,13 +294,13 @@ export const mockBookingAdapter: BookingApiAdapter = {
       serviceName: service.name,
       scheduledStart: startIso,
       scheduledEnd: endIso,
-      addressLine1: hold?.checkoutInput?.address.line1 ?? "123 Brickell Ave",
-      city: hold?.checkoutInput?.address.city ?? "Miami",
-      state: hold?.checkoutInput?.address.state ?? "FL",
-      zip: hold?.checkoutInput?.address.zip ?? "33133",
-      customerFirstName: (hold?.checkoutInput?.customer.name ?? "Maria").split(" ")[0],
-      customerPhone: hold?.checkoutInput?.customer.phone ?? "(305) 555-0142",
-      depositCents: hold?.depositCents ?? 1980,
+      addressLine1: hold.checkoutInput?.address.line1 ?? "123 Brickell Ave",
+      city: hold.checkoutInput?.address.city ?? "Miami",
+      state: hold.checkoutInput?.address.state ?? "FL",
+      zip: hold.checkoutInput?.address.zip ?? "33133",
+      customerFirstName: (hold.checkoutInput?.customer.name ?? "Maria").split(" ")[0],
+      customerPhone: hold.checkoutInput?.customer.phone ?? "(305) 555-0142",
+      depositCents: hold.depositCents ?? 1980,
     };
 
     mockConfirmedJobs.set(paymentIntentId, job);

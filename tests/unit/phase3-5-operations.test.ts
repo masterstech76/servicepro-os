@@ -1,6 +1,12 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { resetLocalDb } from "@/lib/server/local-db-fallback";
-import { populateRichDemoDataset } from "@/lib/server/demo-dataset";
+import {
+  populateRichDemoDataset,
+  clearDemoDataset,
+  restoreDemoDataset,
+  getDemoDataStats,
+  deleteJobRecord,
+} from "@/lib/server/demo-dataset";
 import {
   getDispatchBoardData,
   suggestTechniciansForJob,
@@ -342,6 +348,138 @@ describe("Phases 3, 4 & 5 — Full-Stack Server Operations & White-Label Config"
 
     // 6. Phone PII masking hides middle digits
     expect(maskPhoneForLogs("+13055550142")).toBe("+1305***0142");
+  });
+
+  it("deletes sample demo data with 1-click while preserving real user-created jobs and customers", () => {
+    const store = getLocalDb();
+
+    // Verify initial demo data
+    const initialStats = getDemoDataStats(store);
+    expect(initialStats.demoJobs).toBeGreaterThan(0);
+    expect(initialStats.demoCustomers).toBeGreaterThan(0);
+
+    // Simulate a real user booking created via /book
+    const realCustomerId = "cust_real_live_001";
+    store.customers.set(realCustomerId, {
+      id: realCustomerId,
+      business_id: "00000000-0000-4000-8000-000000000001",
+      name: "Real Live Customer",
+      phone: "+13055550999",
+      email: "real@customer.com",
+      stripe_customer_id: null,
+      stripe_payment_method_id: null,
+      card_brand: "Visa",
+      card_last4: "4242",
+      sms_opt_out: false,
+      sms_consent_at: null,
+      created_at: new Date().toISOString(),
+    });
+
+    const realJobId = "job_real_live_001";
+    store.jobs.set(realJobId, {
+      id: realJobId,
+      business_id: "00000000-0000-4000-8000-000000000001",
+      job_number: 9999,
+      customer_id: realCustomerId,
+      service_id: "svc-ac-repair",
+      status: "unassigned",
+      scheduled_start: new Date().toISOString(),
+      scheduled_end: new Date(Date.now() + 7200000).toISOString(),
+      technician_id: null,
+      address_line1: "1000 Brickell Ave",
+      address_line2: null,
+      city: "Miami",
+      state: "FL",
+      zip: "33131",
+      lat: 25.76,
+      lng: -80.19,
+      issue_text: "Real customer AC blowing warm air",
+      issue_photos: [],
+      before_photos: [],
+      after_photos: [],
+      notes_internal: null,
+      tech_notes: null,
+      billable_minutes: null,
+      on_the_way_at: null,
+      started_at: null,
+      completed_at: null,
+      estimated_total_cents: 18900,
+      deposit_cents: 3780,
+      deposit_paid_at: new Date().toISOString(),
+      deposit_payment_intent_id: "pi_real_001",
+      total_cents: null,
+      tip_cents: 0,
+      cancel_reason: null,
+      cancelled_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    // Run clearDemoDataset
+    const cleared = clearDemoDataset(store);
+    expect(cleared.demoJobsRemoved).toBe(initialStats.demoJobs);
+    expect(cleared.demoCustomersRemoved).toBe(initialStats.demoCustomers);
+
+    // Verify all demo jobs are gone
+    const afterClearStats = getDemoDataStats(store);
+    expect(afterClearStats.demoJobs).toBe(0);
+    expect(afterClearStats.demoCustomers).toBe(0);
+
+    // Crucial: verify REAL booking and customer were 100% PRESERVED
+    expect(store.jobs.has(realJobId)).toBe(true);
+    expect(store.customers.has(realCustomerId)).toBe(true);
+    expect(afterClearStats.realJobs).toBe(1);
+    expect(afterClearStats.realCustomers).toBe(1);
+
+    // Run restoreDemoDataset
+    const restored = restoreDemoDataset(store);
+    expect(restored.demoJobsRestored).toBeGreaterThan(0);
+    expect(restored.demoCustomersRestored).toBeGreaterThan(0);
+
+    // Verify real customer and real job are STILL intact after restore
+    expect(store.jobs.has(realJobId)).toBe(true);
+    expect(store.customers.has(realCustomerId)).toBe(true);
+    const afterRestoreStats = getDemoDataStats(store);
+    expect(afterRestoreStats.realJobs).toBe(1);
+    expect(afterRestoreStats.demoJobs).toBe(restored.demoJobsRestored);
+
+    // Test individual job deletion
+    const jobDeleted = deleteJobRecord(realJobId, store);
+    expect(jobDeleted).toBe(true);
+    expect(store.jobs.has(realJobId)).toBe(false);
+  });
+
+  it("records payment method transactions and updates ledger with transaction IDs", async () => {
+    const store = getLocalDb();
+    const demoJob = store.jobs.get("job_today_6")!;
+    expect(demoJob).toBeDefined();
+
+    // 1. Collect payment using a new card
+    const cardPayRes = await collectJobPayment({
+      jobId: demoJob.id,
+      method: "tap_card",
+      tipCents: 1500,
+      cardBrand: "Mastercard",
+      cardLast4: "5555",
+      cardholderName: "Test Cardholder",
+      actorLabel: "customer",
+    });
+
+    expect(cardPayRes.ok).toBe(true);
+    expect(cardPayRes.transactionId).toBeDefined();
+    expect(cardPayRes.job?.invoice?.status).toBe("paid");
+
+    // Check payment record in store
+    const payments = Array.from(store.payments.values()).filter((p) => p.job_id === demoJob.id);
+    const balancePayment = payments.find((p) => p.kind === "remaining");
+    expect(balancePayment).toBeDefined();
+    expect(balancePayment?.status).toBe("succeeded");
+    expect(balancePayment?.stripe_payment_intent_id).toBe(cardPayRes.transactionId);
+
+    // Customer card on file was updated
+    const customer = store.customers.get(demoJob.customer_id);
+    expect(customer?.card_last4).toBe("5555");
+    expect(customer?.card_brand).toBe("Mastercard");
   });
 });
 

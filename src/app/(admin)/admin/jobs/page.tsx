@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Money } from "@/components/shared/Money";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { JobDrawer } from "@/components/admin/JobDrawer";
+import { DemoDataManager } from "@/components/admin/DemoDataManager";
 import type { EnrichedJob } from "@/lib/server/operations";
 
 export default function AdminJobsListPage() {
@@ -87,6 +88,9 @@ export default function AdminJobsListPage() {
         </Button>
       </div>
 
+      {/* Demo Data Manager Toolbar */}
+      <DemoDataManager onDataChanged={() => void loadJobs()} />
+
       {/* Filters Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-card border border-slate-200 bg-white p-4 shadow-sm">
         <div className="relative flex-1 max-w-md">
@@ -155,7 +159,18 @@ export default function AdminJobsListPage() {
                     className="cursor-pointer hover:bg-slate-50"
                   >
                     <td className="px-4 py-3 font-mono font-bold text-navy-900">
-                      #{job.jobNumber}
+                      <div className="flex items-center gap-1.5">
+                        <span>#{job.jobNumber}</span>
+                        {job.isDemo ? (
+                          <span className="rounded bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 text-[9px] font-bold">
+                            DEMO
+                          </span>
+                        ) : (
+                          <span className="rounded bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 text-[9px] font-bold">
+                            LIVE
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-navy-700 whitespace-nowrap">
                       {formatInTimeZone(
@@ -199,6 +214,10 @@ export default function AdminJobsListPage() {
         onClose={() => setSelectedJob(null)}
         onJobUpdated={(updated) => {
           setSelectedJob(updated);
+          void loadJobs();
+        }}
+        onJobDeleted={(_deletedId) => {
+          setSelectedJob(null);
           void loadJobs();
         }}
       />

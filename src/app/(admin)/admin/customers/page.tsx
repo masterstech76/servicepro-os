@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { CreditCard, MessageSquare, Users } from "lucide-react";
+import { CreditCard, MessageSquare, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Money } from "@/components/shared/Money";
 import { PhoneLink } from "@/components/shared/PhoneLink";
+import { DemoDataManager } from "@/components/admin/DemoDataManager";
 
 interface CustomerRow {
   id: string;
@@ -16,6 +17,7 @@ interface CustomerRow {
   sms_opt_out: boolean;
   jobsCount: number;
   totalSpentCents: number;
+  isDemo?: boolean;
 }
 
 interface SmsLogRow {
@@ -61,6 +63,26 @@ export default function AdminCustomersPage() {
     await loadData();
   }
 
+  async function deleteCustomer(cust: CustomerRow) {
+    if (!window.confirm(`Delete customer ${cust.name}? This will remove their profile and demo references.`)) {
+      return;
+    }
+    const res = await fetch("/api/admin/catalog", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "delete_customer",
+        payload: { customerId: cust.id },
+      }),
+    });
+    if (res.ok) {
+      toast.success(`Customer ${cust.name} deleted.`);
+      await loadData();
+    } else {
+      toast.error("Failed to delete customer");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -71,6 +93,9 @@ export default function AdminCustomersPage() {
           View customer directory, saved payment methods, TCPA SMS consent, and automated message logs
         </p>
       </div>
+
+      {/* Demo Data Manager Toolbar */}
+      <DemoDataManager onDataChanged={() => void loadData()} />
 
       <section className="rounded-card border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
@@ -90,49 +115,74 @@ export default function AdminCustomersPage() {
                 <th className="px-4 py-3">Jobs</th>
                 <th className="px-4 py-3">Lifetime Spend</th>
                 <th className="px-4 py-3">SMS Consent</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {customers.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-semibold text-navy-900">
-                    {c.name}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-navy-700">
-                    <PhoneLink phone={c.phone} />
-                    {c.email ? <div className="mt-0.5">{c.email}</div> : null}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    {c.card_last4 ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 font-medium uppercase text-navy-900">
-                        <CreditCard className="h-3 w-3 text-slate-500" />
-                        {c.card_brand} •••• {c.card_last4}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">None</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-bold text-navy-900 tabular-nums">
-                    {c.jobsCount}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-navy-900">
-                    <Money cents={c.totalSpentCents} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => void toggleOptOut(c)}
-                      className={`rounded-pill px-2.5 py-0.5 text-xs font-semibold ${
-                        c.sms_opt_out
-                          ? "bg-red-100 text-red-800"
-                          : "bg-emerald-50 text-emerald-700"
-                      }`}
-                    >
-                      {c.sms_opt_out ? "Opted Out (STOP)" : "Subscribed"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {customers.map((c) => {
+                const isDemoCust = c.id.startsWith("cust_demo_") || c.isDemo;
+                return (
+                  <tr key={c.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-semibold text-navy-900">
+                      <div className="flex items-center gap-1.5">
+                        <span>{c.name}</span>
+                        {isDemoCust ? (
+                          <span className="rounded bg-amber-100 text-amber-800 border border-amber-300 px-1.5 py-0.2 text-[9px] font-bold">
+                            DEMO
+                          </span>
+                        ) : (
+                          <span className="rounded bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 text-[9px] font-bold">
+                            LIVE
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-navy-700">
+                      <PhoneLink phone={c.phone} />
+                      {c.email ? <div className="mt-0.5">{c.email}</div> : null}
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      {c.card_last4 ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 font-medium uppercase text-navy-900">
+                          <CreditCard className="h-3 w-3 text-slate-500" />
+                          {c.card_brand ?? "Card"} •••• {c.card_last4}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">None</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-navy-900 tabular-nums">
+                      {c.jobsCount}
+                    </td>
+                    <td className="px-4 py-3 font-semibold text-navy-900">
+                      <Money cents={c.totalSpentCents} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => void toggleOptOut(c)}
+                        className={`rounded-pill px-2.5 py-0.5 text-xs font-semibold ${
+                          c.sms_opt_out
+                            ? "bg-red-100 text-red-800"
+                            : "bg-emerald-50 text-emerald-700"
+                        }`}
+                      >
+                        {c.sms_opt_out ? "Opted Out (STOP)" : "Subscribed"}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => void deleteCustomer(c)}
+                        className="rounded p-1 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        title="Delete Customer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

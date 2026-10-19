@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DemoDataManager } from "@/components/admin/DemoDataManager";
 
 interface BusinessRow {
   id: string;
@@ -94,6 +95,8 @@ export default function AdminSettingsPage() {
           Configure white-label shop details, tax rates, booking deposits, travel buffers, and holiday closures
         </p>
       </div>
+
+      <DemoDataManager onDataChanged={() => void loadSettings()} />
 
       <form
         onSubmit={handleSaveBusiness}
