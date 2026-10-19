@@ -8,11 +8,14 @@ import {
   ArrowLeft,
   Camera,
   CheckCircle2,
+  ClipboardCheck,
   Clock,
   CreditCard,
   ExternalLink,
+  FileText,
   MapPin,
   Navigation,
+  Package,
   Phone,
   Plus,
   Send,
@@ -310,6 +313,34 @@ export default function TechJobDetailPage() {
             <ExternalLink className="h-3 w-3 text-slate-400" />
           </a>
         </div>
+      </section>
+
+      {/* Field Operations Shortcuts */}
+      <section className="grid grid-cols-3 gap-2">
+        <Link
+          href={`/tech/jobs/${job.id}/checklist`}
+          className="flex flex-col items-center justify-center rounded-2xl border border-orange-200 bg-orange-50/70 p-3 text-center transition-all hover:bg-orange-100 hover:shadow-sm"
+        >
+          <ClipboardCheck className="h-5 w-5 text-orange-600 mb-1" />
+          <span className="text-xs font-bold text-orange-950">Checklist</span>
+          <span className="text-[10px] text-orange-800">10-Pt Safety</span>
+        </Link>
+        <Link
+          href={`/tech/jobs/${job.id}/estimate`}
+          className="flex flex-col items-center justify-center rounded-2xl border border-blue-200 bg-blue-50/70 p-3 text-center transition-all hover:bg-blue-100 hover:shadow-sm"
+        >
+          <FileText className="h-5 w-5 text-blue-600 mb-1" />
+          <span className="text-xs font-bold text-blue-950">Estimate</span>
+          <span className="text-[10px] text-blue-800">On-Site Quote</span>
+        </Link>
+        <Link
+          href={`/tech/jobs/${job.id}/parts`}
+          className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 text-center transition-all hover:bg-slate-50 hover:shadow-sm"
+        >
+          <Package className="h-5 w-5 text-slate-700 mb-1" />
+          <span className="text-xs font-bold text-navy-950">Van Parts</span>
+          <span className="text-[10px] text-slate-500">Truck Stock</span>
+        </Link>
       </section>
 
       {/* Customer Reported Issue */}
