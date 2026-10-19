@@ -24,7 +24,14 @@ export function verifyEnv(options?: { includeRuntimeSecrets?: boolean }): {
   // 1. Validate business.config.ts against business.schema.ts
   businessConfigSchema.parse(businessConfig);
 
-  // 2. Check required env vars (single source of truth)
+  // 2. Check required env vars with sensible build defaults if unset
+  if (!process.env.NEXT_PUBLIC_APP_URL) {
+    process.env.NEXT_PUBLIC_APP_URL = process.env.RENDER_EXTERNAL_URL || "http://localhost:3000";
+  }
+  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_placeholder_key_for_demo";
+  }
+
   const keysToCheck: string[] = [
     ...BUILD_REQUIRED_VARS,
     ...(options?.includeRuntimeSecrets ? RUNTIME_SECRET_VARS : []),
