@@ -7,7 +7,6 @@ import {
   Clock,
   ShieldCheck,
   CheckCircle2,
-  Phone,
   Calendar,
   ArrowRight,
   Star,
@@ -27,8 +26,6 @@ import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
-  const cleanPhoneHref = `tel:${businessConfig.phone.replace(/\D/g, "")}`;
-
   const allServices = [
     {
       id: "svc-ac-repair",
@@ -180,34 +177,28 @@ export default function LandingPage() {
                   Same-day AC repair, 21-point seasonal maintenance, and certified duct cleaning across {businessConfig.city}. Upfront flat rates with guaranteed 2-hour arrival windows.
                 </p>
 
-                {/* 2 Buttons */}
+                {/* 2 Purposeful Action Buttons */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-                  <Link
-                    href="#services"
-                    className="flex-1 max-w-[280px] flex items-center justify-between rounded-2xl bg-orange-500 hover:bg-orange-600 text-navy-900 px-6 py-4 shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all text-left font-black"
+                  <Button
+                    asChild
+                    className="h-14 px-8 rounded-2xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black text-sm sm:text-base shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-black/10 flex items-center justify-center shrink-0">
-                        <Wrench className="h-5 w-5 text-navy-900" />
-                      </div>
-                      <div>
-                        <div className="text-base leading-tight">Explore Services</div>
-                        <div className="text-xs text-navy-900/80 font-semibold">View Upfront Pricing</div>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-navy-900 ml-2 shrink-0" />
-                  </Link>
+                    <Link href="/book" className="flex items-center gap-2.5">
+                      <Calendar className="h-5 w-5" />
+                      <span>Book Online (60-Min Arrival)</span>
+                    </Link>
+                  </Button>
 
-                  <a
-                    href={cleanPhoneHref}
-                    className="flex items-center justify-center gap-3 rounded-2xl border-2 border-slate-300 bg-white px-6 py-4 text-navy-900 font-bold text-sm hover:border-orange-500 hover:bg-orange-50 transition-all shadow-sm"
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-14 px-7 rounded-2xl border-2 border-slate-300 bg-white hover:border-orange-500 hover:bg-orange-50 text-navy-900 font-bold text-sm shadow-sm transition-all"
                   >
-                    <Phone className="h-5 w-5 text-orange-600" />
-                    <div className="text-left">
-                      <div className="text-[11px] text-slate-500 leading-none uppercase tracking-wider font-semibold">24/7 Dispatch</div>
-                      <div className="font-black text-sm text-navy-900 leading-tight mt-0.5">{businessConfig.phone}</div>
-                    </div>
-                  </a>
+                    <Link href="#services" className="flex items-center gap-2">
+                      <span>View Services &amp; Flat Rates</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
 
                 {/* Trust Proof Row */}
@@ -222,7 +213,7 @@ export default function LandingPage() {
                   </div>
                   <div className="text-slate-400">•</div>
                   <div className="font-medium text-slate-600">
-                    State Lic #{businessConfig.licenseNumber} • $2M Insured
+                    Fully Bonded &amp; $2M Insured
                   </div>
                 </div>
               </div>
@@ -240,14 +231,14 @@ export default function LandingPage() {
                     className="object-contain object-bottom drop-shadow-xl"
                   />
                   
-                  {/* Floating Badge 1: State Mechanical License */}
+                  {/* Floating Badge 1: Certified Experts */}
                   <div className="absolute top-4 right-2 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl px-4 py-2.5 shadow-xl flex items-center gap-2.5 z-10">
                     <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
                       <ShieldCheck className="h-5 w-5" />
                     </div>
                     <div className="text-left">
-                      <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 leading-none">State Mechanical</div>
-                      <div className="text-xs font-black text-navy-900 leading-tight mt-0.5">Lic #{businessConfig.licenseNumber}</div>
+                      <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 leading-none">Master Certified</div>
+                      <div className="text-xs font-black text-navy-900 leading-tight mt-0.5">NATE &amp; EPA Approved</div>
                     </div>
                   </div>
 
@@ -287,8 +278,8 @@ export default function LandingPage() {
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-xs font-black text-navy-900">Licensed &amp; Certified</div>
-                <div className="text-[11px] text-slate-500">Lic #{businessConfig.licenseNumber} · EPA Certified</div>
+                <div className="text-xs font-black text-navy-900">State Certified</div>
+                <div className="text-[11px] text-slate-500">Master Techs · EPA Approved</div>
               </div>
             </div>
 
