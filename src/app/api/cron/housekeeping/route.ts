@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
 import { getDbNow } from "@/lib/server/local-db-fallback";
 import { getLocalDbWithDemo } from "@/lib/server/demo-dataset";
-import { assertRuntimeSecrets } from "../../../../../scripts/verify-env";
+import { assertRuntimeSecrets } from "@/lib/server/runtime-env";
 
 export const runtime = "nodejs";
 

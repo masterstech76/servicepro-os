@@ -5,7 +5,7 @@ import {
   processStripeWebhookEvent,
   type StripeWebhookPayload,
 } from "@/lib/server/stripe-webhook";
-import { assertRuntimeSecrets } from "../../../../../scripts/verify-env";
+import { assertRuntimeSecrets } from "@/lib/server/runtime-env";
 
 export const runtime = "nodejs";
 

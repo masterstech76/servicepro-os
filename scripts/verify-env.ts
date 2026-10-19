@@ -1,7 +1,31 @@
 import fs from "fs";
 import path from "path";
-import { businessConfigSchema } from "../config/business.schema";
-import { businessConfig } from "../config/business.config";
+import type { verifyEnv as verifyEnvFn, assertRuntimeSecrets as assertRuntimeSecretsFn } from "../src/lib/server/runtime-env";
+
+// In standalone CLI scripts (tsx scripts/verify-env.ts), mock server-only before loading runtime-env
+try {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  require.cache[require.resolve("server-only")] = {
+    id: "server-only",
+    filename: "server-only",
+    loaded: true,
+    exports: {},
+  } as any;
+} catch {}
+
+// Load after mock is in require.cache
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const runtimeEnv = require("../src/lib/server/runtime-env") as {
+  verifyEnv: typeof verifyEnvFn;
+  assertRuntimeSecrets: typeof assertRuntimeSecretsFn;
+  BUILD_REQUIRED_VARS: readonly string[];
+  RUNTIME_SECRET_VARS: readonly string[];
+};
+
+export const verifyEnv = runtimeEnv.verifyEnv;
+export const assertRuntimeSecrets = runtimeEnv.assertRuntimeSecrets;
+export const BUILD_REQUIRED_VARS = runtimeEnv.BUILD_REQUIRED_VARS;
+export const RUNTIME_SECRET_VARS = runtimeEnv.RUNTIME_SECRET_VARS;
 
 function loadEnvFile(filename: string) {
   const filePath = path.resolve(process.cwd(), filename);
@@ -22,67 +46,6 @@ function loadEnvFile(filename: string) {
 
 loadEnvFile(".env.local");
 loadEnvFile(".env");
-
-// Build-time required public/driver configuration variables.
-// Runtime-only server secrets (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, CRON_SECRET, SUPABASE_SERVICE_ROLE_KEY)
-// are validated at request runtime via assertRuntimeSecrets() so `next build` on Vercel succeeds
-// even when server secrets are scoped to runtime-only environment variables.
-const BUILD_REQUIRED_VARS = [
-  "NEXT_PUBLIC_APP_URL",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
-  "SMS_DRIVER",
-] as const;
-
-const RUNTIME_SECRET_VARS = [
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "STRIPE_SECRET_KEY",
-  "STRIPE_WEBHOOK_SECRET",
-  "CRON_SECRET",
-] as const;
-
-export function verifyEnv(options?: { includeRuntimeSecrets?: boolean }): {
-  valid: boolean;
-  missing: string[];
-} {
-  // 1. Validate business.config.ts against business.schema.ts
-  businessConfigSchema.parse(businessConfig);
-
-  // 2. Check required env vars (single source of truth)
-  const keysToCheck: string[] = [
-    ...BUILD_REQUIRED_VARS,
-    ...(options?.includeRuntimeSecrets ? RUNTIME_SECRET_VARS : []),
-  ];
-
-  const missing: string[] = [];
-  for (const key of keysToCheck) {
-    const val = process.env[key];
-    if (!val || val.trim() === "") {
-      missing.push(key);
-    }
-  }
-
-  if (process.env.SMS_DRIVER === "twilio") {
-    for (const k of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER"]) {
-      if (!process.env[k]?.trim()) missing.push(k);
-    }
-  }
-
-  return {
-    valid: missing.length === 0,
-    missing,
-  };
-}
-
-export function assertRuntimeSecrets(): void {
-  const result = verifyEnv({ includeRuntimeSecrets: true });
-  if (!result.valid) {
-    throw new Error(
-      `Missing required runtime environment variables: ${result.missing.join(", ")}`
-    );
-  }
-}
 
 if (typeof require !== "undefined" && require.main === module) {
   const result = verifyEnv();
