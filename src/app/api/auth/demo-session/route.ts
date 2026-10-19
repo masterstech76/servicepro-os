@@ -15,6 +15,19 @@ export async function POST(request: Request) {
     return rl.response;
   }
 
+  // 3. Optional production lock: Disallow demo sessions if ALLOW_DEMO_AUTH=false
+  if (process.env.ALLOW_DEMO_AUTH === "false") {
+    return NextResponse.json(
+      {
+        error: {
+          code: "FORBIDDEN",
+          message: "Demo authentication is disabled in this environment.",
+        },
+      },
+      { status: 403 }
+    );
+  }
+
   const body = (await request.json()) as {
     role?: "owner" | "admin" | "technician" | "customer" | "clear";
     technicianId?: string;
