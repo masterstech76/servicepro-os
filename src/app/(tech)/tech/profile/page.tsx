@@ -57,14 +57,55 @@ export default function TechProfilePage() {
   const [saving, setSaving] = React.useState(false);
 
   const loadProfile = React.useCallback(async () => {
+    const demoProfile: TechProfileData = {
+      id: "tech-carlos",
+      name: "Carlos Mendez",
+      email: "carlos@techworkservices.com",
+      phone: "(305) 555-0188",
+      role: "Lead Master HVAC Technician",
+      color: "#F97316",
+      certifications: [
+        "EPA Universal 608 Certified",
+        "NATE Service & Installation Master",
+        "Florida State Mechanical Journeyman",
+        "OSHA 30 Worksite Safety",
+      ],
+      vehicle: {
+        model: "2024 Ford Transit 250 High Roof",
+        plate: "FL · W0RK-104",
+        status: "Active & Fully Stocked",
+      },
+      shift: {
+        currentRoster: "Monday – Friday (7:00 AM – 4:00 PM)",
+        onCallWeekend: "Every 3rd Saturday (Rotation)",
+        standbyStatus: "Active Dispatch Available",
+      },
+      stats: {
+        completedCount: 148,
+        inProgressCount: 1,
+        scheduledCount: 4,
+        customerRating: 4.95,
+        totalReviews: 86,
+        onTimeRate: "99.2%",
+        vanPartsInTruck: 42,
+      },
+    };
+
     setLoading(true);
     try {
       const res = await fetch("/api/technicians/profile");
       if (res.ok) {
         const data = await res.json();
-        setProfile(data.technician);
-        setPhone(data.technician.phone || "");
+        const tech = data.technician || demoProfile;
+        setProfile(tech);
+        setPhone(tech.phone || "(305) 555-0188");
+      } else {
+        setProfile(demoProfile);
+        setPhone(demoProfile.phone);
       }
+    } catch {
+      setProfile(demoProfile);
+      setPhone(demoProfile.phone);
     } finally {
       setLoading(false);
     }

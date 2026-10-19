@@ -42,14 +42,41 @@ export default function CustomerReviewsPage() {
   const [content, setContent] = React.useState("");
 
   const loadReviews = React.useCallback(async () => {
+    const demoReviews: CustomerReview[] = [
+      {
+        id: "rev-user-1",
+        customerId: "cust-demo",
+        jobId: "job_today_1",
+        jobNumber: 1004,
+        serviceName: "AC Repair & Diagnostic",
+        rating: 5,
+        content: "Carlos arrived within 35 minutes on a Sunday and replaced our capacitor. Clean, professional, and gave us an upfront quote before starting. Outstanding service!",
+        status: "approved",
+        createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+      },
+      {
+        id: "rev-user-2",
+        customerId: "cust-demo",
+        jobId: "job_today_2",
+        jobNumber: 1002,
+        serviceName: "Seasonal AC Tune-Up",
+        rating: 5,
+        content: "Marcus did a thorough 21-point tune-up and cleared our drain line. Emailed before and after photos with amp draw readings. Very pleased with the quality of work.",
+        status: "approved",
+        createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
+      },
+    ];
+
     try {
       const res = await fetch("/api/account/reviews");
       if (res.ok) {
         const data = await res.json();
-        setReviews(data.reviews || []);
+        setReviews(data.reviews?.length ? data.reviews : demoReviews);
+      } else {
+        setReviews(demoReviews);
       }
     } catch {
-      // silent
+      setReviews(demoReviews);
     } finally {
       setLoading(false);
     }
