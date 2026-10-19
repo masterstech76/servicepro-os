@@ -1,17 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { businessConfig } from "@config/business.config";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   title: businessConfig.seo.title,
@@ -42,7 +34,7 @@ export default function RootLayout({
   } as React.CSSProperties;
 
   return (
-    <html lang="en" className={inter.variable} style={cssVars}>
+    <html lang="en" className="font-sans" style={cssVars}>
       <body className="font-sans min-h-screen bg-white text-navy-900 antialiased flex flex-col">
         {/* Accessibility Skip-To-Content Link */}
         <a

@@ -355,65 +355,71 @@ export default function LandingPage() {
               return (
                 <div
                   key={svc.id}
-                  className="rounded-2xl border border-slate-200/90 bg-white shadow-sm hover:shadow-md hover:border-orange-300 transition-all flex flex-col justify-between overflow-hidden"
+                  className="group rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm hover:shadow-xl hover:border-orange-300 transition-all flex flex-col justify-between"
                 >
                   <div>
-                    {/* Uniform Image Height: h-44 */}
-                    <div className="relative h-44 w-full bg-slate-100">
+                    {/* Modern Image Container with Tags */}
+                    <div className="relative h-44 w-full rounded-2xl overflow-hidden bg-slate-100 mb-4">
                       <Image
                         src={svc.image}
                         alt={svc.name}
                         fill
                         quality={85}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                      <div className="absolute top-3 left-3 bg-navy-950/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
-                        {svc.rateType}
+                      <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md text-navy-900 font-extrabold text-[11px] px-2.5 py-1 rounded-full border border-slate-200 shadow-sm flex items-center gap-1.5">
+                        <Icon className="h-3 w-3 text-orange-600" />
+                        <span>{svc.rateType}</span>
+                      </div>
+                      <div className="absolute bottom-3 right-3 bg-navy-900/95 backdrop-blur-md text-white font-extrabold text-xs px-3 py-1 rounded-full shadow-md">
+                        {svc.price}
                       </div>
                     </div>
 
-                    <div className="p-5 space-y-2">
-                      <h3 className="font-heading text-base font-bold text-navy-900 truncate">
+                    <div className="space-y-1.5 mb-3">
+                      <h3 className="font-heading text-lg font-bold text-navy-900 group-hover:text-orange-600 transition-colors line-clamp-1">
                         {svc.name}
                       </h3>
-                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
                         {svc.desc}
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                      <div className="text-base font-black text-navy-900">{svc.price}</div>
-                      <div className="text-[10px] text-slate-400 font-medium">Flat Rate</div>
-                    </div>
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                     <Link
                       href={svc.href}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-xl border border-orange-200 transition-colors"
+                      className="text-xs font-bold text-slate-700 hover:text-orange-600 flex items-center gap-1 transition-colors"
                     >
                       <span>View Details</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
+                      <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
+
+                    <Button asChild size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-black text-xs px-4 h-9 shadow-sm">
+                      <Link href={`/book?serviceId=${svc.id}`}>
+                        Book Now
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               );
             })}
 
-            {/* 7th Card: View All Services & Custom Proposals */}
-            <div className="rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50/40 p-6 flex flex-col items-center justify-center text-center space-y-3 min-h-[320px]">
+            {/* 7th Card: Commercial or Other HVAC */}
+            <div className="rounded-3xl border-2 border-dashed border-orange-200 bg-orange-50/30 p-6 flex flex-col items-center justify-center text-center space-y-3 min-h-[300px]">
               <div className="w-12 h-12 rounded-2xl bg-orange-500 text-navy-950 flex items-center justify-center shadow-sm">
                 <Wrench className="h-6 w-6" />
               </div>
-              <h3 className="font-heading text-lg font-bold text-navy-950">Looking for Commercial or Other HVAC?</h3>
+              <h3 className="font-heading text-lg font-bold text-navy-950">Commercial &amp; Custom HVAC</h3>
               <p className="text-xs text-slate-600 max-w-xs leading-relaxed">
-                We also service rooftop package units, furnace replacements, and whole-building climate controls.
+                Looking for multi-unit retail, rooftop packaged units, or customized preventative maintenance?
               </p>
               <Link
                 href="/services"
                 className="inline-flex items-center gap-2 bg-navy-900 hover:bg-navy-950 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-sm"
               >
-                <span>Browse All Services</span>
+                <span>Browse All 8 Services</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>

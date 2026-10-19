@@ -372,10 +372,10 @@ export function ServicesCatalogClient({ businessPhone, city }: ServicesCatalogCl
         </div>
         <div className="space-y-2 max-w-lg mx-auto">
           <h3 className="font-heading text-xl font-black text-navy-900">
-            Not Sure What's Wrong With Your System?
+            Not Sure What&apos;s Wrong With Your System?
           </h3>
           <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Don't worry—most homeowners don't know whether it's a capacitor, refrigerant leak, or thermostat failure. Book our standard flat-rate diagnostic inspection and our technician will pinpoint the issue with zero guesswork.
+            Don&apos;t worry—most homeowners don&apos;t know whether it&apos;s a capacitor, refrigerant leak, or thermostat failure. Book our standard flat-rate diagnostic inspection and our technician will pinpoint the issue with zero guesswork.
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
