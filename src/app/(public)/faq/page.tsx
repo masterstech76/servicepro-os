@@ -38,14 +38,14 @@ const FAQS: FAQItem[] = [
     category: "pricing",
     question: "What is the diagnostic deposit, and is it applied to my repair?",
     answer:
-      "Our standard diagnostic dispatch fee is $49 ($79 for emergency after-hours windows). If you approve the recommended repair during the visit, 100% of your diagnostic deposit is credited directly toward the final invoice balance.",
+      "Our standard diagnostic dispatch fee is $129 ($169 for Priority Emergency Dispatch). When you approve the recommended repair during the visit, 100% of your diagnostic fee is credited directly toward the final repair invoice balance.",
   },
   {
     id: "faq-3",
     category: "booking",
     question: "How quickly can a technician reach my home in Miami?",
     answer:
-      "We guarantee a 60-minute emergency arrival window for urgent breakdown calls across our service territory (Brickell, Downtown, Coral Gables, Coconut Grove, Miami Beach, Kendall, Doral, and Pinecrest). For standard scheduled appointments, you select a convenient 2-hour window and receive real-time SMS updates with live GPS technician tracking.",
+      "We guarantee a 60-minute emergency arrival window for urgent breakdown calls across our service territory (Brickell, Downtown, Coral Gables, Coconut Grove, Miami Beach, Kendall, Doral, and Pinecrest). For standard scheduled appointments, you select a convenient arrival window and receive real-time SMS updates with live GPS technician tracking.",
   },
   {
     id: "faq-4",
@@ -59,21 +59,21 @@ const FAQS: FAQItem[] = [
     category: "warranty",
     question: "What warranties do you provide on repairs and replacement parts?",
     answer:
-      "All repair parts and workmanship carry our 30-Day '100% Fixed Right or It's Free' guarantee. If the same issue returns within 30 days, we come back immediately at no additional cost. Full system replacements include a 10-year manufacturer equipment warranty and a 1-year complimentary labor warranty.",
+      "All repair parts and workmanship carry our 30-Day '100% Fixed Right or It's Free' guarantee and 1-year limited workmanship warranty. If the same issue returns within 30 days, we come back immediately at no additional cost. Full system replacements include a 10-year manufacturer equipment warranty and a 1-year complimentary labor warranty.",
   },
   {
     id: "faq-6",
     category: "emergency",
     question: "Do you offer 24/7 emergency service on weekends and holidays?",
     answer:
-      "Yes! AC breakdowns in South Florida humidity can become dangerous fast. Our on-call dispatch fleet operates 24 hours a day, 7 days a week, 365 days a year. Call our dispatch hotline at (305) 555-0199 or select an emergency same-day slot in the booking wizard.",
+      `Yes! AC breakdowns in South Florida humidity can become dangerous fast. Our on-call dispatch fleet operates 24 hours a day, 7 days a week, 365 days a year. Call our dispatch hotline at ${businessConfig.phone} or select an emergency same-day slot in the booking wizard.`,
   },
   {
     id: "faq-7",
     category: "safety",
     question: "Are your technicians licensed, insured, and background-checked?",
     answer:
-      "Every TechWork technician is fully licensed (Florida State License #CMC1250892), EPA Universal 608 certified, and insured up to $2,000,000 general liability. All technicians undergo strict multi-state criminal background checks and random drug screenings, and wear shoe covers and protective floor mats inside your home.",
+      `Every TechWork technician is fully licensed (State Mechanical License #${businessConfig.licenseNumber}), EPA Universal 608 certified, and insured up to $2,000,000 general liability. All technicians undergo strict multi-state criminal background checks and random drug screenings, and wear shoe covers and protective floor mats inside your home.`,
   },
   {
     id: "faq-8",
