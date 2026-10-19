@@ -78,8 +78,23 @@ export function PhotoUploader({ photos, maxPhotos = 5, onChange }: PhotoUploader
   }
 
   function handleRemove(id: string) {
+    const item = photos.find((p) => p.id === id);
+    if (item?.previewUrl && item.previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
     onChange(photos.filter((p) => p.id !== id));
   }
+
+  // Cleanup object URLs when component unmounts
+  React.useEffect(() => {
+    return () => {
+      photos.forEach((p) => {
+        if (p.previewUrl && p.previewUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(p.previewUrl);
+        }
+      });
+    };
+  }, [photos]);
 
   return (
     <div>

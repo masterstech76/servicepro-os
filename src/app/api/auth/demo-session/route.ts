@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/server/rate-limit";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
 
 export async function POST(request: Request) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Rate Limiting (max 15 session updates per minute per IP)
+  const rl = checkRateLimit(request, { limit: 15, windowMs: 60_000, keyPrefix: "auth_demo_session" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   const body = (await request.json()) as {
     role?: "owner" | "admin" | "technician" | "customer" | "clear";
     technicianId?: string;
@@ -23,13 +37,13 @@ export async function POST(request: Request) {
   response.cookies.set("servicepro_dev_role", role, {
     path: "/",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: 60 * 60 * 24 * 7,
   });
   response.cookies.set("sp_demo_role", role, {
     path: "/",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     maxAge: 60 * 60 * 24 * 7,
   });
 
@@ -37,7 +51,7 @@ export async function POST(request: Request) {
     response.cookies.set("sp_demo_tech_id", body.technicianId, {
       path: "/",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "strict",
       maxAge: 60 * 60 * 24 * 7,
     });
   }

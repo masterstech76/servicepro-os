@@ -54,11 +54,17 @@ export interface LocalDbStore {
 
 const globalForDb = globalThis as unknown as { __serviceProLocalDb?: LocalDbStore };
 
-const PERSIST_FILE = path.join(os.tmpdir(), `servicepro-os-${businessConfig.slug}-db.json`);
+const PERSIST_FILE =
+  process.env.LOCAL_DB_PATH ||
+  path.join(os.tmpdir(), `servicepro-os-${businessConfig.slug}-db.json`);
 
 export function saveLocalDbToDisk(store = getLocalDb()): void {
   if (process.env.VITEST || process.env.NODE_ENV === "test") return;
   try {
+    const dir = path.dirname(PERSIST_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
     const snapshot = {
       jobSequence: store.jobSequence,
       demoCleared: Boolean(store.demoCleared),

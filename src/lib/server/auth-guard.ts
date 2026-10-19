@@ -158,17 +158,6 @@ export async function resolveRequestActor(
     // cookies() called outside request context (e.g., direct function call)
   }
 
-  // Default fallback for local development when no explicit anon header was sent
-  if (process.env.NODE_ENV !== "production" || !isRemoteSupabaseConfigured()) {
-    return {
-      authenticated: true,
-      userId: "user_owner",
-      role: "owner",
-      businessId: defaultBizId,
-      technicianId: null,
-    };
-  }
-
   return null;
 }
 

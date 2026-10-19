@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
+import { checkRateLimit } from "@/lib/server/rate-limit";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
 
 export async function POST(request: Request) {
+  // 1. CSRF Protection
+  const csrf = verifyCsrfOrigin(request);
+  if (!csrf.valid && csrf.response) {
+    return csrf.response;
+  }
+
+  // 2. Rate Limiting (prevent spam submissions: 5 requests per 5 minutes)
+  const rl = checkRateLimit(request, { limit: 5, windowMs: 5 * 60_000, keyPrefix: "contact_inquiry" });
+  if (!rl.allowed && rl.response) {
+    return rl.response;
+  }
+
   try {
     const body = await request.json();
     const { name, phone, email, service, message } = body || {};

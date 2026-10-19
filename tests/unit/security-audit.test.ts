@@ -4,14 +4,25 @@ import { GET as getJobsRoute, POST as postJobRoute } from "@/app/api/admin/jobs/
 import { GET as getCustomerRoute, PATCH as patchCustomerRoute } from "@/app/api/admin/customers/[id]/route";
 import { GET as getInventoryRoute, POST as postInventoryRoute } from "@/app/api/admin/inventory/parts/route";
 import { getAdminReportsData, getCentralInventoryOverview } from "@/lib/server/admin-portal";
+import { checkRateLimit, resetRateLimits } from "@/lib/server/rate-limit";
+import { verifyCsrfOrigin } from "@/lib/server/csrf";
 
 describe("Production Security, Role Authorization & Financial Integrity Audit", () => {
   beforeEach(() => {
     getLocalDbWithDemo();
+    resetRateLimits();
   });
 
   describe("Server-Side API Authorization & Gatekeeping", () => {
-    it("denies unauthenticated requests to admin work orders (401)", async () => {
+    it("denies unauthenticated requests with no auth headers or cookies at all (401)", async () => {
+      const req = new Request("http://localhost:3000/api/admin/jobs");
+      const res = await getJobsRoute(req);
+      expect(res.status).toBe(401);
+      const data = await res.json();
+      expect(data.error?.code).toBe("UNAUTHORIZED");
+    });
+
+    it("denies unauthenticated requests to admin work orders with explicit anon header (401)", async () => {
       const req = new Request("http://localhost:3000/api/admin/jobs", {
         headers: { "x-servicepro-role": "anon" },
       });
@@ -236,6 +247,66 @@ describe("Production Security, Role Authorization & Financial Integrity Audit", 
         expect(Number.isInteger(inv.tax_cents)).toBe(true);
         expect(inv.total_cents).toBe(inv.subtotal_cents + inv.tax_cents);
       }
+    });
+  });
+
+  describe("API Rate Limiting & Denial of Service Protection", () => {
+    it("permits requests within configured rate limits", () => {
+      const req = new Request("http://localhost:3000/api/contact", {
+        headers: { "x-forwarded-for": "203.0.113.195" },
+      });
+      const res1 = checkRateLimit(req, { limit: 3, windowMs: 60000, keyPrefix: "test_contact" });
+      expect(res1.allowed).toBe(true);
+      expect(res1.remaining).toBe(2);
+
+      const res2 = checkRateLimit(req, { limit: 3, windowMs: 60000, keyPrefix: "test_contact" });
+      expect(res2.allowed).toBe(true);
+      expect(res2.remaining).toBe(1);
+    });
+
+    it("enforces HTTP 429 Too Many Requests when rate threshold is breached", () => {
+      const req = new Request("http://localhost:3000/api/auth/demo-session", {
+        headers: { "x-forwarded-for": "198.51.100.42" },
+      });
+
+      // Exhaust 2 allowed attempts
+      checkRateLimit(req, { limit: 2, windowMs: 60000, keyPrefix: "test_auth" });
+      checkRateLimit(req, { limit: 2, windowMs: 60000, keyPrefix: "test_auth" });
+
+      // 3rd attempt must be rejected with 429
+      const blocked = checkRateLimit(req, { limit: 2, windowMs: 60000, keyPrefix: "test_auth" });
+      expect(blocked.allowed).toBe(false);
+      expect(blocked.remaining).toBe(0);
+      expect(blocked.response).toBeDefined();
+      expect(blocked.response?.status).toBe(429);
+      expect(blocked.response?.headers.get("Retry-After")).toBeDefined();
+    });
+  });
+
+  describe("Cross-Site Request Forgery (CSRF) Protection", () => {
+    it("allows requests from matching application origin", () => {
+      const req = new Request("http://localhost:3000/api/auth/demo-session", {
+        method: "POST",
+        headers: {
+          origin: "http://localhost:3000",
+          host: "localhost:3000",
+        },
+      });
+      const result = verifyCsrfOrigin(req);
+      expect(result.valid).toBe(true);
+    });
+
+    it("rejects cross-origin POST mutations from unauthorized origins (403)", () => {
+      const req = new Request("http://localhost:3000/api/auth/demo-session", {
+        method: "POST",
+        headers: {
+          origin: "https://malicious-attacker.com",
+          host: "localhost:3000",
+        },
+      });
+      const result = verifyCsrfOrigin(req);
+      expect(result.valid).toBe(false);
+      expect(result.response?.status).toBe(403);
     });
   });
 });
