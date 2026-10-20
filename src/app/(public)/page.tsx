@@ -16,17 +16,9 @@ import {
   Star,
   Menu,
   X,
-  Phone,
-  Mail,
   Zap,
   Snowflake,
   Wrench,
-  ChevronRight,
-  Clock,
-  Sparkles,
-  MapPin,
-  FileText,
-  UserCheck,
 } from "lucide-react";
 
 export default function ServiceProLandingPage() {
@@ -34,8 +26,6 @@ export default function ServiceProLandingPage() {
   const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [selectedServiceStep, setSelectedServiceStep] = useState<"hvac" | "plumbing" | "electrical">("hvac");
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
 
   // Quick Trial Form state
   const [trialForm, setTrialForm] = useState({
@@ -53,12 +43,6 @@ export default function ServiceProLandingPage() {
       setTrialSubmitted(false);
       setTrialModalOpen(false);
     }, 2200);
-  }
-
-  function handleNewsletterSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newsletterEmail) return;
-    setNewsletterSubscribed(true);
   }
 
   return (
@@ -80,11 +64,10 @@ export default function ServiceProLandingPage() {
             </span>
           </Link>
 
-          {/* Desktop Nav Links */}
+          {/* Desktop Nav Links (Exact 5 items matching the mock) */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
-            <a href="#trades" className="hover:text-white transition-colors">Industries</a>
+            <a href="#industries" className="hover:text-white transition-colors">Industries</a>
             <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
             <Link href="/faq" className="hover:text-white transition-colors">Resources</Link>
             <Link href="/about" className="hover:text-white transition-colors">About</Link>
@@ -127,14 +110,7 @@ export default function ServiceProLandingPage() {
               Features
             </a>
             <a
-              href="#how-it-works"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-slate-300 hover:text-white text-base font-medium"
-            >
-              How It Works
-            </a>
-            <a
-              href="#trades"
+              href="#industries"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-slate-300 hover:text-white text-base font-medium"
             >
@@ -153,6 +129,13 @@ export default function ServiceProLandingPage() {
               className="block py-2 text-slate-300 hover:text-white text-base font-medium"
             >
               Resources
+            </Link>
+            <Link
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-slate-300 hover:text-white text-base font-medium"
+            >
+              About
             </Link>
             <div className="pt-4 border-t border-slate-800 flex flex-col gap-2">
               <Link
@@ -237,11 +220,11 @@ export default function ServiceProLandingPage() {
               </div>
             </div>
 
-            {/* Right Mockup Graphic */}
+            {/* Right Mockup Graphic (Using user's high-res asset with zero cut-off) */}
             <div className="lg:col-span-7 relative flex justify-center lg:justify-end">
               <div className="relative w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl shadow-black/70 border border-slate-700/60 group">
                 <img
-                  src="/images/servicepro-hero-mockup.jpg"
+                  src="/images/servicepro-hero-device.jpg"
                   alt="ServicePro OS field technician dispatch dashboard and mobile app"
                   className="w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-[1.01]"
                 />
@@ -411,7 +394,7 @@ export default function ServiceProLandingPage() {
                     <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Optimal Technician</div>
                     
                     <div className="flex items-center gap-2.5 bg-white p-2 rounded-md border border-slate-200 mb-2.5">
-                      <img src="/images/avatar-mike.jpg" alt="John D. technician" className="w-8 h-8 rounded-full object-cover" />
+                      <img src="/images/avatar-1.jpg" alt="John D. technician" className="w-8 h-8 rounded-full object-cover" />
                       <div>
                         <div className="text-xs font-bold text-slate-900">John D.</div>
                         <span className="inline-block text-[9px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded">92% match</span>
@@ -442,12 +425,12 @@ export default function ServiceProLandingPage() {
                   </div>
                 </div>
 
-                {/* STEP 3: Complete */}
+                {/* STEP 3: Complete (Using user-provided crisp trade image with NO cutting) */}
                 <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
                   <div className="rounded-lg overflow-hidden border border-slate-100 mb-3 aspect-[4/3] bg-slate-100">
                     <img
-                      src="/images/servicepro-step3-tech.jpg"
-                      alt="Service technician on site using ServicePro app"
+                      src="/images/trade-user-2.png"
+                      alt="Service technician on site completing field work"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -493,88 +476,94 @@ export default function ServiceProLandingPage() {
 
       {/* ─────────────────────────────────────────────────────────────
           5. "BUILT FOR REAL BUSINESSES: Trusted by service companies across multiple trades."
+             (Horizontal 2-Column layout matching the exact mockup in media_1792497823670_82a1ad87.jpg)
       ───────────────────────────────────────────────────────────── */}
-      <section id="trades" className="py-20 bg-white">
+      <section id="industries" className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div>
-            <span className="text-orange-600 font-bold text-xs uppercase tracking-wider block mb-2">
-              BUILT FOR REAL BUSINESSES
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-              Trusted by service companies<br />across multiple trades.
-            </h2>
-            <p className="text-slate-600 text-sm sm:text-base mt-3 max-w-xl">
-              Whether you&apos;re a 2-person team or a 20-person operation, ServicePro OS scales with your business.
-            </p>
-          </div>
-
-          {/* 3 Trade Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Card 1: HVAC */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-              <div className="aspect-[16/10] overflow-hidden bg-slate-100">
-                <img
-                  src="/images/trade-card-hvac.jpg"
-                  alt="HVAC technician servicing outdoor AC unit"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">
-                    <Snowflake className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900">HVAC</h3>
-                </div>
-                <p className="text-xs font-medium text-slate-500">
-                  Repairs • Maintenance • Installations
-                </p>
-              </div>
+            {/* Left Column: Heading & description */}
+            <div className="lg:col-span-4">
+              <span className="text-orange-600 font-bold text-xs uppercase tracking-wider block mb-2">
+                BUILT FOR REAL BUSINESSES
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                Trusted by service companies across multiple trades.
+              </h2>
+              <p className="text-slate-600 text-sm sm:text-base mt-4 leading-relaxed">
+                Whether you&apos;re a 2-person team or a 20-person operation, ServicePro OS scales with your business.
+              </p>
             </div>
 
-            {/* Card 2: Plumbing */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-              <div className="aspect-[16/10] overflow-hidden bg-slate-100">
-                <img
-                  src="/images/trade-card-plumbing.jpg"
-                  alt="Plumbing technician installing pipe under kitchen sink"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">
-                    <Wrench className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900">Plumbing</h3>
+            {/* Right Column: 3 Trade Cards Grid (Using user's uploaded images, 0 cutting artifacts) */}
+            <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-5">
+              
+              {/* Card 1: HVAC */}
+              <div className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                  <img
+                    src="/images/trade-user-1.png"
+                    alt="HVAC service technician inspecting unit"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <p className="text-xs font-medium text-slate-500">
-                  Repairs • Drain Cleaning • Installations
-                </p>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-5 h-5 rounded-full bg-orange-500/15 text-orange-600 flex items-center justify-center">
+                      <Snowflake className="w-3 h-3 stroke-[2.5]" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">HVAC</h3>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Repairs • Maintenance • Installations
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Card 3: Electrical */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-              <div className="aspect-[16/10] overflow-hidden bg-slate-100">
-                <img
-                  src="/images/trade-card-electrical.jpg"
-                  alt="Electrician wiring an electrical breaker panel"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs">
-                    <Zap className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900">Electrical</h3>
+              {/* Card 2: Plumbing */}
+              <div className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                  <img
+                    src="/images/trade-user-2.png"
+                    alt="Plumbing service technician working on site"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <p className="text-xs font-medium text-slate-500">
-                  Repairs • Upgrades • Installations
-                </p>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-5 h-5 rounded-full bg-orange-500/15 text-orange-600 flex items-center justify-center">
+                      <Wrench className="w-3 h-3 stroke-[2.5]" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">Plumbing</h3>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Repairs • Drain Cleaning • Installations
+                  </p>
+                </div>
               </div>
+
+              {/* Card 3: Electrical */}
+              <div className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <div className="aspect-[4/3] overflow-hidden bg-slate-100">
+                  <img
+                    src="/images/trade-user-3.png"
+                    alt="Electrical service technician on site"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-5 h-5 rounded-full bg-orange-500/15 text-orange-600 flex items-center justify-center">
+                      <Zap className="w-3 h-3 stroke-[2.5]" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">Electrical</h3>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Repairs • Upgrades • Installations
+                  </p>
+                </div>
+              </div>
+
             </div>
 
           </div>
@@ -661,7 +650,7 @@ export default function ServiceProLandingPage() {
               
               <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
                 <img
-                  src="/images/avatar-mike.jpg"
+                  src="/images/avatar-1.jpg"
                   alt="Mike Thompson"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -685,7 +674,7 @@ export default function ServiceProLandingPage() {
               
               <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
                 <img
-                  src="/images/avatar-sarah.jpg"
+                  src="/images/avatar-2.jpg"
                   alt="Sarah Lopez"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -709,7 +698,7 @@ export default function ServiceProLandingPage() {
               
               <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
                 <img
-                  src="/images/avatar-david.jpg"
+                  src="/images/avatar-3.jpg"
                   alt="David Kim"
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -730,22 +719,24 @@ export default function ServiceProLandingPage() {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          8. BOTTOM CALL TO ACTION BANNER (WITH RESIDENTIAL HOME BACKGROUND)
+          8. BOTTOM CALL TO ACTION BANNER (FULL WIDTH, EXACT TO MOCKUP)
+             (The page concludes here as shown in the design image)
       ───────────────────────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16">
-        <div className="relative bg-[#07171d] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
-          {/* Suburban House Image on Right */}
-          <div className="absolute right-0 top-0 bottom-0 w-full sm:w-1/2 opacity-35 sm:opacity-90 pointer-events-none">
-            <img
-              src="/images/servicepro-cta-house.jpg"
-              alt="Residential suburban home serviced by ServicePro OS"
-              className="w-full h-full object-cover object-right"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#07171d] via-[#07171d]/80 to-transparent" />
-          </div>
+      <section className="relative bg-[#071920] overflow-hidden border-t border-slate-800">
+        {/* Suburban residential house photo on the right half with smooth gradient */}
+        <div className="absolute right-0 top-0 bottom-0 w-full sm:w-1/2 pointer-events-none">
+          <img
+            src="/images/cta-suburban-home.jpg"
+            alt="Residential suburban home serviced by ServicePro OS"
+            className="w-full h-full object-cover object-right"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#071920] via-[#071920]/80 to-transparent sm:block hidden" />
+          <div className="absolute inset-0 bg-[#071920]/85 sm:hidden block" />
+        </div>
 
-          {/* Banner Content */}
-          <div className="relative z-10 p-8 sm:p-12 lg:p-14 max-w-2xl">
+        {/* Content on the left */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+          <div className="max-w-xl">
             <span className="text-orange-400 font-bold text-xs uppercase tracking-wider block mb-2">
               GET STARTED TODAY
             </span>
@@ -767,114 +758,22 @@ export default function ServiceProLandingPage() {
 
               <button
                 onClick={() => setDemoModalOpen(true)}
-                className="border border-slate-600 bg-slate-900/50 hover:bg-slate-900 hover:border-slate-400 text-white font-medium px-5 py-3.5 rounded-lg text-sm sm:text-base flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="border border-slate-600 bg-slate-900/60 hover:bg-slate-900 hover:border-slate-400 text-white font-medium px-5 py-3.5 rounded-lg text-sm sm:text-base flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <span>Book a Demo</span>
               </button>
             </div>
           </div>
         </div>
+
+        {/* Subtle, minimal 1-line copyright bar aligned with the mock's clean finish */}
+        <div className="relative z-10 border-t border-slate-800/60 bg-[#051116] py-4 text-center text-xs text-slate-500">
+          &copy; {new Date().getFullYear()} ServicePro OS by TechWork. All rights reserved.
+        </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          9. FOOTER
-      ───────────────────────────────────────────────────────────── */}
-      <footer className="bg-[#070e1a] text-slate-400 border-t border-slate-800 text-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-            
-            {/* Brand Col */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                  </svg>
-                </div>
-                <span className="text-lg font-bold text-white tracking-tight">ServicePro OS</span>
-              </div>
-              <p className="text-slate-400 text-sm max-w-sm leading-relaxed mb-6">
-                The all-in-one operating system for modern HVAC, plumbing, electrical, and home service contractors.
-              </p>
-              
-              <div className="text-xs text-slate-500 space-y-1">
-                <p>TechWork Services LLC • Lic #CAC1819420</p>
-                <p>1200 Brickell Ave, Miami, FL 33131 • (305) 555-0100</p>
-              </div>
-            </div>
-
-            {/* Links Col 1: Product */}
-            <div>
-              <h4 className="text-white font-semibold text-sm mb-4">Product</h4>
-              <ul className="space-y-2.5 text-xs sm:text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
-                <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/book" className="hover:text-white transition-colors">Online Booking Demo</Link></li>
-                <li><Link href="/tech" className="hover:text-white transition-colors">Technician App</Link></li>
-              </ul>
-            </div>
-
-            {/* Links Col 2: Solutions */}
-            <div>
-              <h4 className="text-white font-semibold text-sm mb-4">Industries</h4>
-              <ul className="space-y-2.5 text-xs sm:text-sm">
-                <li><a href="#trades" className="hover:text-white transition-colors">HVAC Contractors</a></li>
-                <li><a href="#trades" className="hover:text-white transition-colors">Plumbing Companies</a></li>
-                <li><a href="#trades" className="hover:text-white transition-colors">Electricians</a></li>
-                <li><a href="#trades" className="hover:text-white transition-colors">Appliance Repair</a></li>
-                <li><Link href="/services" className="hover:text-white transition-colors">All Trades Catalog</Link></li>
-              </ul>
-            </div>
-
-            {/* Links Col 3: Newsletter */}
-            <div>
-              <h4 className="text-white font-semibold text-sm mb-4">Stay Updated</h4>
-              <p className="text-xs text-slate-400 mb-3">
-                Subscribe to get field service tips, product updates, and industry insights.
-              </p>
-              
-              {newsletterSubscribed ? (
-                <div className="bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs p-3 rounded-lg flex items-center gap-2">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span>Thanks for subscribing!</span>
-                </div>
-              ) : (
-                <form onSubmit={handleNewsletterSubmit} className="space-y-2">
-                  <input
-                    type="email"
-                    required
-                    placeholder="Enter your email"
-                    value={newsletterEmail}
-                    onChange={(e) => setNewsletterEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-900 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-orange-500"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-lg text-xs transition-colors"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              )}
-            </div>
-
-          </div>
-
-          {/* Bottom Copyright */}
-          <div className="pt-8 mt-12 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-            <p>&copy; {new Date().getFullYear()} ServicePro OS by TechWork. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms of Service</Link>
-              <Link href="/accessibility" className="hover:text-slate-400 transition-colors">Accessibility</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* ─────────────────────────────────────────────────────────────
-          10. INTERACTIVE WATCH DEMO MODAL
+          9. INTERACTIVE WATCH DEMO MODAL
       ───────────────────────────────────────────────────────────── */}
       {demoModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
@@ -955,7 +854,7 @@ export default function ServiceProLandingPage() {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          11. START FREE TRIAL MODAL
+          10. START FREE TRIAL MODAL
       ───────────────────────────────────────────────────────────── */}
       {trialModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
