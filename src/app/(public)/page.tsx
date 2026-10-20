@@ -1,880 +1,1150 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import React, { useState, useId } from "react";
+import Link from "next/link";
 import {
-  AirVent,
+  Activity,
+  AlertTriangle,
   ArrowRight,
   ArrowUpRight,
   Check,
   CheckCircle2,
   ChevronDown,
-  Clock3,
+  Clock,
+  Cpu,
+  Droplets,
+  Flame,
+  Gauge,
+  HelpCircle,
   MapPin,
-  Menu,
-  MessageCircle,
   Phone,
+  Shield,
   ShieldCheck,
+  Sliders,
+  Smartphone,
   Snowflake,
+  Sparkles,
   Star,
+  Thermometer,
+  UserCheck,
   Wrench,
-  X,
   Zap,
+  Menu,
+  X,
 } from "lucide-react";
 
-const services = [
+// SYMPTOM DIAGNOSTIC MATRIX
+interface SymptomData {
+  id: string;
+  name: string;
+  icon: React.ElementType;
+  severity: "Moderate" | "Urgent" | "Critical" | "Routine";
+  severityColor: string;
+  probableCause: string;
+  diagnosticSteps: string;
+  estimatedFixTime: string;
+  recommendedServiceId: string;
+  recommendedServiceName: string;
+}
+
+const SYMPTOMS: SymptomData[] = [
   {
-    number: "01",
-    icon: AirVent,
-    title: "Installation climatisation",
-    description:
-      "Pose soignée de climatiseurs split, multi-split et gainables adaptés à votre espace et à votre budget.",
-    tag: "Installation",
+    id: "warm-air",
+    name: "AC Blowing Warm Air",
+    icon: Flame,
+    severity: "Urgent",
+    severityColor: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    probableCause: "Frozen evaporator coil, failing dual capacitor, or low refrigerant level",
+    diagnosticSteps: "Subcooling & superheat temperature test + capacitor microfarad reading",
+    estimatedFixTime: "30 – 60 mins",
+    recommendedServiceId: "svc-ac-repair",
+    recommendedServiceName: "Emergency AC Repair & Diagnostics",
   },
   {
-    number: "02",
-    icon: Snowflake,
-    title: "Entretien & nettoyage",
-    description:
-      "Nettoyage complet des filtres, désinfection antibactérienne et contrôle du fluide frigorigène pour un air sain.",
-    tag: "Entretien",
+    id: "water-leak",
+    name: "Water Leaking Inside",
+    icon: Droplets,
+    severity: "Critical",
+    severityColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",
+    probableCause: "Clogged condensate drain line, cracked drain pan, or iced-over coil melting",
+    diagnosticSteps: "Nitrogen pressure line blowout + float safety switch inspection",
+    estimatedFixTime: "40 – 75 mins",
+    recommendedServiceId: "svc-ac-repair",
+    recommendedServiceName: "Condensate Flush & Leak Restoration",
   },
   {
-    number: "03",
-    icon: Wrench,
-    title: "Dépannage rapide",
-    description:
-      "Diagnostic précis, recherche de fuites et réparation express de vos équipements en panne 7j/7.",
-    tag: "Réparation 7j/7",
-  },
-  {
-    number: "04",
+    id: "no-power",
+    name: "System Won't Turn On",
     icon: Zap,
-    title: "Chambres froides +/-",
-    description:
-      "Installation, maintenance et dépannage de chambres froides positives et négatives pour professionnels.",
-    tag: "Froid commercial",
+    severity: "Critical",
+    severityColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",
+    probableCause: "Tripped circuit breaker, blown 3A control board fuse, or failed transformer",
+    diagnosticSteps: "24V low-voltage circuit test + safety switch lockout bypass audit",
+    estimatedFixTime: "25 – 45 mins",
+    recommendedServiceId: "svc-ac-repair",
+    recommendedServiceName: "Electrical Control Board & Power Audit",
   },
   {
-    number: "05",
-    icon: ShieldCheck,
-    title: "Matériel aéraulique",
-    description:
-      "Solutions de ventilation, caissons d&apos;extraction, CTA et VMC professionnelle pour locaux et commerces.",
-    tag: "Ventilation",
+    id: "loud-noise",
+    name: "Loud Screeching / Buzzing",
+    icon: AlertTriangle,
+    severity: "Urgent",
+    severityColor: "text-amber-400 bg-amber-400/10 border-amber-400/20",
+    probableCause: "Worn blower motor bearings, loose fan blade, or high-head pressure",
+    diagnosticSteps: "Decibel & vibration telemetry + motor winding resistance test",
+    estimatedFixTime: "45 – 90 mins",
+    recommendedServiceId: "svc-ac-repair",
+    recommendedServiceName: "Precision Motor & Mechanical Overhaul",
   },
   {
-    number: "06",
-    icon: Clock3,
-    title: "Diagnostic technique & devis",
-    description:
-      "Analyse complète de vos installations existantes avec conseils d&apos;optimisation énergétique.",
-    tag: "Devis gratuit",
+    id: "tune-up",
+    name: "Preventive 21-Point Tune-Up",
+    icon: Gauge,
+    severity: "Routine",
+    severityColor: "text-emerald-400 bg-emerald-400/10 border-emerald-400/20",
+    probableCause: "Seasonal maintenance, dust accumulation, efficiency loss over time",
+    diagnosticSteps: "Full chemical coil rinse, electrical tightening, and SEER2 recalibration",
+    estimatedFixTime: "60 – 75 mins",
+    recommendedServiceId: "svc-ac-tuneup",
+    recommendedServiceName: "Annual 21-Point Super Tune-Up",
   },
 ];
 
-const projects = [
+// NEIGHBORHOODS
+const SERVICE_AREAS = [
+  { name: "Brickell & Financial District", slug: "brickell", eta: "18m" },
+  { name: "Downtown Miami", slug: "downtown-miami", eta: "22m" },
+  { name: "Coral Gables", slug: "coral-gables", eta: "25m" },
+  { name: "Coconut Grove", slug: "coconut-grove", eta: "24m" },
+  { name: "Miami Beach & South Beach", slug: "miami-beach", eta: "28m" },
+  { name: "Wynwood & Edgewater", slug: "wynwood", eta: "20m" },
+  { name: "Doral & Airport West", slug: "doral", eta: "30m" },
+  { name: "Kendall & Pinecrest", slug: "kendall", eta: "32m" },
+];
+
+// FAQS
+const FAQS = [
   {
-    title: "Installation split résidentiel",
-    category: "Maison individuelle • Saint-Gilles",
-    image:
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=85",
+    q: "How fast can a certified technician arrive at my home?",
+    a: "Our dispatch center deploys GPS-tracked mobile service trucks stationed across Greater Miami. For active emergency calls, our average arrival window is 24 to 45 minutes across Brickell, Downtown, Coral Gables, and surrounding neighborhoods.",
+    category: "dispatch",
   },
   {
-    title: "Rénovation climatisation intégrale",
-    category: "Appartement • Saint-Denis",
-    image:
-      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1000&q=85",
+    q: "Is the diagnostic fee waived if I approve the repair?",
+    a: "Yes, 100%. Our diagnostic fee covers a comprehensive digital inspection, laser thermal readings, and refrigerant telemetry. When you proceed with the recommended repair, that entire diagnostic fee is credited directly toward your total invoice.",
+    category: "pricing",
   },
   {
-    title: "Climatisation espace tertiaire",
-    category: "Commerce & Bureaux • Saint-Pierre",
-    image:
-      "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=85",
+    q: "Are your technicians licensed, background-checked, and insured?",
+    a: "Every TechWork technician is an EPA Universal certified master technician, background-checked, drug-tested, and covered by our $1,000,000 Property & Cleanliness Guarantee. We never hire random subcontractors.",
+    category: "guarantee",
+  },
+  {
+    q: "What brands of AC systems do you service?",
+    a: "We service and carry OEM parts on our trucks for Carrier, Trane, Lennox, Rheem, Daikin, Goodman, York, Mitsubishi Electric mini-splits, and smart thermostats (Google Nest, Ecobee, Honeywell Home).",
+    category: "equipment",
+  },
+  {
+    q: "Do you offer emergency HVAC service on weekends and nights?",
+    a: "Yes. In the extreme South Florida heat, a broken AC is an emergency. Our emergency rapid dispatch team operates 24 hours a day, 7 days a week, including Sundays and holidays.",
+    category: "dispatch",
   },
 ];
 
-const reviews = [
-  {
-    name: "M. Hoarau",
-    location: "Saint-Pierre (974)",
-    date: "Il y a 2 semaines",
-    text: "Depuis plusieurs années, un service rapide et efficace, une prestation de qualité et une équipe toujours aussi sympathique. Clim Tech OI a toute ma confiance !",
-  },
-  {
-    name: "Sébastien D.",
-    location: "Saint-Leu (974)",
-    date: "Il y a 1 mois",
-    text: "Intervention en urgence suite à une panne totale en pleine chaleur. Diagnostiqué et réparé en moins de 2 heures. Travail très propre et prix transparent.",
-  },
-  {
-    name: "Valérie G.",
-    location: "L'Étang-Salé (974)",
-    date: "Il y a 2 mois",
-    text: "Pose de 2 climatiseurs réversibles. Conseils avisés pour le choix des appareils, pose impeccable et sans dégâts. Je recommande les yeux fermés.",
-  },
-];
-
-const faqs = [
-  {
-    q: "Intervenez-vous rapidement à La Réunion ?",
-    a: "Oui, nous intervenons rapidement sur toute l&apos;île de La Réunion, en particulier dans le sud et l'ouest (Saint-Pierre, Saint-Leu, Saint-Paul, Le Tampon, etc.). En cas d&apos;urgence, nous faisons notre maximum pour intervenir sous 24h à 48h.",
-  },
-  {
-    q: "Quels types de climatiseurs installez-vous ?",
-    a: "Nous installons tous types de systèmes : monosplit, multisplit, cassettes encastrées et systèmes gainables parmi les plus grandes marques (Daikin, Mitsubishi, Toshiba, Gree, Panasonic).",
-  },
-  {
-    q: "Pourquoi faire entretenir sa clim régulièrement ?",
-    a: "Un entretien régulier élimine les moisissures et bactéries dans l&apos;air, réduit votre consommation électrique de 15% à 25% et prolonge la durée de vie du compresseur.",
-  },
-  {
-    q: "Vos devis sont-ils gratuits ?",
-    a: "Oui, nous établissons un devis clair, gratuit et sans engagement pour tous vos projets d&apos;installation ou de remplacement de climatisation.",
-  },
-];
-
-export default function HomePage() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+export default function UniqueLandingPage() {
+  const [selectedSymptom, setSelectedSymptom] = useState<SymptomData>(SYMPTOMS[0]);
+  const [squareFootage, setSquareFootage] = useState<number>(1800);
+  const [propertyType, setPropertyType] = useState<"condo" | "home" | "commercial">("home");
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
-  const [formSent, setFormSent] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sqftInputId = useId();
 
-  const phoneDisplay = "+262 262 59 87 03";
-  const phoneCall = "+262262598703";
-  const whatsappUrl =
-    "https://wa.me/262262598703?text=Bonjour%20CLIM%20TECH%20OI%2C%20je%20souhaite%20un%20renseignement%20climatisation.";
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get("name") || "");
-    const phone = String(form.get("phone") || "");
-    const city = String(form.get("city") || "");
-    const service = String(form.get("service") || "");
-    const message = String(form.get("message") || "");
-
-    const text = [
-      "Bonjour CLIM TECH OI,",
-      "",
-      `Nom : ${name}`,
-      `Téléphone : ${phone}`,
-      `Commune : ${city}`,
-      `Besoin : ${service}`,
-      `Message : ${message}`,
-    ].join("\n");
-
-    window.open(
-      `https://wa.me/262262598703?text=${encodeURIComponent(text)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
-
-    setFormSent(true);
-  }
+  // Calculated tonnage & energy math
+  const tonnage = (squareFootage / 500).toFixed(1);
+  const btu = Math.round(parseFloat(tonnage) * 12000).toLocaleString();
+  const estimatedSavings = Math.round((squareFootage * 0.18) + (propertyType === "condo" ? 60 : 140));
 
   return (
-    <div className="min-h-screen bg-[#07121C] text-slate-100 font-sans selection:bg-[#28CAF2] selection:text-[#091926]">
-      {/* 1. EXACT NAVBAR */}
-      <header className="sticky top-0 z-50 bg-[#1E293B] border-b border-white/5 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
-          {/* Brand Logo */}
-          <a
-            href="#accueil"
-            className="flex items-center gap-1.5 font-bold tracking-tight text-xl sm:text-2xl select-none"
-            aria-label="CLIM TECH OI Accueil"
-          >
-            <span className="text-[#28CAF2]">CLIM TECH</span>
-            <span className="text-[#28CAF2] text-xl">❄</span>
-            <span className="text-[#FF3908]">OI</span>
-          </a>
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
+      {/* 1. TOP STATUS TICKER HUD */}
+      <div className="bg-slate-950/80 border-b border-white/5 py-2 px-4 text-center text-xs backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px] sm:text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-semibold text-slate-200">LIVE DISPATCH ACTIVE</span>
+            <span className="hidden sm:inline text-slate-500">•</span>
+            <span className="hidden sm:inline">6 Mobile Tech Units in Field (Greater Miami)</span>
+          </div>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm" aria-label="Navigation">
+          <div className="flex items-center gap-4">
+            <span className="text-cyan-400 font-mono font-medium">AVG ETA: 24 MINS</span>
+            <span className="text-slate-500">•</span>
             <a
-              href="#accueil"
-              className="text-[#FF3908] font-semibold transition-colors relative py-1"
+              href="tel:3055550100"
+              className="text-white hover:text-cyan-400 font-bold transition-colors flex items-center gap-1"
             >
-              Accueil
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF3908] rounded-full" />
+              <Phone className="w-3 h-3 text-cyan-400" />
+              (305) 555-0100
             </a>
-            <a
-              href="#services"
-              className="text-slate-300 hover:text-white font-medium transition-colors"
-            >
+          </div>
+        </div>
+      </div>
+
+      {/* 2. FLOATING FROSTED GLASS NAVIGATION */}
+      <nav className="relative z-40 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        <div className="rounded-2xl border border-white/10 bg-slate-900/60 backdrop-blur-xl px-5 py-3.5 flex items-center justify-between shadow-2xl shadow-cyan-950/20">
+          {/* Brand Identity */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25 group-hover:scale-105 transition-transform">
+              <Wrench className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-lg tracking-tight text-white flex items-center gap-1">
+                TechWork <span className="text-cyan-400 text-xs px-1.5 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">OS</span>
+              </span>
+              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400">
+                Precision Climate Engineering
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Links */}
+          <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-300">
+            <a href="#diagnostics" className="hover:text-cyan-400 transition-colors">
+              Live Diagnostics
+            </a>
+            <a href="#services" className="hover:text-cyan-400 transition-colors">
               Services
             </a>
-            <a
-              href="#realisations"
-              className="text-slate-300 hover:text-white font-medium transition-colors"
-            >
-              Galerie
+            <a href="#estimator" className="hover:text-cyan-400 transition-colors">
+              Cost Calculator
             </a>
-            <a
-              href="#contact"
-              className="text-slate-300 hover:text-white font-medium transition-colors"
-            >
-              Contact
+            <a href="#comparison" className="hover:text-cyan-400 transition-colors">
+              The Standard
             </a>
-          </nav>
-
-          {/* Right Action Pill */}
-          <div className="hidden lg:flex items-center gap-5">
-            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] p-1 backdrop-blur-md shadow-sm">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white hover:text-[#28CAF2] transition-colors"
-              >
-                <MessageCircle className="w-4 h-4 text-[#28CAF2]" />
-                <span>WhatsApp</span>
-              </a>
-              <div className="w-[1px] h-4 bg-white/15" />
-              <a
-                href={`tel:${phoneCall}`}
-                className="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold text-white hover:text-[#28CAF2] transition-colors"
-              >
-                <Phone className="w-3.5 h-3.5 text-white/80" />
-                <span>{phoneDisplay}</span>
-              </a>
-            </div>
-
-            <a
-              href="#contact"
-              className="text-[#28CAF2] hover:text-white font-semibold text-xs sm:text-sm transition-colors flex items-center gap-1"
-            >
-              Nous écrire <ArrowUpRight className="w-3.5 h-3.5" />
+            <a href="#reviews" className="hover:text-cyan-400 transition-colors">
+              Reviews
+            </a>
+            <a href="#faq" className="hover:text-cyan-400 transition-colors">
+              FAQ
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Action Button */}
+          <div className="hidden sm:flex items-center gap-3">
+            <Link
+              href="/book"
+              className="relative group overflow-hidden rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 p-[1px] font-semibold text-xs transition-all hover:shadow-lg hover:shadow-cyan-500/25"
+            >
+              <div className="px-5 py-2.5 rounded-[11px] bg-slate-950 transition-colors group-hover:bg-transparent">
+                <span className="relative z-10 flex items-center gap-2 text-white">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:text-white" />
+                  Book Guaranteed Slot
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Mobile Menu Toggle */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-white p-2 rounded-lg bg-white/5 hover:bg-white/10"
-            aria-label="Menu"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 rounded-lg bg-white/5 text-slate-300 hover:text-white"
+            aria-label="Toggle menu"
           >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5 text-white" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Mobile Nav Drawer */}
-        {mobileOpen && (
-          <div className="md:hidden bg-[#1E293B] border-b border-white/10 px-4 py-5 space-y-3">
+        {/* Mobile Dropdown */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden mt-2 p-5 rounded-2xl border border-white/10 bg-slate-900/95 backdrop-blur-2xl space-y-4 text-sm font-medium">
             <a
-              href="#accueil"
-              onClick={() => setMobileOpen(false)}
-              className="block text-[#FF3908] font-semibold text-base py-1"
+              href="#diagnostics"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-slate-200 hover:text-cyan-400"
             >
-              Accueil
+              Live Diagnostics
             </a>
             <a
               href="#services"
-              onClick={() => setMobileOpen(false)}
-              className="block text-slate-300 hover:text-white text-base py-1"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-slate-200 hover:text-cyan-400"
             >
               Services
             </a>
             <a
-              href="#realisations"
-              onClick={() => setMobileOpen(false)}
-              className="block text-slate-300 hover:text-white text-base py-1"
+              href="#estimator"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-slate-200 hover:text-cyan-400"
             >
-              Galerie
+              Cost Calculator
             </a>
             <a
-              href="#contact"
-              onClick={() => setMobileOpen(false)}
-              className="block text-slate-300 hover:text-white text-base py-1"
+              href="#comparison"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-slate-200 hover:text-cyan-400"
             >
-              Contact
+              The Standard
+            </a>
+            <a
+              href="#reviews"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-slate-200 hover:text-cyan-400"
+            >
+              Reviews
             </a>
             <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center gap-2 bg-[#28CAF2] text-[#091926] font-bold py-2.5 rounded-full text-sm"
+              <Link
+                href="/book"
+                className="w-full text-center py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-bold text-white shadow-lg shadow-cyan-500/20"
               >
-                <MessageCircle className="w-4 h-4" /> Discuter sur WhatsApp
-              </a>
+                Book Guaranteed Slot Online
+              </Link>
               <a
-                href={`tel:${phoneCall}`}
-                className="flex items-center justify-center gap-2 border border-white/20 text-white font-semibold py-2.5 rounded-full text-sm"
+                href="tel:3055550100"
+                className="w-full text-center py-2.5 rounded-xl border border-white/15 text-white font-semibold text-xs flex items-center justify-center gap-2"
               >
-                <Phone className="w-4 h-4" /> Appeler le {phoneDisplay}
+                <Phone className="w-3.5 h-3.5 text-cyan-400" /> Call (305) 555-0100
               </a>
             </div>
           </div>
         )}
-      </header>
+      </nav>
 
-      {/* 2. EXACT HERO SECTION MATCHING SCREENSHOT */}
-      <section
-        id="accueil"
-        className="relative min-h-[580px] lg:min-h-[640px] bg-[#091926] overflow-hidden flex items-center border-b-[3px] border-[#28CAF2]"
-      >
-        {/* Full Bleed Right Image (Technician + Split AC Unit) */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-no-repeat bg-[center_right]"
-          style={{
-            backgroundImage: `url('/images/climtech-hero-hd.png')`,
-          }}
-        />
+      {/* 3. HERO: FUTURISTIC CLIMATE COMMAND & INTERACTIVE TELEMETRY */}
+      <section className="relative pt-12 pb-20 lg:pt-16 lg:pb-32 overflow-hidden">
+        {/* Ambient Radial Lights */}
+        <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-gradient-to-tr from-cyan-500/15 via-blue-600/10 to-transparent blur-[140px] -z-10" />
+        <div className="pointer-events-none absolute top-1/2 right-0 w-[400px] h-[400px] bg-amber-500/10 blur-[120px] -z-10" />
 
-        {/* Seamless Navy Fade on Left Side to Guarantee Contrast on Text */}
-        <div className="absolute inset-0 z-[1] bg-gradient-to-r from-[#091926] via-[#091926]/95 to-transparent lg:w-[62%]" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-[#091926] via-transparent to-transparent h-16 bottom-0" />
-
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 w-full">
-          <div className="max-w-2xl">
-            {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 mb-3.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#28CAF2] shadow-[0_0_8px_#28CAF2]" />
-              <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.14em] text-[#28CAF2]">
-                POSE DE CLIM, RÉPARATION ET MAINTENANCE SUR TOUTE L’ÎLE — INTERVENTION RAPIDE 7J/7
-              </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            {/* Pill Header */}
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-300 text-xs font-mono mb-6 backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>THE NEXT-GEN HOME CLIMATE PLATFORM</span>
+              <span className="text-cyan-500/40">•</span>
+              <span className="text-slate-300">MIAMI-DADE CERTIFIED</span>
             </div>
 
-            {/* Alternating White & Cyan Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold leading-[1.12] tracking-tight mb-4">
-              <span className="text-white block">
-                Climatisation à <span className="text-[#28CAF2]">La Réunion :</span>
-              </span>
-              <span className="text-white block">
-                installation, <span className="text-[#28CAF2]">entretien &amp;</span>
-              </span>
-              <span className="text-white block">
-                dépannage <span className="text-[#28CAF2]">rapide</span>
+            {/* Giant Title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] mb-6 text-white">
+              Precision Air.{" "}
+              <span className="bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500 bg-clip-text text-transparent">
+                Guaranteed in 60 Mins.
               </span>
             </h1>
 
-            {/* Description */}
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 max-w-xl">
-              Besoin d&apos;installer ou réparer une climatisation ? Nous intervenons rapidement à La Réunion pour la pose, l&apos;entretien et le dépannage de vos équipements.
+            {/* Subhead */}
+            <p className="text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto mb-8 font-normal">
+              When extreme humidity and tropical heat threaten your home, TechWork deploys licensed master technicians equipped with live telemetry, infrared leak detection, and flat-rate pricing.
             </p>
 
-            {/* 3 Buttons */}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <a
-                href="#contact"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-[#28CAF2] hover:bg-[#38d4fc] text-[#091926] font-bold text-xs sm:text-sm transition-all shadow-lg shadow-[#28CAF2]/25"
+            {/* Main CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/book"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-bold text-white text-sm sm:text-base transition-all shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2.5 group"
               >
-                Nous contacter
-              </a>
+                <span>Book Instant Dispatch</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
               <a
-                href="#services"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-white border border-white/10 font-semibold text-xs sm:text-sm transition-all backdrop-blur-sm"
+                href="tel:3055550100"
+                className="w-full sm:w-auto px-7 py-4 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] font-semibold text-white text-sm sm:text-base transition-all flex items-center justify-center gap-2.5 backdrop-blur-md"
               >
-                Installation climatisation
-              </a>
-              <a
-                href="#services"
-                className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-white border border-white/10 font-semibold text-xs sm:text-sm transition-all backdrop-blur-sm"
-              >
-                Dépannage climatisation
+                <Phone className="w-4 h-4 text-cyan-400" />
+                <span>Call Emergency Hotline</span>
               </a>
             </div>
 
-            {/* Feature Badges Row */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.05] text-xs text-slate-200 backdrop-blur-sm">
-                <Snowflake className="w-3.5 h-3.5 text-[#28CAF2]" />
-                <span>Climatisation 974</span>
+            {/* Social Proof Metric Strip */}
+            <div className="pt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
+              <div className="flex items-center gap-1.5">
+                <div className="flex text-amber-400 text-sm">★★★★★</div>
+                <span className="font-bold text-white">4.96/5.0</span>
+                <span>(1,248+ Home Audits)</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.05] text-xs text-slate-200 backdrop-blur-sm">
-                <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                <span>Dépannage rapide</span>
+              <span className="hidden sm:inline text-slate-700">•</span>
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <span>$1,000,000 Property Guarantee</span>
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.05] text-xs text-slate-200 backdrop-blur-sm">
-                <MapPin className="w-3.5 h-3.5 text-[#28CAF2]" />
-                <span>Toute La Réunion</span>
-              </div>
-            </div>
-
-            {/* Google Review Badge */}
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-white/10 bg-white/[0.05] backdrop-blur-md">
-              <div className="flex items-center font-bold text-xs tracking-tight">
-                <span className="text-[#4285F4]">G</span>
-                <span className="text-[#EA4335]">o</span>
-                <span className="text-[#FBBC05]">o</span>
-                <span className="text-[#4285F4]">g</span>
-                <span className="text-[#34A853]">l</span>
-                <span className="text-[#EA4335]">e</span>
-              </div>
-              <div className="flex text-amber-400 text-xs tracking-widest">
-                ★★★★★
-              </div>
-              <span className="text-white font-bold text-xs">4.8/5</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. TRUST STRIP */}
-      <section className="bg-[#0b1724] border-b border-white/5 py-5 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-            <ShieldCheck className="w-5 h-5 text-[#28CAF2]" />
-            <div className="text-left">
-              <p className="text-xs font-bold text-white">Garantie 3 ans</p>
-              <p className="text-[11px] text-slate-400">Équipements éligibles</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-            <Clock3 className="w-5 h-5 text-[#28CAF2]" />
-            <div className="text-left">
-              <p className="text-xs font-bold text-white">Intervention rapide</p>
-              <p className="text-[11px] text-slate-400">7j/7 sur toute l&apos;île</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-            <CheckCircle2 className="w-5 h-5 text-[#28CAF2]" />
-            <div className="text-left">
-              <p className="text-xs font-bold text-white">Certifié &amp; Conforme</p>
-              <p className="text-[11px] text-slate-400">Attestation fluides</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-white/[0.02]">
-            <MapPin className="w-5 h-5 text-[#28CAF2]" />
-            <div className="text-left">
-              <p className="text-xs font-bold text-white">La Réunion (974)</p>
-              <p className="text-[11px] text-slate-400">Particuliers &amp; Pros</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. SERVICES SECTION */}
-      <section id="services" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#28CAF2] mb-2">
-            Nos Expertises Climatisation &amp; Froid
-          </p>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            La bonne température. <span className="text-[#28CAF2]">Le bon service.</span>
-          </h2>
-          <p className="text-slate-400 text-sm sm:text-base mt-3">
-            Des prestations fiables et garanties pour assurer votre confort thermique au quotidien.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((svc) => {
-            const Icon = svc.icon;
-            return (
-              <div
-                key={svc.number}
-                className="group relative p-7 rounded-2xl bg-[#0b1724] border border-white/5 hover:border-[#28CAF2]/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#28CAF2]/5 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="w-12 h-12 rounded-xl bg-[#28CAF2]/10 border border-[#28CAF2]/20 flex items-center justify-center text-[#28CAF2] group-hover:bg-[#28CAF2] group-hover:text-[#091926] transition-colors">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <span className="text-sm font-bold text-slate-500 group-hover:text-[#28CAF2] transition-colors">
-                      {svc.number}
-                    </span>
-                  </div>
-                  <span className="inline-block text-[11px] font-semibold text-[#28CAF2] bg-[#28CAF2]/10 px-2.5 py-1 rounded-full mb-3">
-                    {svc.tag}
-                  </span>
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[#28CAF2] transition-colors">
-                    {svc.title}
-                  </h3>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                    {svc.description}
-                  </p>
-                </div>
-
-                <a
-                  href="#contact"
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-[#28CAF2] hover:text-white transition-colors pt-4 border-t border-white/5"
-                >
-                  <span>Demander un renseignement</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 5. ABOUT US / EXPERTISE */}
-      <section className="py-16 bg-[#0b1724] border-y border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-6 relative">
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-              <img
-                src="/images/climtech-method.webp"
-                alt="Techniciens Clim Tech OI sur chantier de climatisation à La Réunion"
-                className="w-full h-[360px] object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#091926]/90 via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-[#28CAF2] uppercase tracking-wider">
-                    Équipe qualifiée 974
-                  </p>
-                  <p className="text-white font-bold text-sm">
-                    Intervention sur tout le sud &amp; ouest
-                  </p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-[#28CAF2] flex items-center justify-center text-[#091926]">
-                  <Snowflake className="w-5 h-5" />
-                </div>
+              <span className="hidden sm:inline text-slate-700">•</span>
+              <div className="flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>Zero Subcontractors</span>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-6 space-y-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#28CAF2]">
-              Qui Sommes-Nous ?
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Le confort thermique commence par <span className="text-[#28CAF2]">un travail bien fait.</span>
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Basée à La Réunion, la société <strong>CLIM TECH OI</strong> met son savoir-faire au service des particuliers et des entreprises pour tous travaux de pose, d&apos;entretien et de dépannage de climatisation et froid commercial.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="flex items-center gap-2.5 text-sm text-slate-200">
-                <Check className="w-4 h-4 text-[#28CAF2] shrink-0" />
-                <span>Devis rapide et transparent</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-sm text-slate-200">
-                <Check className="w-4 h-4 text-[#28CAF2] shrink-0" />
-                <span>Attestation de capacité fluides</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-sm text-slate-200">
-                <Check className="w-4 h-4 text-[#28CAF2] shrink-0" />
-                <span>Conseils dimensionnement précis</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-sm text-slate-200">
-                <Check className="w-4 h-4 text-[#28CAF2] shrink-0" />
-                <span>Suivi et maintenance après pose</span>
-              </div>
-            </div>
-            <div className="pt-4 flex flex-wrap gap-4">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#28CAF2] text-[#091926] font-bold text-sm hover:bg-[#38d4fc] transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" /> Échanger sur WhatsApp
-              </a>
-              <a
-                href={`tel:${phoneCall}`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 text-white font-semibold text-sm hover:bg-white/5 transition-colors"
-              >
-                <Phone className="w-4 h-4" /> {phoneDisplay}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. GALERIE RÉALISATIONS */}
-      <section id="realisations" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#28CAF2] mb-2">
-              Galerie Photos
-            </p>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-              Nos dernières <span className="text-[#28CAF2]">réalisations</span>
-            </h2>
-          </div>
-          <a
-            href="#contact"
-            className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-semibold text-[#28CAF2] hover:text-white"
-          >
-            <span>Confier votre projet</span> <ArrowRight className="w-4 h-4" />
-          </a>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {projects.map((proj, idx) => (
-            <div
-              key={idx}
-              className="group rounded-2xl overflow-hidden bg-[#0b1724] border border-white/5 hover:border-[#28CAF2]/30 transition-all duration-300"
-            >
-              <div className="relative h-56 overflow-hidden">
-                <img
-                  src={proj.image}
-                  alt={proj.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0b1724] via-transparent to-transparent" />
-              </div>
-              <div className="p-5">
-                <p className="text-[11px] font-semibold text-[#28CAF2] uppercase tracking-wider mb-1">
-                  {proj.category}
+          {/* 4. INTERACTIVE DIAGNOSTIC TELEMETRY MATRIX */}
+          <div id="diagnostics" className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900/80 via-slate-900/40 to-slate-950 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+              <div>
+                <p className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                  <Activity className="w-4 h-4 animate-pulse" />
+                  Interactive Symptom Triage Matrix
                 </p>
-                <h3 className="text-base font-bold text-white group-hover:text-[#28CAF2] transition-colors">
-                  {proj.title}
+                <h2 className="text-xl sm:text-2xl font-bold text-white mt-1">
+                  What is happening with your AC system right now?
+                </h2>
+              </div>
+              <span className="text-xs text-slate-400 font-mono">
+                Click any symptom to compute triage telemetry &amp; dispatch window
+              </span>
+            </div>
+
+            {/* Symptom Selectors */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-6">
+              {SYMPTOMS.map((symptom) => {
+                const Icon = symptom.icon;
+                const isSelected = selectedSymptom.id === symptom.id;
+                return (
+                  <button
+                    key={symptom.id}
+                    onClick={() => setSelectedSymptom(symptom)}
+                    className={`p-4 rounded-2xl text-left transition-all border flex flex-col justify-between gap-3 ${
+                      isSelected
+                        ? "border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-500/15 ring-1 ring-cyan-400/30"
+                        : "border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                          isSelected ? "bg-cyan-500 text-slate-950" : "bg-white/5 text-slate-300"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full border ${symptom.severityColor}`}>
+                        {symptom.severity}
+                      </span>
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-white leading-tight">
+                      {symptom.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Symptom HUD Result Deck */}
+            <div className="mt-6 rounded-2xl border border-cyan-500/20 bg-slate-950/80 p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-8 space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs font-mono text-cyan-400 uppercase font-bold">
+                    Primary Diagnostic Telemetry:
+                  </span>
+                  <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border ${selectedSymptom.severityColor}`}>
+                    {selectedSymptom.severity} Triage Priority
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Estimated On-Site Fix: {selectedSymptom.estimatedFixTime}
+                  </span>
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-bold text-white">
+                  {selectedSymptom.recommendedServiceName}
                 </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <p className="text-slate-400 font-mono text-[11px] mb-1">PROBABLE ROOT CAUSE</p>
+                    <p className="text-slate-200 font-medium leading-relaxed">
+                      {selectedSymptom.probableCause}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <p className="text-slate-400 font-mono text-[11px] mb-1">FIRST STEP TECH AUDIT</p>
+                    <p className="text-slate-200 font-medium leading-relaxed">
+                      {selectedSymptom.diagnosticSteps}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-4 flex flex-col gap-3 p-4 rounded-xl border border-white/10 bg-slate-900/60 text-center">
+                <div className="space-y-1">
+                  <p className="text-xs text-slate-400">Diagnostic Fee</p>
+                  <p className="text-2xl font-black text-white">$89.00</p>
+                  <p className="text-[11px] text-emerald-400 font-medium">
+                    100% credited toward repair cost
+                  </p>
+                </div>
+                <Link
+                  href={`/book?serviceId=${selectedSymptom.recommendedServiceId}&symptom=${selectedSymptom.id}`}
+                  className="w-full py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm transition-colors shadow-md shadow-cyan-500/20 flex items-center justify-center gap-1.5"
+                >
+                  <span>Dispatch Tech for This</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <p className="text-[10px] text-slate-500">
+                  Real-time arrival tracking link sent via SMS
+                </p>
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* 7. AVIS CLIENTS */}
-      <section className="py-20 bg-[#0b1724] border-t border-white/5">
+      {/* 5. BENTO GRID OF NEXT-GEN SERVICES */}
+      <section id="services" className="py-20 bg-slate-950 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 mb-4">
-              <span className="text-amber-400 font-bold text-xs">★★★★★</span>
-              <span className="text-white font-bold text-xs">4.8 / 5 Avis vérifiés</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
+            <div>
+              <p className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-2">
+                Engineering-Grade Climate Systems
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+                Comprehensive HVAC &amp; Air Quality Solutions
+              </h2>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-              Ils nous font confiance <span className="text-[#28CAF2]">pour leur climatisation</span>
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-400 hover:text-white transition-colors"
+            >
+              <span>Explore All 8 Specialized Divisions</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Bento Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Bento 1: Flagship AC Repair (Span 7) */}
+            <div className="md:col-span-7 rounded-3xl border border-white/10 bg-slate-900/60 overflow-hidden relative group p-7 sm:p-9 flex flex-col justify-between min-h-[380px]">
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-20 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700 pointer-events-none"
+                style={{ backgroundImage: `url('/images/svc-ac-repair.jpg')` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent pointer-events-none" />
+
+              <div className="relative z-10 space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono">
+                  <Snowflake className="w-3.5 h-3.5" />
+                  FLAGSHIP SERVICE
+                </div>
+                <h3 className="text-2xl sm:text-3xl font-bold text-white">
+                  Emergency AC Repair &amp; Component Restoration
+                </h3>
+                <p className="text-slate-300 text-sm max-w-lg leading-relaxed">
+                  Compressors, contactors, dual-run capacitors, TXV valves, and fan motors. We stock over 200 OEM parts inside our trucks to solve 92% of AC breakdowns in a single visit.
+                </p>
+              </div>
+
+              <div className="relative z-10 pt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/10">
+                <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
+                  <span className="flex items-center gap-1.5">
+                    <Check className="w-4 h-4 text-emerald-400" /> 1-Year Labor Warranty
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Check className="w-4 h-4 text-emerald-400" /> Digital Multi-Point Scan
+                  </span>
+                </div>
+                <Link
+                  href="/book?serviceId=svc-ac-repair"
+                  className="px-4 py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold text-xs hover:bg-cyan-400 transition-colors flex items-center gap-1"
+                >
+                  Book AC Repair <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Bento 2: Infrared Thermal Diagnostics (Span 5) */}
+            <div className="md:col-span-5 rounded-3xl border border-white/10 bg-slate-900/60 p-7 sm:p-8 flex flex-col justify-between relative overflow-hidden group">
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-15 group-hover:opacity-25 transition-opacity pointer-events-none"
+                style={{ backgroundImage: `url('/images/svc-refrigerant-recharge.jpg')` }}
+              />
+              <div className="relative z-10 space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono">
+                  <Thermometer className="w-3.5 h-3.5" />
+                  THERMAL TELEMETRY
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
+                  Freon Leak Detection &amp; Infrared Auditing
+                </h3>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Non-invasive electronic sniffer probes and ultrasonic acoustics locate micro-leaks in evaporator coils without tearing down your drywall.
+                </p>
+              </div>
+
+              <div className="relative z-10 pt-6">
+                <Link
+                  href="/book?serviceId=svc-refrigerant-recharge"
+                  className="text-xs font-bold text-amber-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Schedule Leak Scan <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Bento 3: Smart Thermostat & Automation (Span 4) */}
+            <div className="md:col-span-4 rounded-3xl border border-white/10 bg-slate-900/40 p-6 sm:p-7 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Smart IoT &amp; Zone Control</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">
+                  Integration of Google Nest, Ecobee Pro, and Honeywell Home with multi-zone dampers to eliminate hot spots and reduce bills by 24%.
+                </p>
+              </div>
+              <Link
+                href="/book?serviceId=svc-thermostat-install"
+                className="pt-5 text-xs font-bold text-cyan-400 hover:text-white flex items-center gap-1"
+              >
+                Thermostat Setup <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {/* Bento 4: Hospital-Grade Air Purification (Span 4) */}
+            <div className="md:col-span-4 rounded-3xl border border-white/10 bg-slate-900/40 p-6 sm:p-7 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">UV-C &amp; HEPA Duct Sanitation</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">
+                  In-duct germicidal UV light arrays and rotary brush duct cleanings eradicate Miami mold, pet dander, and bacterial airborne pathogens.
+                </p>
+              </div>
+              <Link
+                href="/book?serviceId=svc-duct-cleaning"
+                className="pt-5 text-xs font-bold text-cyan-400 hover:text-white flex items-center gap-1"
+              >
+                Duct Sanitization <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+
+            {/* Bento 5: 21-Point Super Tune-Up (Span 4) */}
+            <div className="md:col-span-4 rounded-3xl border border-white/10 bg-slate-900/40 p-6 sm:p-7 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                  <Gauge className="w-5 h-5" />
+                </div>
+                <h3 className="text-lg font-bold text-white">Annual 21-Point Super Tune-Up</h3>
+                <p className="text-slate-400 text-xs leading-relaxed">
+                  Chemical coil rinse, amp-draw calibration, electrical contact cleaning, and drain pan sterilization to guarantee peak seasonal efficiency.
+                </p>
+              </div>
+              <Link
+                href="/book?serviceId=svc-ac-tuneup"
+                className="pt-5 text-xs font-bold text-cyan-400 hover:text-white flex items-center gap-1"
+              >
+                Book $89 Tune-Up <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. INTERACTIVE TRANSPARENT COST & TONNAGE ESTIMATOR */}
+      <section id="estimator" className="py-20 bg-slate-900/40 border-t border-white/5 relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-2">
+              Transparent Physics &amp; Pricing
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              Instant Tonnage &amp; Cost Estimator
             </h2>
             <p className="text-slate-400 text-sm mt-3">
-              Découvrez les retours de nos clients particuliers et professionnels à La Réunion.
+              Slide your property size to preview cooling capacity requirements and transparent price estimates.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-slate-950 p-6 sm:p-10 shadow-2xl space-y-8">
+            {/* Property Type Toggles */}
+            <div>
+              <label className="block text-xs font-mono uppercase text-slate-400 font-bold mb-3">
+                Select Property Architecture
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {(["condo", "home", "commercial"] as const).map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setPropertyType(type)}
+                    className={`py-3 px-4 rounded-xl text-xs sm:text-sm font-bold capitalize transition-all border ${
+                      propertyType === type
+                        ? "bg-cyan-500 text-slate-950 border-cyan-400 shadow-lg shadow-cyan-500/20"
+                        : "bg-white/[0.03] text-slate-300 border-white/5 hover:border-white/15"
+                    }`}
+                  >
+                    {type === "condo" ? "High-Rise Condo" : type === "home" ? "Single Family Home" : "Commercial Office"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Slider */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label htmlFor={sqftInputId} className="text-xs font-mono uppercase text-slate-400 font-bold">
+                  Conditioned Living Area
+                </label>
+                <span className="font-mono text-xl font-black text-cyan-400">
+                  {squareFootage.toLocaleString()} sq ft
+                </span>
+              </div>
+              <input
+                id={sqftInputId}
+                type="range"
+                min={600}
+                max={4500}
+                step={50}
+                value={squareFootage}
+                onChange={(e) => setSquareFootage(Number(e.target.value))}
+                aria-label="Conditioned Living Area in square feet"
+                className="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+              />
+              <div className="flex justify-between text-[11px] font-mono text-slate-500 mt-2">
+                <span>600 sq ft</span>
+                <span>2,000 sq ft</span>
+                <span>3,200 sq ft</span>
+                <span>4,500+ sq ft</span>
+              </div>
+            </div>
+
+            {/* Output Matrix */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+              <div className="space-y-1">
+                <p className="text-[11px] text-slate-400 font-mono">RECOMMENDED SYSTEM</p>
+                <p className="text-xl font-black text-white">{tonnage} Tons</p>
+                <p className="text-[11px] text-slate-500">{btu} BTU/hr capacity</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-[11px] text-slate-400 font-mono">EST. ANNUAL SAVINGS</p>
+                <p className="text-xl font-black text-emerald-400">${estimatedSavings}/yr</p>
+                <p className="text-[11px] text-slate-500">With SEER2 optimization</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-[11px] text-slate-400 font-mono">DIAGNOSTIC FEE</p>
+                <p className="text-xl font-black text-cyan-400">$89</p>
+                <p className="text-[11px] text-emerald-400">Waived with repair</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-[11px] text-slate-400 font-mono">DISPATCH WINDOW</p>
+                <p className="text-xl font-black text-white">&lt; 45 Mins</p>
+                <p className="text-[11px] text-slate-500">Guaranteed on-time</p>
+              </div>
+            </div>
+
+            {/* Book CTA */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+              <p className="text-xs text-slate-400">
+                All pricing is flat-rate and guaranteed in writing before work begins. No surprises.
+              </p>
+              <Link
+                href={`/book?sqft=${squareFootage}&type=${propertyType}`}
+                className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-bold text-white text-sm hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/20 text-center"
+              >
+                Lock In This Slot &amp; Schedule
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. "THE TECHWORK STANDARD" VS TYPICAL CONTRACTORS */}
+      <section id="comparison" className="py-20 bg-slate-950 border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-2">
+              Why 1,248+ Homeowners Trust Us
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              The TechWork Standard
+            </h2>
+            <p className="text-slate-400 text-sm mt-3">
+              We engineered the service process to eliminate the anxiety and delays of traditional HVAC companies.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Typical Contractors */}
+            <div className="p-7 sm:p-9 rounded-3xl border border-rose-500/10 bg-rose-950/[0.04] space-y-5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">
+                  ✕
+                </div>
+                <h3 className="font-bold text-lg text-slate-300">Traditional HVAC Contractors</h3>
+              </div>
+              <ul className="space-y-3.5 text-xs sm:text-sm text-slate-400">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-bold mt-0.5">✕</span>
+                  <span>Vague 4-to-6 hour arrival windows that ruin your entire work day</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-bold mt-0.5">✕</span>
+                  <span>Mystery quotes and hidden labor charges introduced after work starts</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-bold mt-0.5">✕</span>
+                  <span>Random third-party subcontractors with unverified certifications</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-bold mt-0.5">✕</span>
+                  <span>Dirty boots on your carpets and zero cleanup responsibility</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-bold mt-0.5">✕</span>
+                  <span>Paper receipts that get lost when warranty claims arise</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* TechWork Platform */}
+            <div className="p-7 sm:p-9 rounded-3xl border border-cyan-500/30 bg-cyan-950/[0.1] space-y-5 shadow-2xl shadow-cyan-950/20">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-cyan-500 text-slate-950 flex items-center justify-center font-bold">
+                  ✓
+                </div>
+                <h3 className="font-bold text-lg text-white">TechWork ServicePro OS</h3>
+              </div>
+              <ul className="space-y-3.5 text-xs sm:text-sm text-slate-200">
+                <li className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span><strong>Live GPS Driver Radar:</strong> Watch your tech navigate in real-time with an exact 15-minute SMS notice</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span><strong>100% Upfront Digital Approvals:</strong> Authorize your line-item estimate on your phone before a tool is lifted</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span><strong>W-2 EPA Master Technicians:</strong> Background-checked, uniformed, drug-screened career professionals</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span><strong>Shoe Booties &amp; Floor Runners:</strong> We leave your home cleaner than we found it, guaranteed</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span><strong>Permanent Digital Records:</strong> All invoices, photos, and warranties stored safely in your customer portal</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. VERIFIED JOB TELEMETRY FEED */}
+      <section className="py-16 bg-slate-900/30 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2 text-xs font-mono text-cyan-400">
+              <Activity className="w-4 h-4 animate-spin text-cyan-400" />
+              <span>LIVE COMPLETED SERVICE FEED • MIAMI DISPATCH</span>
+            </div>
+            <span className="text-xs text-slate-500 font-mono hidden sm:inline">
+              Updated 4 minutes ago
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-cyan-400 font-bold">#WO-8421</span>
+                <span className="text-emerald-400 font-mono text-[11px]">✓ Completed in 38m</span>
+              </div>
+              <p className="text-white font-bold text-sm">Brickell Key Penthouse</p>
+              <p className="text-slate-400 text-xs">
+                Emergency capacitor replacement &amp; coil pressure balance. Indoor temp dropped from 84°F to 71°F.
+              </p>
+              <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-white/5">
+                <span>Tech: Carlos M. (Tier 3)</span>
+                <span className="text-amber-400 font-bold">★★★★★ 5.0</span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-cyan-400 font-bold">#WO-8418</span>
+                <span className="text-emerald-400 font-mono text-[11px]">✓ Completed in 52m</span>
+              </div>
+              <p className="text-white font-bold text-sm">Coral Gables Luxury Villa</p>
+              <p className="text-slate-400 text-xs">
+                Condensate line nitrogen blowout + Ecobee smart multi-sensor installation.
+              </p>
+              <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-white/5">
+                <span>Tech: David L. (Tier 2)</span>
+                <span className="text-amber-400 font-bold">★★★★★ 5.0</span>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-cyan-400 font-bold">#WO-8415</span>
+                <span className="text-emerald-400 font-mono text-[11px]">✓ Completed in 45m</span>
+              </div>
+              <p className="text-white font-bold text-sm">Coconut Grove Waterfront</p>
+              <p className="text-slate-400 text-xs">
+                Thermal imaging freon leak pinpoint on Trane 4-ton rooftop heat pump.
+              </p>
+              <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-white/5">
+                <span>Tech: Marcus V. (Master)</span>
+                <span className="text-amber-400 font-bold">★★★★★ 5.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. REVIEWS & TESTIMONIALS */}
+      <section id="reviews" className="py-20 bg-slate-950 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 text-amber-300 text-xs font-mono mb-4">
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              <span>VERIFIED GOOGLE &amp; ANGI AUDITS</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              Loved by Homeowners Across Miami
+            </h2>
+            <p className="text-slate-400 text-sm mt-3">
+              Read uncensored feedback from verified clients who survived South Florida heatwaves with our help.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {reviews.map((rev, idx) => (
-              <div
-                key={idx}
-                className="p-6 rounded-2xl bg-[#07121C] border border-white/5 flex flex-col justify-between"
+            <div className="p-7 rounded-3xl bg-slate-900/50 border border-white/10 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex text-amber-400 text-sm">★★★★★</div>
+                <p className="text-slate-300 text-sm leading-relaxed italic">
+                  &ldquo;Our AC failed on a Saturday afternoon with family visiting and the house at 86 degrees. TechWork had a master technician at our door in 28 minutes. He tested the capacitor on his digital tablet, showed me the readings, and fixed it immediately. Lifesavers!&rdquo;
+                </p>
+              </div>
+              <div className="pt-4 border-t border-white/5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-sm">
+                  SJ
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Sarah Jenkins</p>
+                  <p className="text-xs text-slate-500">Brickell • Verified Customer</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-slate-900/50 border border-white/10 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex text-amber-400 text-sm">★★★★★</div>
+                <p className="text-slate-300 text-sm leading-relaxed italic">
+                  &ldquo;The GPS tracker on my phone showed Carlos moving through traffic, and he texted when he was 5 minutes away. No waiting around in a four-hour window. The digital quote before work started was 100% accurate. This is how all trade services should operate.&rdquo;
+                </p>
+              </div>
+              <div className="pt-4 border-t border-white/5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-sm">
+                  RH
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Robert Hernandez</p>
+                  <p className="text-xs text-slate-500">Coral Gables • Verified Customer</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-7 rounded-3xl bg-slate-900/50 border border-white/10 flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex text-amber-400 text-sm">★★★★★</div>
+                <p className="text-slate-300 text-sm leading-relaxed italic">
+                  &ldquo;We signed up for their seasonal care plan after they solved a persistent water leak that two previous companies couldn&apos;t figure out. Clean booties, zero drywall damage, completely transparent.&rdquo;
+                </p>
+              </div>
+              <div className="pt-4 border-t border-white/5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-sm">
+                  EM
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Elena Morales</p>
+                  <p className="text-xs text-slate-500">Coconut Grove • Verified Customer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 10. NEIGHBORHOODS COVERAGE */}
+      <section className="py-16 bg-slate-900/20 border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-xl mx-auto mb-8">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-1">
+              Active Coverage Radius
+            </p>
+            <h3 className="text-xl sm:text-2xl font-bold text-white">
+              Serving All Greater Miami Neighborhoods
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {SERVICE_AREAS.map((area) => (
+              <Link
+                key={area.slug}
+                href={`/service-areas/${area.slug}`}
+                className="p-3.5 rounded-xl border border-white/5 bg-slate-950/60 hover:border-cyan-500/30 hover:bg-slate-900/80 transition-all flex items-center justify-between group"
               >
                 <div>
-                  <div className="flex text-amber-400 text-xs mb-3">★★★★★</div>
-                  <p className="text-slate-300 text-sm leading-relaxed mb-6 italic">
-                    &ldquo;{rev.text}&rdquo;
+                  <p className="text-xs font-bold text-slate-200 group-hover:text-cyan-400 transition-colors">
+                    {area.name}
                   </p>
+                  <p className="text-[10px] text-slate-500 font-mono">Avg ETA: {area.eta}</p>
                 </div>
-                <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-bold text-sm">{rev.name}</p>
-                    <p className="text-xs text-slate-400">{rev.location}</p>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-cyan-400 group-hover:translate-x-0.5 transition-all" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 11. INTERACTIVE ACCORDION FAQ */}
+      <section id="faq" className="py-20 bg-slate-950 border-t border-white/5">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <p className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400 mb-2">
+              Clear Answers, No Jargon
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {FAQS.map((faq, idx) => (
+              <div
+                key={idx}
+                className="rounded-2xl border border-white/10 bg-slate-900/40 overflow-hidden transition-colors"
+              >
+                <button
+                  onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
+                  className="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-white hover:text-cyan-400 transition-colors"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-cyan-400 transition-transform shrink-0 ${
+                      activeFaq === idx ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {activeFaq === idx && (
+                  <div className="px-6 pb-6 pt-1 text-slate-300 text-xs sm:text-sm leading-relaxed border-t border-white/5">
+                    {faq.a}
                   </div>
-                  <span className="text-[11px] text-[#28CAF2] font-semibold">
-                    Avis vérifié
-                  </span>
-                </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 8. FAQ */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#28CAF2] mb-2">
-            Questions Fréquentes
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Tout savoir sur nos services à <span className="text-[#28CAF2]">La Réunion</span>
+      {/* 12. HIGH-IMPACT CLOSING COMMAND DECK */}
+      <section className="py-20 bg-gradient-to-b from-slate-950 to-[#02050e] border-t border-white/10 relative overflow-hidden">
+        <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cyan-500/10 blur-[140px] -z-10" />
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 text-xs font-mono">
+            <ShieldCheck className="w-4 h-4" />
+            <span>FLORIDA STATE LICENSE #CAC1819420</span>
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
+            Never Sweat in Your Own Home Again.
           </h2>
-        </div>
 
-        <div className="space-y-3">
-          {faqs.map((faq, idx) => (
-            <div
-              key={idx}
-              className="rounded-xl border border-white/10 bg-[#0b1724] overflow-hidden transition-colors"
-            >
-              <button
-                onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
-                className="w-full px-5 py-4 text-left flex items-center justify-between gap-4"
-              >
-                <span className="font-semibold text-white text-sm sm:text-base">
-                  {faq.q}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 text-[#28CAF2] transition-transform ${
-                    activeFaq === idx ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {activeFaq === idx && (
-                <div className="px-5 pb-5 pt-1 text-slate-300 text-sm leading-relaxed border-t border-white/5">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 9. CONTACT / DEVIS FORM */}
-      <section id="contact" className="py-20 bg-[#091926] border-t border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-5 space-y-6">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#28CAF2]">
-              Contact Direct
-            </p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Parlons de votre projet <span className="text-[#28CAF2]">en direct.</span>
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Remplissez le formulaire ci-contre pour nous transmettre votre demande. Vous serez automatiquement redirigé vers WhatsApp avec votre message pré-rempli pour une réponse ultra rapide !
-            </p>
-
-            <div className="space-y-4 pt-2">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.04] border border-white/10 hover:border-[#28CAF2]/50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-[#28CAF2]/10 flex items-center justify-center text-[#28CAF2]">
-                  <MessageCircle className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">WhatsApp Réunion</p>
-                  <p className="text-sm font-bold text-white">{phoneDisplay}</p>
-                </div>
-              </a>
-
-              <a
-                href={`tel:${phoneCall}`}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.04] border border-white/10 hover:border-[#28CAF2]/50 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full bg-[#28CAF2]/10 flex items-center justify-center text-[#28CAF2]">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">Téléphone Direct</p>
-                  <p className="text-sm font-bold text-white">{phoneDisplay}</p>
-                </div>
-              </a>
-
-              <div className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.04] border border-white/10">
-                <div className="w-10 h-10 rounded-full bg-[#28CAF2]/10 flex items-center justify-center text-[#28CAF2]">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">Secteur d&apos;intervention</p>
-                  <p className="text-sm font-bold text-white">Toute La Réunion (974)</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-7">
-            <div className="p-6 sm:p-8 rounded-2xl bg-[#0b1724] border border-white/10 shadow-2xl">
-              <h3 className="text-xl font-bold text-white mb-2">
-                Demande de devis &amp; renseignement
-              </h3>
-              <p className="text-slate-400 text-xs sm:text-sm mb-6">
-                Réponse sous 24h ouvrées — Devis gratuit et sans engagement
-              </p>
-
-              {formSent && (
-                <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Votre demande a été envoyée ! Nous vous répondrons très rapidement.</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Nom complet *
-                    </label>
-                    <input
-                      name="name"
-                      required
-                      placeholder="Ex: Jean Payet"
-                      className="w-full bg-[#07121C] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#28CAF2]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Numéro de téléphone *
-                    </label>
-                    <input
-                      name="phone"
-                      type="tel"
-                      required
-                      placeholder="0692 XX XX XX"
-                      className="w-full bg-[#07121C] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#28CAF2]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Commune / Secteur
-                    </label>
-                    <input
-                      name="city"
-                      placeholder="Ex: Saint-Pierre, Saint-Leu..."
-                      className="w-full bg-[#07121C] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#28CAF2]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      Type de prestation
-                    </label>
-                    <select
-                      name="service"
-                      className="w-full bg-[#07121C] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#28CAF2]"
-                    >
-                      <option value="Installation">Installation de climatiseur</option>
-                      <option value="Dépannage">Dépannage d&apos;urgence</option>
-                      <option value="Entretien">Entretien &amp; Nettoyage</option>
-                      <option value="Chambre froide">Chambres froides &amp; Froid commercial</option>
-                      <option value="Autre">Autre renseignement</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Votre message / Description du besoin
-                  </label>
-                  <textarea
-                    name="message"
-                    rows={4}
-                    placeholder="Précisez votre demande (nombre de pièces, marque, panne constatée...)"
-                    className="w-full bg-[#07121C] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#28CAF2] resize-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3.5 px-6 rounded-full bg-[#28CAF2] hover:bg-[#38d4fc] text-[#091926] font-bold text-sm transition-all shadow-lg shadow-[#28CAF2]/25 flex items-center justify-center gap-2"
-                >
-                  <MessageCircle className="w-4 h-4" /> Envoyer ma demande via WhatsApp
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 10. FOOTER */}
-      <footer className="bg-[#050D14] border-t border-white/10 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-          <div className="flex items-center gap-1.5 font-bold tracking-tight text-xl">
-            <span className="text-[#28CAF2]">CLIM TECH</span>
-            <span className="text-[#28CAF2] text-xl">❄</span>
-            <span className="text-[#FF3908]">OI</span>
-          </div>
-
-          <p className="text-slate-400 text-xs">
-            © {new Date().getFullYear()} CLIM TECH OI. Spécialiste Climatisation &amp; Froid à La Réunion (974). Tous droits réservés.
+          <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+            Lock in a guaranteed arrival window with our top-rated technicians. Real-time GPS tracking, upfront pricing, and 100% satisfaction guaranteed.
           </p>
 
-          <a
-            href="#accueil"
-            className="text-xs text-[#28CAF2] hover:text-white transition-colors"
-          >
-            Retour en haut ↑
-          </a>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/book"
+              className="w-full sm:w-auto px-9 py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-bold text-white text-base transition-all shadow-xl shadow-cyan-500/25 flex items-center justify-center gap-2"
+            >
+              <span>Book Online (Instant Confirmation)</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <a
+              href="tel:3055550100"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] font-bold text-white text-base transition-all flex items-center justify-center gap-2 backdrop-blur-md"
+            >
+              <Phone className="w-4 h-4 text-cyan-400" />
+              <span>Call (305) 555-0100</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 13. SLEEK OBSIDIAN FOOTER */}
+      <footer className="bg-[#020611] border-t border-white/5 py-14 px-4 sm:px-6 lg:px-8 text-xs text-slate-400">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+          {/* Brand Col */}
+          <div className="col-span-2 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-slate-950 font-black">
+                <Wrench className="w-4 h-4" />
+              </div>
+              <span className="font-bold text-base text-white">TechWork Services</span>
+            </div>
+            <p className="text-slate-400 max-w-sm leading-relaxed text-xs">
+              Engineering-grade climate control, thermal diagnostics, and emergency HVAC restoration across Miami-Dade County.
+            </p>
+            <p className="font-mono text-[11px] text-slate-500">
+              1200 Brickell Ave, Suite 400, Miami, FL 33131
+            </p>
+          </div>
+
+          {/* Col 2: Services */}
+          <div className="space-y-3">
+            <p className="font-bold text-white font-mono uppercase text-[11px]">Services</p>
+            <ul className="space-y-2">
+              <li><Link href="/services/ac-repair" className="hover:text-cyan-400 transition-colors">AC Repair</Link></li>
+              <li><Link href="/services/ac-tuneup" className="hover:text-cyan-400 transition-colors">21-Point Tune-Up</Link></li>
+              <li><Link href="/services/emergency-hvac" className="hover:text-cyan-400 transition-colors">Emergency HVAC</Link></li>
+              <li><Link href="/services/duct-cleaning" className="hover:text-cyan-400 transition-colors">Duct Cleaning</Link></li>
+              <li><Link href="/services/thermostat-install" className="hover:text-cyan-400 transition-colors">Smart Thermostats</Link></li>
+            </ul>
+          </div>
+
+          {/* Col 3: Company */}
+          <div className="space-y-3">
+            <p className="font-bold text-white font-mono uppercase text-[11px]">Platform</p>
+            <ul className="space-y-2">
+              <li><Link href="/how-it-works" className="hover:text-cyan-400 transition-colors">How It Works</Link></li>
+              <li><Link href="/pricing" className="hover:text-cyan-400 transition-colors">Pricing &amp; Guarantee</Link></li>
+              <li><Link href="/reviews" className="hover:text-cyan-400 transition-colors">Customer Reviews</Link></li>
+              <li><Link href="/areas" className="hover:text-cyan-400 transition-colors">Service Areas</Link></li>
+              <li><Link href="/specials" className="hover:text-cyan-400 transition-colors">Seasonal Specials</Link></li>
+            </ul>
+          </div>
+
+          {/* Col 4: Portals & Legal */}
+          <div className="space-y-3">
+            <p className="font-bold text-white font-mono uppercase text-[11px]">Portals &amp; Legal</p>
+            <ul className="space-y-2">
+              <li><Link href="/account" className="hover:text-cyan-400 transition-colors">Customer Portal</Link></li>
+              <li><Link href="/tech" className="hover:text-cyan-400 transition-colors">Technician Portal</Link></li>
+              <li><Link href="/admin" className="hover:text-cyan-400 transition-colors">Admin Dispatch</Link></li>
+              <li><Link href="/privacy" className="hover:text-cyan-400 transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-cyan-400 transition-colors">Terms of Service</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
+          <p>© {new Date().getFullYear()} TechWork Services LLC. Florida HVAC License #CAC1819420. All rights reserved.</p>
+          <div className="flex items-center gap-4 text-slate-500 font-mono">
+            <span>SECURE 256-BIT ENCRYPTION</span>
+            <span>•</span>
+            <span>EPA UNIVERSAL CERTIFIED</span>
+          </div>
         </div>
       </footer>
     </div>
