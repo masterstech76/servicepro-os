@@ -68,8 +68,9 @@ export function Navbar() {
     };
   }, [mobileMenuOpen]);
 
-  // Hide global navbar on dashboard, tech portal, and all auth pages
+  // Hide global navbar on landing page (which renders its own standalone CLIM TECH navbar), dashboard, tech portal, and all auth pages
   const isAuthPage =
+    pathname === "/" ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/tech") ||
     pathname?.startsWith("/login") ||

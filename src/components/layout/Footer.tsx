@@ -11,8 +11,9 @@ export function Footer() {
   const pathname = usePathname();
   const [email, setEmail] = React.useState("");
 
-  // Hide global footer on dashboard, tech portal, and all auth pages
+  // Hide global footer on landing page (which renders its own standalone CLIM TECH footer), dashboard, tech portal, and all auth pages
   const isAuthPage =
+    pathname === "/" ||
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/tech") ||
     pathname?.startsWith("/login") ||
