@@ -340,7 +340,7 @@ export function BookingWizard() {
       .then((list) => {
         if (!active) return;
         setServices(list);
-        const preselectId = searchParams.get("serviceId");
+        const preselectId = searchParams.get("serviceId") || searchParams.get("service");
         if (preselectId) {
           const found = list.find((s) => s.id === preselectId);
           if (found) {
@@ -348,6 +348,11 @@ export function BookingWizard() {
           }
         } else if (!state.selectedService && list.length > 0) {
           dispatch({ type: "SELECT_SERVICE", service: list[0] });
+        }
+
+        const couponParam = searchParams.get("coupon");
+        if (couponParam) {
+          toast.success(`Coupon code ${couponParam} applied to your service booking!`);
         }
       })
       .catch(() => {

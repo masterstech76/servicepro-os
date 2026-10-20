@@ -265,7 +265,7 @@ export default async function ServiceAreaDetailPage({
               </Link>
             </Button>
             <a
-              href={`tel:${businessConfig.phone}`}
+              href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}
               className="inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-orange-600 px-4 py-3 rounded-xl border border-slate-300 hover:border-orange-300 transition-all"
             >
               <Phone className="h-4 w-4 text-orange-500" />

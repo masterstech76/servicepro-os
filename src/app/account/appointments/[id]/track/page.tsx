@@ -102,13 +102,26 @@ export default function TechnicianTrackingPage() {
     try {
       const res = await fetch(`/api/account/appointments/${jobId}`);
       if (!res.ok) {
-        setJob(createDemoTrackJob(jobId));
-        return;
+        if (jobId.includes("demo") || jobId.includes("1004") || jobId === "track") {
+          setJob(createDemoTrackJob(jobId));
+          return;
+        }
+        throw new Error(res.status === 404 ? "Tracking record not found for this appointment" : "Failed to load tracking data");
       }
       const data = await res.json();
-      setJob(data.job || createDemoTrackJob(jobId));
-    } catch {
-      setJob(createDemoTrackJob(jobId));
+      if (!data.job && (jobId.includes("demo") || jobId.includes("1004") || jobId === "track")) {
+        setJob(createDemoTrackJob(jobId));
+      } else if (!data.job) {
+        throw new Error("Tracking details unavailable");
+      } else {
+        setJob(data.job);
+      }
+    } catch (err: any) {
+      if (jobId.includes("demo") || jobId.includes("1004") || jobId === "track") {
+        setJob(createDemoTrackJob(jobId));
+      } else {
+        setError(err.message || "Failed to load live tracking");
+      }
     } finally {
       setLoading(false);
     }
@@ -116,12 +129,16 @@ export default function TechnicianTrackingPage() {
 
   React.useEffect(() => {
     fetchJob();
-    // Poll every 15 seconds if job is actively on the way
+  }, [fetchJob]);
+
+  // Only poll every 15 seconds if job is actively on the way
+  React.useEffect(() => {
+    if (job?.status !== "on_the_way") return;
     const timer = setInterval(() => {
       fetchJob();
     }, 15000);
     return () => clearInterval(timer);
-  }, [fetchJob]);
+  }, [job?.status, fetchJob]);
 
   if (loading) {
     return (
@@ -354,7 +371,7 @@ export default function TechnicianTrackingPage() {
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <a
-              href={`tel:${job.technician.phone}`}
+              href={`tel:${job.technician.phone.replace(/\D/g, "")}`}
               className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 font-bold text-xs px-4 py-2.5 shadow flex items-center gap-1.5 transition-colors"
             >
               <Phone className="h-3.5 w-3.5" />

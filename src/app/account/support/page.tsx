@@ -140,21 +140,59 @@ export default function SupportMessengerPage() {
       const res = await fetch("/api/account/support");
       if (res.ok) {
         const data = await res.json();
-        setTickets(data.tickets || []);
+        const apiTickets = data.tickets || [];
+        setTickets(apiTickets);
+        if (apiTickets.length > 0 && selectedThreadId === "conv-1") {
+          setSelectedThreadId(apiTickets[0].id);
+        }
       }
     } catch {
       // fallback to demo threads
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedThreadId]);
 
   React.useEffect(() => {
     fetchTickets();
   }, [fetchTickets]);
 
-  const activeMessages = threadMessages[selectedThreadId] || threadMessages["conv-1"];
-  const activeConversation = DEFAULT_CONVERSATIONS.find((c) => c.id === selectedThreadId) || DEFAULT_CONVERSATIONS[0];
+  // Merge real API tickets with fallback demo conversations
+  const allConversations = React.useMemo(() => {
+    const apiThreads = tickets.map((t) => ({
+      id: t.id,
+      ticketNumber: t.ticketNumber || `#TKT-${t.id.slice(0, 6)}`,
+      subject: t.subject,
+      preview: t.message,
+      status: t.status === "resolved" ? ("resolved" as const) : ("in_progress" as const),
+      category: t.category.toUpperCase(),
+      time: format(new Date(t.createdAt), "MMM d, h:mm a"),
+      messages: threadMessages[t.id] || [
+        {
+          id: `m-init-${t.id}`,
+          sender: "customer" as const,
+          senderName: "You",
+          text: t.message,
+          timestamp: format(new Date(t.createdAt), "h:mm a"),
+          status: "delivered" as const,
+        },
+      ],
+    }));
+
+    const existingIds = new Set(apiThreads.map((t) => t.id));
+    const fallbackThreads = DEFAULT_CONVERSATIONS.filter((c) => !existingIds.has(c.id));
+    return [...apiThreads, ...fallbackThreads];
+  }, [tickets, threadMessages]);
+
+  const activeConversation =
+    allConversations.find((c) => c.id === selectedThreadId) ||
+    allConversations[0] ||
+    DEFAULT_CONVERSATIONS[0];
+
+  const activeMessages =
+    threadMessages[selectedThreadId] ||
+    activeConversation?.messages ||
+    DEFAULT_CONVERSATIONS[0].messages;
 
   function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
@@ -303,7 +341,7 @@ export default function SupportMessengerPage() {
 
             {/* Conversation Threads */}
             <div className="divide-y divide-slate-100 overflow-y-auto max-h-[500px]">
-              {DEFAULT_CONVERSATIONS.map((conv) => {
+              {allConversations.map((conv) => {
                 const isSelected = selectedThreadId === conv.id;
 
                 return (

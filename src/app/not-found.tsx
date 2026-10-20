@@ -14,7 +14,7 @@ export default function NotFound() {
         <p className="mt-2 text-sm text-slate-600">
           The page you are looking for does not exist or has moved. Need immediate assistance from{" "}
           <span className="font-semibold text-slate-900">{businessConfig.businessName}</span>? Call{" "}
-          <a href={`tel:${businessConfig.phone}`} className="font-semibold underline">
+          <a href={`tel:${businessConfig.phone.replace(/\D/g, "")}`} className="font-semibold underline">
             {businessConfig.phone}
           </a>
           .

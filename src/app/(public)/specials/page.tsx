@@ -57,7 +57,7 @@ const DEALS: SpecialDeal[] = [
     claimedPercent: 88,
     dealType: "Flash Deal",
     serviceSlug: "ac-repair",
-    bookUrl: "/book?service=svc-ac-repair&coupon=FIRST25",
+    bookUrl: "/book?serviceId=svc-ac-repair&coupon=FIRST25",
   },
   {
     id: "deal-2",
@@ -78,7 +78,7 @@ const DEALS: SpecialDeal[] = [
     claimedPercent: 92,
     dealType: "Seasonal Rebate",
     serviceSlug: "ac-tuneup",
-    bookUrl: "/book?service=svc-ac-tuneup&coupon=TUNE89",
+    bookUrl: "/book?serviceId=svc-ac-tuneup&coupon=TUNE89",
   },
   {
     id: "deal-3",
@@ -99,7 +99,7 @@ const DEALS: SpecialDeal[] = [
     claimedPercent: 74,
     dealType: "Limited Capacity",
     serviceSlug: "duct-cleaning",
-    bookUrl: "/book?service=svc-duct-cleaning&coupon=CLEANAIR50",
+    bookUrl: "/book?serviceId=svc-duct-cleaning&coupon=CLEANAIR50",
   },
   {
     id: "deal-4",
@@ -120,7 +120,7 @@ const DEALS: SpecialDeal[] = [
     claimedPercent: 65,
     dealType: "Energy Rebate",
     serviceSlug: "thermostat-install",
-    bookUrl: "/book?service=svc-thermostat-install&coupon=NEST30",
+    bookUrl: "/book?serviceId=svc-thermostat-install&coupon=NEST30",
   },
 ];
 
@@ -134,8 +134,14 @@ export default function SpecialsPage() {
     return DEALS.filter((d) => d.category === selectedFilter);
   }, [selectedFilter]);
 
-  function handleClipCoupon(code: string) {
-    navigator.clipboard.writeText(code);
+  async function handleClipCoupon(code: string) {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(code);
+      }
+    } catch {
+      // Fallback for non-secure contexts
+    }
     setCopiedCode(code);
     toast.success(`Coupon code ${code} clipped to clipboard! Auto-applied to your booking.`);
     setTimeout(() => {

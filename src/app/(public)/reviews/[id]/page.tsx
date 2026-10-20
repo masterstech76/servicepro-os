@@ -52,8 +52,8 @@ const REVIEWS_STORE: Record<string, ReviewSpotlight> = {
     location: "Brickell, Miami, FL",
     service: "AC Repair & Diagnostic",
     serviceSlug: "/services/ac-repair",
-    technicianName: "Carlos Rodriguez",
-    technicianHandle: "carlos_hvac_lead",
+    technicianName: "Carlos Mendez",
+    technicianHandle: "carlos_mendez_lead",
     rating: 5,
     date: "October 14, 2026",
     jobId: "#WO-1004",
@@ -98,8 +98,8 @@ const REVIEWS_STORE: Record<string, ReviewSpotlight> = {
     location: "Coral Gables, FL",
     service: "Smart Thermostat Installation",
     serviceSlug: "/services/thermostat-install",
-    technicianName: "Carlos Rodriguez",
-    technicianHandle: "carlos_hvac_lead",
+    technicianName: "Carlos Mendez",
+    technicianHandle: "carlos_mendez_lead",
     rating: 5,
     date: "September 29, 2026",
     jobId: "#WO-1001",
@@ -137,6 +137,29 @@ const REVIEWS_STORE: Record<string, ReviewSpotlight> = {
     techComment:
       "Always test before you replace! So glad we saved you thousands of dollars Sophia!",
   },
+  "rev-5": {
+    id: "rev-5",
+    author: "Anthony Vargas",
+    username: "anthony_vargas_doral",
+    location: "Doral, FL",
+    service: "Emergency AC Repair",
+    serviceSlug: "/services/emergency-hvac",
+    technicianName: "Carlos Mendez",
+    technicianHandle: "carlos_mendez_lead",
+    rating: 5,
+    date: "September 15, 2026",
+    jobId: "#WO-0988",
+    image: "/images/svc-ac-repair.jpg",
+    likes: 126,
+    headline: "Late night emergency repair during severe heat wave",
+    fullReview:
+      "Our central AC stopped blowing cold at 9:30 PM on a Tuesday with a 3-month-old infant in the home. TechWork dispatch had Carlos at our door within 45 minutes. He diagnosed a locked rotor on the condenser fan, installed a temporary motor to get cold air circulating, and returned the next morning with the exact OEM replacement. Lifesavers.",
+    problemSummary: "Condenser fan motor thermal overload trip resulting in complete system shutdown.",
+    resolutionSummary:
+      "Installed universal rescue motor, restored airflow, flushed primary drain line, and verified 18-degree delta split.",
+    techComment:
+      "Safety first when infants are in the home Anthony! Happy we got the cold air restored before midnight! ❄️",
+  },
 };
 
 export async function generateStaticParams() {
@@ -161,7 +184,11 @@ export default async function ReviewDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const review = REVIEWS_STORE[id] || REVIEWS_STORE["rev-1"];
+  const review = REVIEWS_STORE[id];
+
+  if (!review) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-navy-900 pb-16">

@@ -111,7 +111,7 @@ const rawConfig: BusinessConfig = {
     appliesTo: "parts",
   },
   policy: {
-    cancellationWindowHours: 24,
+    cancellationWindowHours: 2,
     requireBeforePhoto: true,
     requireAfterPhoto: true,
     techCanEditHours: true,

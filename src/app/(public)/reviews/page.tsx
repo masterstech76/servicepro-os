@@ -176,21 +176,32 @@ const STAR_DISTRIBUTION = [
   { stars: 1, count: 2, percentage: 0.5 },
 ];
 
+const TOPIC_CHIPS = [
+  "All",
+  "AC Repair",
+  "Tune-Up",
+  "Emergency Service",
+  "Capacitor",
+  "Carlos (Lead Tech)",
+  "Fair Price",
+  "Punctual",
+];
+
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  "All": [],
+  "AC Repair": ["repair", "ac repair"],
+  "Tune-Up": ["tune-up", "tune up", "maintenance"],
+  "Emergency Service": ["emergency", "sunday", "24/7", "night"],
+  "Capacitor": ["capacitor"],
+  "Carlos (Lead Tech)": ["carlos"],
+  "Fair Price": ["price", "pricing", "value", "upfront", "cost"],
+  "Punctual": ["punctual", "punctuality", "on time", "fast", "35 mins"],
+};
+
 export default function ReviewsPage() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedTopic, setSelectedTopic] = React.useState<string>("All");
   const [helpfulLikes, setHelpfulLikes] = React.useState<Record<string, number>>({});
-
-  const TOPIC_CHIPS = [
-    "All",
-    "AC Repair",
-    "Tune-Up",
-    "Emergency Service",
-    "Capacitor",
-    "Carlos (Lead Tech)",
-    "Fair Price",
-    "Punctual",
-  ];
 
   const filteredReviews = React.useMemo(() => {
     return REVIEWS_DATA.filter((rev) => {
@@ -203,9 +214,11 @@ export default function ReviewsPage() {
 
       const matchesTopic =
         selectedTopic === "All" ||
-        rev.service.toLowerCase().includes(selectedTopic.toLowerCase()) ||
-        rev.reviewText.toLowerCase().includes(selectedTopic.toLowerCase()) ||
-        rev.positiveTags.some((t) => t.toLowerCase().includes(selectedTopic.toLowerCase()));
+        (() => {
+          const keywords = TOPIC_KEYWORDS[selectedTopic] || [selectedTopic.toLowerCase()];
+          const haystack = `${rev.service} ${rev.reviewText} ${rev.positiveTags.join(" ")} ${rev.author} ${rev.neighborhood}`.toLowerCase();
+          return keywords.some((kw) => haystack.includes(kw.toLowerCase()));
+        })();
 
       return matchesSearch && matchesTopic;
     });

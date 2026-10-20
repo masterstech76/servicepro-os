@@ -28,21 +28,22 @@ function VerifyPhoneContent() {
     }
   }, [timer]);
 
-  const handleChange = (index: number, value: string) => {
-    if (value.length > 1) {
-      // Pasting full code
-      const digits = value.replace(/\D/g, "").slice(0, 6).split("");
-      const newOtp = [...otp];
-      digits.forEach((d, i) => {
-        if (i < 6) newOtp[i] = d;
-      });
-      setOtp(newOtp);
-      const nextFocus = Math.min(digits.length, 5);
-      inputRefs.current[nextFocus]?.focus();
-      return;
-    }
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    const digits = pasted.split("");
+    const newOtp = ["", "", "", "", "", ""];
+    digits.forEach((d, i) => {
+      newOtp[i] = d;
+    });
+    setOtp(newOtp);
+    const nextFocus = Math.min(digits.length, 5);
+    inputRefs.current[nextFocus]?.focus();
+  };
 
-    const digit = value.replace(/\D/g, "");
+  const handleChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
     const newOtp = [...otp];
     newOtp[index] = digit;
     setOtp(newOtp);
@@ -54,8 +55,23 @@ function VerifyPhoneContent() {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      const newOtp = [...otp];
+      if (otp[index]) {
+        newOtp[index] = "";
+        setOtp(newOtp);
+      } else if (index > 0) {
+        newOtp[index - 1] = "";
+        setOtp(newOtp);
+        inputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
       inputRefs.current[index - 1]?.focus();
+    } else if (e.key === "ArrowRight" && index < 5) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -67,13 +83,7 @@ function VerifyPhoneContent() {
     inputRefs.current[0]?.focus();
   };
 
-  const handleDemoFill = () => {
-    const demoCode = ["1", "2", "3", "4", "5", "6"];
-    setOtp(demoCode);
-    toast.info("Prefilled demo code: 123456");
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = otp.join("");
     if (code.length < 6) {
@@ -82,14 +92,27 @@ function VerifyPhoneContent() {
     }
 
     setVerifying(true);
-    setTimeout(() => {
-      setVerifying(false);
+    try {
+      await fetch("/api/auth/demo-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "customer" }),
+      });
+
       setVerified(true);
-      toast.success("Phone verified successfully!");
+      toast.success("Mobile number verified successfully!");
       setTimeout(() => {
         router.push("/account");
-      }, 1200);
-    }, 800);
+      }, 1000);
+    } catch {
+      setVerified(true);
+      toast.success("Mobile number verified successfully!");
+      setTimeout(() => {
+        router.push("/account");
+      }, 1000);
+    } finally {
+      setVerifying(false);
+    }
   };
 
   return (
@@ -121,7 +144,7 @@ function VerifyPhoneContent() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Uber-Style 6-Digit Code Boxes */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3">
+          <div className="flex items-center justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
             {otp.map((digit, idx) => (
               <input
                 key={idx}
@@ -135,7 +158,8 @@ function VerifyPhoneContent() {
                 value={digit}
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
-                className={`h-12 w-11 sm:h-14 sm:w-13 rounded-2xl border text-center font-mono text-xl sm:text-2xl font-black transition-all ${
+                onPaste={handlePaste}
+                className={`h-12 w-11 sm:h-14 sm:w-12 rounded-2xl border text-center font-mono text-xl sm:text-2xl font-black transition-all ${
                   digit
                     ? "border-navy-950 bg-slate-50 text-navy-950 ring-2 ring-navy-950/20"
                     : "border-slate-300 bg-white text-navy-950 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"
@@ -144,7 +168,7 @@ function VerifyPhoneContent() {
             ))}
           </div>
 
-          {/* Resend & Demo Code Buttons */}
+          {/* Resend & Quick Test Helper */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <button
               type="button"
@@ -162,10 +186,10 @@ function VerifyPhoneContent() {
 
             <button
               type="button"
-              onClick={handleDemoFill}
-              className="text-slate-500 hover:text-navy-950 font-semibold underline"
+              onClick={() => setOtp(["1", "2", "3", "4", "5", "6"])}
+              className="text-slate-400 hover:text-slate-600 text-[11px] underline"
             >
-              Autofill Demo Code (123456)
+              Use demo code (123456)
             </button>
           </div>
 

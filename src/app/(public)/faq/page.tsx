@@ -230,7 +230,7 @@ export default function FAQPage() {
               </Link>
             </Button>
             <a
-              href={`tel:${businessConfig.phone}`}
+              href={`tel:${businessConfig.phone.replace(/\D/g, "")}`}
               className="inline-flex items-center gap-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 px-5 py-3 rounded-xl border border-slate-700 transition-all"
             >
               <Phone className="h-4 w-4 text-orange-400" />
