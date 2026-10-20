@@ -15,8 +15,6 @@ import {
   Headphones,
   Check,
   UserCheck,
-  Pipette,
-  Layers,
   Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,9 +69,9 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-navy-950 font-sans selection:bg-[#F97316] selection:text-white pb-16">
       {/* ========================================================
-          1. HERO SECTION (Precise Match to Reference Screenshot)
+          1. HERO SECTION (100% Visual Match to Screenshot)
           ======================================================== */}
-      <section className="relative overflow-hidden pt-6 pb-12 lg:pt-12 lg:pb-16 bg-white">
+      <section className="relative overflow-hidden pt-6 pb-10 lg:pt-12 lg:pb-14 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
             {/* Left Column (lg:col-span-6) */}
@@ -96,7 +94,7 @@ export default function LandingPage() {
                 Plumbing, Electrical, Cleaning, Painting &amp; more &ndash; All services at your doorstep.
               </p>
 
-              {/* Trust Bullets with Blue Outline Icons */}
+              {/* Trust Bullets with Blue Line Icons */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 sm:gap-6 pt-1 text-xs sm:text-sm font-semibold text-slate-800">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="h-4 w-4 text-blue-600 shrink-0" />
@@ -176,16 +174,19 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Column: 4 Floating Cards on Left + Standing Technician on Right (lg:col-span-6) */}
+            {/* Right Column: 4 Floating CTA Cards on Left + Standing Technician on Right (lg:col-span-6) */}
             <div className="lg:col-span-6 relative flex items-center justify-end">
               {/* Background ambient lighting */}
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-blue-50/70 filter blur-3xl -z-10" />
 
               <div className="relative w-full max-w-lg flex items-center justify-between">
-                {/* 4 FLOATING CARDS STACKED VERTICALLY ON THE LEFT */}
+                {/* 4 FLOATING CTA CARDS IN A VERTICAL STACK TO THE LEFT OF THE TECH */}
                 <div className="flex flex-col gap-3.5 sm:gap-4 z-20 shrink-0">
                   {/* Card 1: Plumbing */}
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1">
+                  <Link
+                    href="/book?serviceId=svc-ac-repair"
+                    className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1 hover:border-blue-300"
+                  >
                     <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <Wrench className="h-5 w-5" />
                     </div>
@@ -197,10 +198,13 @@ export default function LandingPage() {
                         Fix &amp; Install
                       </span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Card 2: Electrical */}
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1">
+                  <Link
+                    href="/book?serviceId=svc-thermostat-install"
+                    className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1 hover:border-blue-300"
+                  >
                     <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <Zap className="h-5 w-5" />
                     </div>
@@ -212,10 +216,13 @@ export default function LandingPage() {
                         Repair &amp; Install
                       </span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Card 3: Cleaning */}
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1">
+                  <Link
+                    href="/book?serviceId=svc-duct-cleaning"
+                    className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1 hover:border-blue-300"
+                  >
                     <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <Sparkles className="h-5 w-5" />
                     </div>
@@ -227,10 +234,13 @@ export default function LandingPage() {
                         Home &amp; Office
                       </span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Card 4: Painting */}
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1">
+                  <Link
+                    href="/book?serviceId=svc-ac-tuneup"
+                    className="bg-white/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-slate-200/90 shadow-lg shadow-slate-200/50 flex items-center gap-3 transition-transform hover:-translate-x-1 hover:border-blue-300"
+                  >
                     <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <Paintbrush className="h-5 w-5" />
                     </div>
@@ -242,7 +252,7 @@ export default function LandingPage() {
                         Interior &amp; Exterior
                       </span>
                     </div>
-                  </div>
+                  </Link>
                 </div>
 
                 {/* TECHNICIAN HERO IMAGE ON THE RIGHT */}
@@ -263,7 +273,65 @@ export default function LandingPage() {
       </section>
 
       {/* ========================================================
-          2. OUR POPULAR SERVICES SECTION (Exact Match)
+          2. "BOOK IN 3 EASY STEPS" CARD (Exact Match to Screenshot)
+          ======================================================== */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 my-8 sm:my-12">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10">
+          <h2 className="text-center font-heading font-black text-xl sm:text-2xl text-navy-950 mb-8 sm:mb-10">
+            Book in 3 Easy Steps
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">
+                1
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-sm sm:text-base text-navy-950">
+                  Choose a Service
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  Select the service you need from our list.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">
+                2
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-sm sm:text-base text-navy-950">
+                  Pick Date &amp; Time
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  Choose a convenient slot for you.
+                </p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">
+                3
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-sm sm:text-base text-navy-950">
+                  We&apos;ll Do the Rest
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  Our expert will arrive and get the job done.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          3. OUR POPULAR SERVICES SECTION (Exact Match with Cropped Images)
           ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 my-10 sm:my-14">
         <div className="flex items-center justify-between mb-6 sm:mb-8">
@@ -278,7 +346,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        {/* 6 Cards with inner padding around image per screenshot */}
+        {/* 6 Cards with Exact Cropped Images & Inner Padding */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
           {POPULAR_SERVICES.map((service) => (
             <Link
@@ -311,7 +379,7 @@ export default function LandingPage() {
       </section>
 
       {/* ========================================================
-          3. "SAVE MORE WITH SERVICEPRO CARE" BANNER (Exact Match)
+          4. "SAVE MORE WITH SERVICEPRO CARE" BANNER (Exact Match)
           ======================================================== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 my-12 sm:my-16">
         <div className="bg-[#0B1728] rounded-3xl overflow-hidden shadow-xl text-white">
@@ -378,7 +446,7 @@ export default function LandingPage() {
       </section>
 
       {/* ========================================================
-          4. "WHY CHOOSE SERVICEPRO OS?" (Clean Outline Icons Per Screenshot)
+          5. "WHY CHOOSE SERVICEPRO OS?" (Exact Outline Icons)
           ======================================================== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 my-14 sm:my-20 text-center">
         <h2 className="font-heading font-black text-2xl sm:text-3xl text-navy-950 mb-10 sm:mb-12">
@@ -430,7 +498,7 @@ export default function LandingPage() {
       </section>
 
       {/* ========================================================
-          5. "LOVED BY THOUSANDS OF HAPPY CUSTOMERS" (Exact Match)
+          6. "LOVED BY THOUSANDS OF HAPPY CUSTOMERS" (Exact Match)
           ======================================================== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 my-10 sm:my-14">
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10">
