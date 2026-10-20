@@ -112,156 +112,111 @@ export function Navbar() {
       {/* MAIN NAVBAR */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
         <div className="max-w-7xl mx-auto flex h-20 items-center justify-between px-4 sm:px-6">
-          {/* ZONE 1 (LEFT): Logo + 60-Min Arrival Guarantee Badge */}
+          {/* ZONE 1 (LEFT): Logo */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="relative h-10 w-40 sm:w-44">
-                <Image
-                  src="/logo-placeholder.svg"
-                  alt={businessConfig.businessName}
-                  fill
-                  priority
-                  sizes="176px"
-                  className="object-contain object-left"
-                />
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-base shadow-sm group-hover:bg-blue-700 transition-colors">
+                <Wrench className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-heading font-black text-lg text-navy-950 leading-tight">
+                  ServicePro <span className="text-blue-600">OS</span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-semibold tracking-wide">
+                  by TechWork
+                </span>
               </div>
             </Link>
-
-            <span className="hidden xl:inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-2.5 py-0.5 text-[11px] font-bold text-orange-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              60-Min Arrival
-            </span>
           </div>
 
           {/* ZONE 2 (CENTER): Desktop Navigation Links */}
           <nav
             aria-label="Primary navigation"
-            className="hidden lg:flex items-center gap-6 xl:gap-7 text-[13px] font-semibold text-slate-700"
+            className="hidden lg:flex items-center gap-7 text-sm font-semibold text-slate-700"
           >
-            {/* Services Dropdown */}
-            <div
-              ref={dropdownRef}
-              className="relative"
-              onMouseEnter={() => setServicesOpen(true)}
-              onMouseLeave={() => setServicesOpen(false)}
-            >
-              <button
-                type="button"
-                onClick={() => setServicesOpen((prev) => !prev)}
-                aria-expanded={servicesOpen}
-                aria-haspopup="true"
-                className={`flex items-center gap-1 hover:text-navy-950 transition-colors py-2 ${
-                  pathname?.startsWith("/services") ? "text-orange-500 font-bold" : ""
-                }`}
-              >
-                <span>Services</span>
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    servicesOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Flyout Menu */}
-              {servicesOpen && (
-                <div className="absolute left-0 top-full pt-2 w-72 z-50">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-xl ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                        HVAC Services Catalog
-                      </p>
-                    </div>
-                    {serviceLinks.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setServicesOpen(false)}
-                        className={`block rounded-xl px-3 py-2 text-xs transition-colors ${
-                          pathname === item.href
-                            ? "bg-orange-50 text-orange-600 font-bold"
-                            : "text-slate-700 hover:bg-slate-50 hover:text-navy-950 font-medium"
-                        }`}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
             <Link
-              href="/areas"
-              className={`hover:text-navy-950 transition-colors ${
-                pathname === "/areas" ? "text-orange-500 font-bold" : ""
+              href="/"
+              className={`hover:text-orange-500 transition-colors ${
+                pathname === "/" ? "text-orange-500 font-bold" : ""
               }`}
             >
-              Service Areas
+              Home
             </Link>
 
             <Link
-              href="/reviews"
-              className={`hover:text-navy-950 transition-colors ${
-                pathname === "/reviews" ? "text-orange-500 font-bold" : ""
+              href="/services"
+              className={`hover:text-orange-500 transition-colors ${
+                pathname?.startsWith("/services") ? "text-orange-500 font-bold" : ""
               }`}
             >
-              Reviews
-            </Link>
-
-            <Link
-              href="/specials"
-              className={`hover:text-navy-950 transition-colors ${
-                pathname === "/specials" ? "text-orange-500 font-bold" : ""
-              }`}
-            >
-              Specials
+              Services
             </Link>
 
             <Link
               href="/how-it-works"
-              className={`hover:text-navy-950 transition-colors ${
+              className={`hover:text-orange-500 transition-colors ${
                 pathname === "/how-it-works" ? "text-orange-500 font-bold" : ""
               }`}
             >
               How It Works
             </Link>
+
+            <Link
+              href="/specials"
+              className={`hover:text-orange-500 transition-colors ${
+                pathname === "/specials" ? "text-orange-500 font-bold" : ""
+              }`}
+            >
+              Pricing
+            </Link>
+
+            <Link
+              href="/specials"
+              className={`hover:text-orange-500 transition-colors ${
+                pathname === "/specials" ? "text-orange-500 font-bold" : ""
+              }`}
+            >
+              Offers
+            </Link>
+
+            <Link
+              href="/about"
+              className={`hover:text-orange-500 transition-colors ${
+                pathname === "/about" ? "text-orange-500 font-bold" : ""
+              }`}
+            >
+              About Us
+            </Link>
           </nav>
 
-          {/* ZONE 3 (RIGHT): Phone Hotline + Book Button + Mobile Hamburger */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* ZONE 3 (RIGHT): Phone + Book Now */}
+          <div className="flex items-center gap-3">
             <a
               href={`tel:${cleanPhone}`}
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-navy-950 hover:text-orange-600 transition-colors py-2 px-1"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-800 hover:border-slate-300 transition-colors"
             >
               <Phone className="h-3.5 w-3.5 text-orange-500" />
-              <span className="text-slate-400 font-normal">24/7 Dispatch:</span>
-              <span className="font-extrabold">{businessConfig.phone}</span>
+              <span>{businessConfig.phone}</span>
             </a>
 
-            <Button
-              asChild
-              size="md"
-              className="rounded-xl bg-orange-500 hover:bg-orange-600 text-navy-900 px-3.5 sm:px-5 py-2 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
-            >
-              <Link href="/book" className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                <span>Book Online</span>
-              </Link>
-            </Button>
+            <Link href="/book">
+              <Button
+                variant="primary"
+                className="bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-lg shadow-sm"
+              >
+                Book Now
+              </Button>
+            </Link>
 
-            {/* Mobile Hamburger Button */}
+            {/* Mobile menu hamburger toggle */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
-              className="lg:hidden p-2 rounded-xl text-navy-950 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="lg:hidden p-2 rounded-xl text-slate-700 hover:text-navy-950 hover:bg-slate-100 transition-colors"
             >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="h-6 w-6" aria-hidden="true" />
-              )}
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
