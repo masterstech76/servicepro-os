@@ -71,7 +71,7 @@ export default function CustomerPayInvoicePage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-50 py-10 px-4">
-        <div className="mx-auto max-w-lg rounded-card border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl rounded-2xl border border-slate-200 bg-white p-5 sm:p-8 shadow-sm space-y-4">
           <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
           <div className="h-24 w-full animate-pulse rounded bg-slate-100" />
           <div className="h-40 w-full animate-pulse rounded bg-slate-100" />
@@ -83,8 +83,8 @@ export default function CustomerPayInvoicePage() {
   if (!job || !job.invoice) {
     return (
       <main className="min-h-screen bg-slate-50 py-12 px-4">
-        <div className="mx-auto max-w-md rounded-card border border-slate-200 bg-white p-6 text-center shadow-sm space-y-4">
-          <h1 className="text-xl font-bold text-navy-900">Invoice Not Found</h1>
+        <div className="mx-auto max-w-md sm:max-w-lg rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 text-center shadow-sm space-y-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-navy-900">Invoice Not Found</h1>
           <p className="text-sm text-navy-700">
             This payment link may have expired or does not exist. Please call{" "}
             <PhoneLink phone={businessConfig.phone} /> for assistance.
@@ -198,45 +198,45 @@ export default function CustomerPayInvoicePage() {
   return (
     <main className="min-h-screen bg-slate-50 pb-16">
       <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-lg items-center justify-between px-4 py-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-navy-900 text-orange-500 shadow-sm">
-              <Snowflake className="h-5 w-5" aria-hidden="true" />
+        <div className="mx-auto flex max-w-lg sm:max-w-xl md:max-w-2xl items-center justify-between px-3 sm:px-6 py-3.5 sm:py-4">
+          <Link href="/" className="flex items-center gap-2 sm:gap-2.5">
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-navy-900 text-orange-500 shadow-sm shrink-0">
+              <Snowflake className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
             </div>
             <div>
-              <span className="block font-heading text-sm font-bold text-navy-900">
+              <span className="block font-heading text-xs sm:text-sm font-bold text-navy-900 truncate">
                 {businessConfig.businessName}
               </span>
-              <span className="block text-xs font-semibold text-navy-700">
+              <span className="block text-[11px] sm:text-xs font-semibold text-navy-700">
                 Invoice #{inv.invoiceNumber} · Job #{job.jobNumber}
               </span>
             </div>
           </Link>
-          <PhoneLink phone={businessConfig.phone} className="text-xs" />
+          <PhoneLink phone={businessConfig.phone} className="text-xs shrink-0" />
         </div>
       </header>
 
-      <div className="mx-auto max-w-lg px-4 pt-6 space-y-5">
+      <div className="mx-auto max-w-lg sm:max-w-xl md:max-w-2xl px-3 sm:px-6 pt-4 sm:pt-6 space-y-4 sm:space-y-5">
         {isPaid ? (
           <section
             data-testid="invoice-paid-receipt"
-            className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-xl space-y-4"
+            className="rounded-2xl border border-emerald-200 bg-white p-4 sm:p-6 shadow-xl space-y-4"
           >
             <div className="text-center space-y-2">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md">
-                <CheckCircle2 className="h-8 w-8" aria-hidden="true" />
+              <div className="mx-auto flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md">
+                <CheckCircle2 className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />
               </div>
-              <h1 className="font-heading text-xl font-extrabold text-navy-900">
+              <h1 className="font-heading text-lg sm:text-xl font-extrabold text-navy-900">
                 Paid in Full — Thank You!
               </h1>
-              <p className="text-sm text-navy-700">
+              <p className="text-xs sm:text-sm text-navy-700">
                 Receipt for <strong>{job.service.name}</strong> has been sent to{" "}
                 <span className="font-medium">{job.customer.email ?? job.customer.phone}</span>.
               </p>
             </div>
 
             {/* Receipt Summary Card */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-xs space-y-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4 text-xs space-y-2">
               <div className="flex justify-between text-navy-700">
                 <span>Invoice Number</span>
                 <span className="font-bold text-navy-900">#{inv.invoiceNumber}</span>
@@ -248,7 +248,7 @@ export default function CustomerPayInvoicePage() {
               {lastTxId || job.payments[job.payments.length - 1]?.stripePaymentIntentId ? (
                 <div className="flex justify-between text-navy-700">
                   <span>Transaction ID</span>
-                  <span className="font-mono font-bold text-navy-900">
+                  <span className="font-mono font-bold text-navy-900 truncate max-w-[200px] sm:max-w-none text-right">
                     {lastTxId ?? job.payments[job.payments.length - 1]?.stripePaymentIntentId}
                   </span>
                 </div>
@@ -259,7 +259,7 @@ export default function CustomerPayInvoicePage() {
                   {job.customer.cardBrand ? `${job.customer.cardBrand} •••• ${job.customer.cardLast4}` : "Card on File"}
                 </span>
               </div>
-              <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-sm text-navy-900">
+              <div className="border-t border-slate-200 pt-2 flex justify-between font-bold text-xs sm:text-sm text-navy-900">
                 <span>Total Paid</span>
                 <Money cents={inv.totalCents} className="text-emerald-700 font-extrabold" />
               </div>
@@ -280,13 +280,13 @@ export default function CustomerPayInvoicePage() {
           </section>
         ) : null}
 
-        <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl space-y-4">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+        <section className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
               <span className="inline-flex items-center rounded-full bg-orange-50 border border-orange-500/30 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-orange-700">
                 Job #{job.jobNumber} · Service Invoice
               </span>
-              <h1 className="font-heading text-lg font-extrabold text-navy-900 mt-1.5">
+              <h1 className="font-heading text-base sm:text-lg font-extrabold text-navy-900 mt-1.5">
                 {job.service.name}
               </h1>
               <p className="text-xs text-navy-700 flex items-center gap-1.5 mt-1">
@@ -294,7 +294,7 @@ export default function CustomerPayInvoicePage() {
                 {job.addressLine1}, {job.city}, {job.state} {job.zip}
               </p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
               <span className="text-xs text-navy-700 block">Customer</span>
               <span className="text-sm font-bold text-navy-900 block">
                 {job.customer.name}
@@ -308,12 +308,12 @@ export default function CustomerPayInvoicePage() {
             </div>
           </div>
 
-          <div className="space-y-2.5 text-sm">
+          <div className="space-y-2.5 text-xs sm:text-sm">
             {inv.lineItems.map((li) => (
               <div key={li.id} className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-semibold text-navy-900">{li.description}</p>
-                  <p className="text-xs text-navy-700 capitalize">
+                  <p className="text-[11px] sm:text-xs text-navy-700 capitalize">
                     {li.kind} {li.quantity > 1 ? `× ${li.quantity}` : ""}
                     {li.taxable ? " · Taxable" : ""}
                   </p>
@@ -323,7 +323,7 @@ export default function CustomerPayInvoicePage() {
             ))}
           </div>
 
-          <div className="border-t border-slate-200 pt-3.5 space-y-1.5 text-sm">
+          <div className="border-t border-slate-200 pt-3.5 space-y-1.5 text-xs sm:text-sm">
             <div className="flex justify-between text-navy-700">
               <span>Subtotal</span>
               <Money cents={inv.subtotalCents} />
@@ -344,20 +344,20 @@ export default function CustomerPayInvoicePage() {
               <span>Technician Tip</span>
               <Money cents={isPaid ? inv.tipCents : tipCents} />
             </div>
-            <div className="flex justify-between border-t border-slate-200 pt-3 text-base font-extrabold text-navy-900">
+            <div className="flex justify-between border-t border-slate-200 pt-3 text-sm sm:text-base font-extrabold text-navy-900">
               <span>{isPaid ? "Balance Due" : "Amount Due Now"}</span>
               <Money
                 cents={liveAmountDueCents}
                 data-testid="pay-link-amount-due"
-                className="text-lg text-navy-900"
+                className="text-base sm:text-lg text-navy-900"
               />
             </div>
           </div>
         </section>
 
         {!isPaid ? (
-          <form onSubmit={handlePayNow} className="space-y-5">
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl space-y-3">
+          <form onSubmit={handlePayNow} className="space-y-4 sm:space-y-5">
+            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-xl space-y-3">
               <div>
                 <h2 className="font-heading text-sm font-bold text-navy-900">
                   Add a tip for {job.technician?.name ?? "your technician"}
@@ -373,20 +373,20 @@ export default function CustomerPayInvoicePage() {
               />
             </section>
 
-            <section className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
+            <section className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                 <h2 className="font-heading text-sm font-bold text-navy-900 flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-orange-700" />
                   Select Payment Method
                 </h2>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
+                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-emerald-700">
                   <Lock className="h-3.5 w-3.5" />
                   256-bit SSL encrypted
                 </span>
               </div>
 
               {/* Method Tabs */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {job.customer.cardLast4 ? (
                   <button
                     type="button"
@@ -430,14 +430,14 @@ export default function CustomerPayInvoicePage() {
               </div>
 
               {payMethod === "card_on_file" && job.customer.cardLast4 ? (
-                <div className="rounded-xl border border-orange-500 bg-orange-50/50 p-3.5 flex items-center justify-between">
+                <div className="rounded-xl border border-orange-500 bg-orange-50/50 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="text-xs">
                     <p className="font-bold text-navy-900 uppercase">
                       Saved {job.customer.cardBrand ?? "Card"} •••• {job.customer.cardLast4}
                     </p>
                     <p className="text-navy-700">Authorized during deposit booking</p>
                   </div>
-                  <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-[11px] font-bold text-navy-900">
+                  <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-[11px] font-bold text-navy-900 self-start sm:self-center">
                     Ready to Charge
                   </span>
                 </div>
@@ -461,7 +461,7 @@ export default function CustomerPayInvoicePage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="pay-expiry">Expiry Date</Label>
                       <Input
@@ -486,7 +486,7 @@ export default function CustomerPayInvoicePage() {
                   </div>
 
                   {/* Quick Test Card Fill Buttons */}
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => fillTestCard("success")}
@@ -542,7 +542,7 @@ export default function CustomerPayInvoicePage() {
                 size="lg"
                 loading={paying}
                 data-testid="pay-link-submit-btn"
-                className="w-full rounded-full font-bold shadow-lg"
+                className="w-full rounded-full font-bold shadow-lg text-sm sm:text-base py-3 sm:py-3.5"
               >
                 Pay {formatMoney(liveAmountDueCents)} Now
               </Button>

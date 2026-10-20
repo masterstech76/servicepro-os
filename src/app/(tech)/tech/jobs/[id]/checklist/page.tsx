@@ -213,43 +213,43 @@ export default function JobChecklistPage() {
               </div>
 
               {/* Status Toggles */}
-              <div className="grid grid-cols-3 gap-2 mt-3 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 pt-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => handleStatusChange(it.id, "pass")}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl py-2 text-[11px] sm:text-xs font-bold transition-all ${
                     it.status === "pass"
                       ? "bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-600 ring-offset-1"
                       : "border border-slate-200 bg-white text-navy-700 hover:bg-emerald-50"
                   }`}
                 >
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   Pass
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleStatusChange(it.id, "fail")}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl py-2 text-[11px] sm:text-xs font-bold transition-all ${
                     it.status === "fail"
                       ? "bg-rose-600 text-white shadow-sm ring-2 ring-rose-600 ring-offset-1"
                       : "border border-slate-200 bg-white text-navy-700 hover:bg-rose-50"
                   }`}
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   Fail
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleStatusChange(it.id, "na")}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl py-2 text-[11px] sm:text-xs font-bold transition-all ${
                     it.status === "na"
                       ? "bg-slate-700 text-white shadow-sm ring-2 ring-slate-700 ring-offset-1"
                       : "border border-slate-200 bg-white text-navy-700 hover:bg-slate-100"
                   }`}
                 >
-                  <HelpCircle className="h-4 w-4" />
+                  <HelpCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
                   N/A
                 </button>
               </div>

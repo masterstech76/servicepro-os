@@ -106,26 +106,26 @@ function LoginForm() {
     : "/register";
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 shadow-lg space-y-6">
+    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 sm:p-7 shadow-lg space-y-5 sm:space-y-6">
       {/* Brand Header */}
       <div className="flex flex-col items-center text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-900 text-orange-500 mb-3 shadow-md">
           <Snowflake className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h1 className="text-2xl font-black text-navy-900">
+        <h1 className="text-xl sm:text-2xl font-black text-navy-900">
           Sign In to {businessConfig.businessName}
         </h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <p className="text-xs sm:text-sm text-slate-600 mt-1">
           Access your bookings, technician dispatch, or owner operations
         </p>
       </div>
 
       {/* Demo Access Shortcuts */}
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-3.5 space-y-2">
+        <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500">
           Instant Role Previews (1-Click)
         </p>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           <Button
             type="button"
             variant="outline"
@@ -136,7 +136,7 @@ function LoginForm() {
             className="w-full text-xs flex flex-col items-center justify-center h-auto py-2 px-1 text-navy-900 hover:border-orange-500"
           >
             <ShieldCheck className="h-4 w-4 text-orange-500 mb-1" />
-            <span className="font-semibold text-[11px]">Owner</span>
+            <span className="font-semibold text-[10px] sm:text-[11px]">Owner</span>
           </Button>
           <Button
             type="button"
@@ -148,7 +148,7 @@ function LoginForm() {
             className="w-full text-xs flex flex-col items-center justify-center h-auto py-2 px-1 text-navy-900 hover:border-orange-500"
           >
             <Wrench className="h-4 w-4 text-orange-500 mb-1" />
-            <span className="font-semibold text-[11px]">Technician</span>
+            <span className="font-semibold text-[10px] sm:text-[11px]">Technician</span>
           </Button>
           <Button
             type="button"
@@ -160,7 +160,7 @@ function LoginForm() {
             className="w-full text-xs flex flex-col items-center justify-center h-auto py-2 px-1 text-navy-900 hover:border-orange-500"
           >
             <User className="h-4 w-4 text-orange-500 mb-1" />
-            <span className="font-semibold text-[11px]">Customer</span>
+            <span className="font-semibold text-[10px] sm:text-[11px]">Customer</span>
           </Button>
         </div>
       </div>

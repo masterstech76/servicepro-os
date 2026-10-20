@@ -116,13 +116,13 @@ function VerifyPhoneContent() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 sm:p-9 shadow-xl space-y-6">
+    <div className="w-full max-w-md rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-9 shadow-xl space-y-5 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-navy-950 text-orange-400 mb-4 shadow-md ring-4 ring-orange-500/10">
-          <Smartphone className="h-7 w-7" aria-hidden="true" />
+        <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-navy-950 text-orange-400 mb-3 sm:mb-4 shadow-md ring-4 ring-orange-500/10">
+          <Smartphone className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-black text-navy-950 tracking-tight">
+        <h1 className="text-xl sm:text-3xl font-black text-navy-950 tracking-tight">
           Verify Mobile Number
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm">
@@ -142,9 +142,9 @@ function VerifyPhoneContent() {
           </p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
           {/* Uber-Style 6-Digit Code Boxes */}
-          <div className="flex items-center justify-center gap-2 sm:gap-3" onPaste={handlePaste}>
+          <div className="flex items-center justify-center gap-1.5 sm:gap-3" onPaste={handlePaste}>
             {otp.map((digit, idx) => (
               <input
                 key={idx}
@@ -159,7 +159,7 @@ function VerifyPhoneContent() {
                 onChange={(e) => handleChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
                 onPaste={handlePaste}
-                className={`h-12 w-11 sm:h-14 sm:w-12 rounded-2xl border text-center font-mono text-xl sm:text-2xl font-black transition-all ${
+                className={`h-11 w-9 sm:h-14 sm:w-12 rounded-xl sm:rounded-2xl border text-center font-mono text-lg sm:text-2xl font-black transition-all ${
                   digit
                     ? "border-navy-950 bg-slate-50 text-navy-950 ring-2 ring-navy-950/20"
                     : "border-slate-300 bg-white text-navy-950 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"

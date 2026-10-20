@@ -188,7 +188,7 @@ export default function TechProfilePage() {
       </div>
 
       {/* Performance Stats KPI Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-navy-500">

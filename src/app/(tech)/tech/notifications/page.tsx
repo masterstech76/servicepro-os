@@ -124,9 +124,9 @@ export default function TechNotificationsPage() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black text-navy-950 flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-black text-navy-950 flex items-center gap-2">
             <Bell className="h-5 w-5 text-orange-500" />
             Dispatch Alerts
           </h1>
@@ -134,7 +134,7 @@ export default function TechNotificationsPage() {
             Real-time updates, route assignments & notes
           </p>
         </div>
-        <div className="flex items-center gap-1.5 bg-slate-200/80 p-0.5 rounded-lg text-xs font-semibold">
+        <div className="flex items-center gap-1.5 bg-slate-200/80 p-0.5 rounded-lg text-xs font-semibold self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setFilter("all")}

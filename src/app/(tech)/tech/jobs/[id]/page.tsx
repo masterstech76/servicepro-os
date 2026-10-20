@@ -423,7 +423,7 @@ export default function TechJobDetailPage() {
       {/* Sticky 56px Bottom ActionBar */}
       {job.status !== "completed" && job.status !== "cancelled" ? (
         <div className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur p-3">
-          <div className="mx-auto max-w-md">
+          <div className="mx-auto max-w-md sm:max-w-xl md:max-w-2xl">
             {job.status === "assigned" ? (
               <Button
                 type="button"

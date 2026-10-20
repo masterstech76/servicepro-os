@@ -232,26 +232,26 @@ export default function TechSchedulePage() {
                   </div>
 
                   {/* Sub-routes Links */}
-                  <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-100">
+                  <div className="grid grid-cols-3 gap-1 sm:gap-1.5 pt-1 border-t border-slate-100">
                     <Link
                       href={`/tech/jobs/${job.id}/checklist`}
-                      className="flex flex-col items-center justify-center rounded-xl bg-orange-50/70 border border-orange-200/60 p-2 text-center text-[11px] font-bold text-orange-900 hover:bg-orange-100/70"
+                      className="flex flex-col items-center justify-center rounded-xl bg-orange-50/70 border border-orange-200/60 p-1.5 sm:p-2 text-center text-[10px] sm:text-[11px] font-bold text-orange-900 hover:bg-orange-100/70"
                     >
-                      <ClipboardCheck className="h-4 w-4 text-orange-600 mb-0.5" />
+                      <ClipboardCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-600 mb-0.5" />
                       Checklist
                     </Link>
                     <Link
                       href={`/tech/jobs/${job.id}/estimate`}
-                      className="flex flex-col items-center justify-center rounded-xl bg-blue-50/70 border border-blue-200/60 p-2 text-center text-[11px] font-bold text-blue-900 hover:bg-blue-100/70"
+                      className="flex flex-col items-center justify-center rounded-xl bg-blue-50/70 border border-blue-200/60 p-1.5 sm:p-2 text-center text-[10px] sm:text-[11px] font-bold text-blue-900 hover:bg-blue-100/70"
                     >
-                      <Wrench className="h-4 w-4 text-blue-600 mb-0.5" />
+                      <Wrench className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 mb-0.5" />
                       Estimate
                     </Link>
                     <Link
                       href={`/tech/jobs/${job.id}/parts`}
-                      className="flex flex-col items-center justify-center rounded-xl bg-slate-100 border border-slate-200 p-2 text-center text-[11px] font-bold text-navy-800 hover:bg-slate-200"
+                      className="flex flex-col items-center justify-center rounded-xl bg-slate-100 border border-slate-200 p-1.5 sm:p-2 text-center text-[10px] sm:text-[11px] font-bold text-navy-800 hover:bg-slate-200"
                     >
-                      <Package className="h-4 w-4 text-slate-600 mb-0.5" />
+                      <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-600 mb-0.5" />
                       Parts
                     </Link>
                   </div>

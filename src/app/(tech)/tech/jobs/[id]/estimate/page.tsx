@@ -457,7 +457,7 @@ export default function JobEstimatePage() {
                   ) : null}
                 </div>
 
-                <div className="flex items-center gap-3 text-xs">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
                     <span className="text-navy-600 font-semibold">Qty:</span>
                     <input
@@ -470,17 +470,17 @@ export default function JobEstimatePage() {
                       className="w-14 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-navy-900 text-center"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5 flex-1">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-[110px]">
                     <span className="text-navy-600 font-semibold">Price ($):</span>
                     <input
                       type="text"
                       value={item.unitPriceDollars}
                       onChange={(e) => updateLineItem(idx, "unitPriceDollars", e.target.value)}
                       placeholder="0.00"
-                      className="w-24 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-navy-900"
+                      className="w-20 sm:w-24 rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs text-navy-900"
                     />
                   </div>
-                  <span className="font-bold text-navy-900">
+                  <span className="font-bold text-navy-900 ml-auto sm:ml-0">
                     ${(
                       (Math.max(1, item.quantity) * Number(item.unitPriceDollars || 0))
                     ).toFixed(2)}

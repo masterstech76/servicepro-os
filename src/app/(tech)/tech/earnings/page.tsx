@@ -45,9 +45,9 @@ export default function TechEarningsPage() {
   return (
     <div className="space-y-5 pb-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black text-navy-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-black text-navy-900 tracking-tight flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-orange-500" />
             My Earnings &amp; Commission
           </h1>
@@ -56,7 +56,7 @@ export default function TechEarningsPage() {
           </p>
         </div>
 
-        <div className="flex rounded-xl bg-slate-200 p-1 text-xs">
+        <div className="flex rounded-xl bg-slate-200 p-1 text-xs self-start sm:self-auto">
           {(["this_month", "all_time"] as const).map((p) => (
             <button
               key={p}
@@ -72,7 +72,7 @@ export default function TechEarningsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Total Earned</span>
           <span className="text-2xl font-black text-emerald-700 block mt-1">
