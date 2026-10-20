@@ -131,6 +131,50 @@ const NEIGHBORHOODS: NeighborhoodArea[] = [
     techniciansOnDuty: 1,
     featuredStreet: "Crandon Blvd & Harbor Dr",
   },
+  {
+    name: "Wynwood",
+    slug: "wynwood",
+    region: "core",
+    regionLabel: "Miami Core",
+    zips: ["33127"],
+    avgEta: "25 min",
+    status: "Active Dispatch",
+    techniciansOnDuty: 2,
+    featuredStreet: "NW 2nd Ave & Wynwood Walls",
+  },
+  {
+    name: "Aventura",
+    slug: "aventura",
+    region: "beach",
+    regionLabel: "Beachside",
+    zips: ["33180"],
+    avgEta: "35 min",
+    status: "Rapid Response",
+    techniciansOnDuty: 2,
+    featuredStreet: "Biscayne Blvd & Country Club Dr",
+  },
+  {
+    name: "Sunny Isles Beach",
+    slug: "sunny-isles",
+    region: "beach",
+    regionLabel: "Beachside",
+    zips: ["33160"],
+    avgEta: "40 min",
+    status: "Priority Coverage",
+    techniciansOnDuty: 1,
+    featuredStreet: "Collins Ave & Oceanfront Towers",
+  },
+  {
+    name: "South Miami",
+    slug: "south-miami",
+    region: "south",
+    regionLabel: "South Dade",
+    zips: ["33143"],
+    avgEta: "30 min",
+    status: "Active Dispatch",
+    techniciansOnDuty: 2,
+    featuredStreet: "Sunset Dr & Dante Fascell Corridor",
+  },
 ];
 
 export default function ServiceAreasHubPage() {
@@ -220,7 +264,7 @@ export default function ServiceAreasHubPage() {
                 onClick={() => setSelectedRegion("all")}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
                   selectedRegion === "all"
-                    ? "bg-navy-950 text-white shadow-xs"
+                    ? "bg-navy-950 text-white shadow-sm"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -230,7 +274,7 @@ export default function ServiceAreasHubPage() {
                 onClick={() => setSelectedRegion("core")}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
                   selectedRegion === "core"
-                    ? "bg-navy-950 text-white shadow-xs"
+                    ? "bg-navy-950 text-white shadow-sm"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -240,7 +284,7 @@ export default function ServiceAreasHubPage() {
                 onClick={() => setSelectedRegion("west")}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
                   selectedRegion === "west"
-                    ? "bg-navy-950 text-white shadow-xs"
+                    ? "bg-navy-950 text-white shadow-sm"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -250,7 +294,7 @@ export default function ServiceAreasHubPage() {
                 onClick={() => setSelectedRegion("south")}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
                   selectedRegion === "south"
-                    ? "bg-navy-950 text-white shadow-xs"
+                    ? "bg-navy-950 text-white shadow-sm"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -260,7 +304,7 @@ export default function ServiceAreasHubPage() {
                 onClick={() => setSelectedRegion("beach")}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${
                   selectedRegion === "beach"
-                    ? "bg-navy-950 text-white shadow-xs"
+                    ? "bg-navy-950 text-white shadow-sm"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >

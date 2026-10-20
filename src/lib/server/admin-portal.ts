@@ -1295,6 +1295,20 @@ if (!globalCouponStore.__spAdminCoupons) {
         redemptionCount: 7,
       },
     ],
+    [
+      "cpn_4",
+      {
+        id: "cpn_4",
+        code: "CLEANAIR50",
+        description: "$50 off whole-home air duct cleaning & sanitizing",
+        discountType: "fixed",
+        discountValue: 5000,
+        minSpendCents: 19900,
+        expiresAt: "2026-12-31T23:59:59Z",
+        active: true,
+        redemptionCount: 12,
+      },
+    ],
   ]);
 }
 

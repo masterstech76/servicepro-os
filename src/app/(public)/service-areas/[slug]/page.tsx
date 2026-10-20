@@ -193,6 +193,78 @@ const SERVICE_AREAS: Record<string, AreaData> = {
     ],
     highlight: "Dedicated island dispatch team carrying all standard marine-grade components.",
   },
+  wynwood: {
+    slug: "wynwood",
+    name: "Wynwood",
+    city: "Miami",
+    state: "FL",
+    zipCodes: ["33127"],
+    etaMinutes: 25,
+    description:
+      "Creative arts district lofts, converted warehouse studios, and boutique retail commercial VRF and mini-split heat pump service.",
+    landmarks: ["Wynwood Walls", "NW 2nd Ave", "Wynwood Marketplace", "Mana Wynwood"],
+    popularServices: [
+      "Ductless Mini-Split Zoned Cooling",
+      "Warehouse High-Ceiling Fan Coils",
+      "Boutique Retail Fast Diagnostics",
+      "Emergency Capacitor Replacement",
+    ],
+    highlight: "Specialized in industrial-chic exposed ductwork and aesthetic mini-split configurations.",
+  },
+  aventura: {
+    slug: "aventura",
+    name: "Aventura",
+    city: "Aventura",
+    state: "FL",
+    zipCodes: ["33180"],
+    etaMinutes: 35,
+    description:
+      "Waterfront residential towers, condominium chilled water loops, and single-family central AC maintenance in northeast Miami-Dade.",
+    landmarks: ["Aventura Mall", "Turnberry Isle", "Williams Island", "Country Club Drive"],
+    popularServices: [
+      "Condominium Fan Coil Servicing",
+      "High-Efficiency Inverter Systems",
+      "Whole-Home Dehumidification",
+      "Smart Ecobee & Nest Calibration",
+    ],
+    highlight: "Security gate and condominium HOA protocol compliant technicians.",
+  },
+  "sunny-isles": {
+    slug: "sunny-isles",
+    name: "Sunny Isles Beach",
+    city: "Sunny Isles Beach",
+    state: "FL",
+    zipCodes: ["33160"],
+    etaMinutes: 40,
+    description:
+      "Oceanfront luxury high-rise condominium climate control, marine salt spray coil coating, and precision humidity regulation.",
+    landmarks: ["Collins Avenue Oceanfront", "Pier Park", "Samson Oceanfront Park", "Heritage Park"],
+    popularServices: [
+      "Marine Anti-Corrosion Coil Rinse",
+      "Condo Fan Coil Actuator Valves",
+      "UV Germicidal Air Sterilization",
+      "Emergency Cooling Restoration",
+    ],
+    highlight: "Equipped for oceanfront high-rises with direct freight elevator access protocols.",
+  },
+  "south-miami": {
+    slug: "south-miami",
+    name: "South Miami",
+    city: "South Miami",
+    state: "FL",
+    zipCodes: ["33143"],
+    etaMinutes: 30,
+    description:
+      "Established single-family homes, charming retail corridors, high-efficiency SEER2 replacements, and same-day AC diagnostics.",
+    landmarks: ["Sunset Place", "South Miami Hospital Area", "Sunset Drive Corridor", "Dante Fascell Park"],
+    popularServices: [
+      "Split-System Compressor Diagnostics",
+      "Air Duct Sanitization & Sealing",
+      "Seasonal Preventative Tune-Ups",
+      "Wi-Fi Smart Thermostat Installs",
+    ],
+    highlight: "Family-first neighborhood pricing with comprehensive 1-year parts and labor warranty.",
+  },
 };
 
 export async function generateStaticParams() {

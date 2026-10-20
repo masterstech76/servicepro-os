@@ -18,6 +18,7 @@ import {
   WifiOff,
   CreditCard,
   Clock,
+  Tag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { businessConfig } from "@config/business.config";
@@ -93,6 +94,8 @@ export interface WizardState {
   clientSecret: string | null;
   paymentIntentId: string | null;
   confirmedJob: ConfirmedJobDTO | null;
+  couponCode: string | null;
+  couponDiscountCents: number;
 }
 
 type WizardAction =
@@ -127,7 +130,9 @@ type WizardAction =
     }
   | { type: "SET_UPLOADED_PATHS"; paths: string[] }
   | { type: "SET_CHECKOUT"; clientSecret: string; paymentIntentId: string }
-  | { type: "SET_CONFIRMED_JOB"; job: ConfirmedJobDTO };
+  | { type: "SET_CONFIRMED_JOB"; job: ConfirmedJobDTO }
+  | { type: "APPLY_COUPON"; code: string; discountCents: number }
+  | { type: "REMOVE_COUPON" };
 
 function getInitialDayString(): string {
   const now = new Date();
@@ -166,6 +171,8 @@ const initialWizardState: WizardState = {
   clientSecret: null,
   paymentIntentId: null,
   confirmedJob: null,
+  couponCode: null,
+  couponDiscountCents: 0,
 };
 
 function wizardReducer(state: WizardState, action: WizardAction): WizardState {
@@ -176,6 +183,18 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       return { ...state, step: action.step };
     case "SELECT_SERVICE":
       return { ...state, selectedService: action.service };
+    case "APPLY_COUPON":
+      return {
+        ...state,
+        couponCode: action.code,
+        couponDiscountCents: action.discountCents,
+      };
+    case "REMOVE_COUPON":
+      return {
+        ...state,
+        couponCode: null,
+        couponDiscountCents: 0,
+      };
     case "SET_ZIP_RESULT":
       return {
         ...state,
@@ -219,6 +238,32 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       return state;
   }
 }
+
+export const PROMO_COUPONS: Record<
+  string,
+  { code: string; discountCents: number; description: string }
+> = {
+  FIRST25: {
+    code: "FIRST25",
+    discountCents: 2500,
+    description: "$25 OFF First-Time Diagnostic & Repair",
+  },
+  TUNE89: {
+    code: "TUNE89",
+    discountCents: 4000,
+    description: "$40 OFF 21-Point Complete AC Tune-Up",
+  },
+  NEST30: {
+    code: "NEST30",
+    discountCents: 3000,
+    description: "$30 OFF Smart Thermostat Installation",
+  },
+  CLEANAIR50: {
+    code: "CLEANAIR50",
+    discountCents: 5000,
+    description: "$50 OFF Whole-Home Duct Cleaning",
+  },
+};
 
 export function BookingWizard() {
   const searchParams = useSearchParams();
@@ -352,7 +397,28 @@ export function BookingWizard() {
 
         const couponParam = searchParams.get("coupon");
         if (couponParam) {
-          toast.success(`Coupon code ${couponParam} applied to your service booking!`);
+          const upper = couponParam.trim().toUpperCase();
+          const match = PROMO_COUPONS[upper];
+          if (match) {
+            dispatch({
+              type: "APPLY_COUPON",
+              code: match.code,
+              discountCents: match.discountCents,
+            });
+            toast.success(`Coupon ${match.code} applied! ${match.description}`);
+          } else {
+            dispatch({
+              type: "APPLY_COUPON",
+              code: upper,
+              discountCents: 2500,
+            });
+            toast.success(`Coupon code ${upper} applied to your service booking!`);
+          }
+        }
+
+        const zipParam = searchParams.get("zip");
+        if (zipParam && /^\d{5}$/.test(zipParam.trim())) {
+          void handleZipInputChange(zipParam.trim());
         }
       })
       .catch(() => {
@@ -1055,6 +1121,12 @@ export function BookingWizard() {
                   <strong className="text-orange-700">
                     {formatMoneyCents(estimate.depositCents)} deposit due
                   </strong>
+                  {state.couponCode && (
+                    <span className="inline-flex items-center gap-1 ml-1.5 font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      <Tag className="h-2.5 w-2.5" />
+                      {state.couponCode} (-{formatMoneyCents(state.couponDiscountCents)})
+                    </span>
+                  )}
                 </span>
               </div>
             )}
