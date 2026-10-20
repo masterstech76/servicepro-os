@@ -36,13 +36,18 @@ export default function AdminCustomersPage() {
   const [smsLogs, setSmsLogs] = React.useState<SmsLogRow[]>([]);
 
   const loadData = React.useCallback(async () => {
-    const res = await fetch("/api/admin/catalog");
-    const data = (await res.json()) as {
-      customers: CustomerRow[];
-      smsLogs: SmsLogRow[];
-    };
-    setCustomers(data.customers ?? []);
-    setSmsLogs(data.smsLogs ?? []);
+    try {
+      const res = await fetch("/api/admin/catalog");
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        customers: CustomerRow[];
+        smsLogs: SmsLogRow[];
+      };
+      setCustomers(data.customers ?? []);
+      setSmsLogs(data.smsLogs ?? []);
+    } catch {
+      // ignore
+    }
   }, []);
 
   React.useEffect(() => {
@@ -50,18 +55,26 @@ export default function AdminCustomersPage() {
   }, [loadData]);
 
   async function toggleOptOut(cust: CustomerRow) {
-    await fetch("/api/admin/catalog", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "toggle_customer_sms",
-        payload: { customerId: cust.id, smsOptOut: !cust.sms_opt_out },
-      }),
-    });
-    toast.success(
-      `SMS notifications ${!cust.sms_opt_out ? "opted out" : "re-enabled"} for ${cust.name}`
-    );
-    await loadData();
+    try {
+      const res = await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "toggle_customer_sms",
+          payload: { customerId: cust.id, smsOptOut: !cust.sms_opt_out },
+        }),
+      });
+      if (res.ok) {
+        toast.success(
+          `SMS notifications ${!cust.sms_opt_out ? "opted out" : "re-enabled"} for ${cust.name}`
+        );
+        await loadData();
+      } else {
+        toast.error("Failed to update SMS preference");
+      }
+    } catch {
+      toast.error("Network error updating preference");
+    }
   }
 
   async function deleteCustomer(cust: CustomerRow) {

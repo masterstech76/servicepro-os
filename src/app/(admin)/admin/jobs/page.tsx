@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { formatInTimeZone } from "date-fns-tz";
 import { Download, Plus, Search } from "lucide-react";
+import { toast } from "sonner";
 import { businessConfig } from "@config/business.config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,24 +18,45 @@ export default function AdminJobsListPage() {
   const [jobs, setJobs] = React.useState<EnrichedJob[]>([]);
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [search, setSearch] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [selectedJob, setSelectedJob] = React.useState<EnrichedJob | null>(null);
   const [loading, setLoading] = React.useState(true);
 
+  // Debounce search query by 300ms
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const loadJobs = React.useCallback(async () => {
-    const params = new URLSearchParams();
-    if (statusFilter !== "all") params.set("status", statusFilter);
-    if (search.trim()) params.set("q", search.trim());
-    const res = await fetch(`/api/jobs?${params.toString()}`);
-    const data = (await res.json()) as { jobs: EnrichedJob[] };
-    setJobs(data.jobs ?? []);
-    setLoading(false);
-  }, [statusFilter, search]);
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      if (debouncedSearch.trim()) params.set("q", debouncedSearch.trim());
+      const res = await fetch(`/api/jobs?${params.toString()}`);
+      if (!res.ok) {
+        setJobs([]);
+        return;
+      }
+      const data = (await res.json()) as { jobs: EnrichedJob[] };
+      setJobs(data.jobs ?? []);
+    } catch {
+      setJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter, debouncedSearch]);
 
   React.useEffect(() => {
     void loadJobs();
   }, [loadJobs]);
 
   function exportCsv() {
+    if (!jobs || jobs.length === 0) {
+      toast.info("No jobs to export.");
+      return;
+    }
     const header = [
       "Job #",
       "Status",
@@ -47,25 +69,36 @@ export default function AdminJobsListPage() {
       "Deposit ($)",
       "Total ($)",
     ];
-    const rows = jobs.map((j) => [
-      j.jobNumber,
-      j.status,
-      j.scheduledStart,
-      `"${j.customer.name}"`,
-      j.customer.phone,
-      j.zip,
-      `"${j.service.name}"`,
-      `"${j.technician?.name ?? "Unassigned"}"`,
-      (j.depositCents / 100).toFixed(2),
-      ((j.totalCents ?? j.estimatedTotalCents) / 100).toFixed(2),
-    ]);
+    const rows = jobs.map((j) => {
+      const deposit = typeof j.depositCents === "number" ? (j.depositCents / 100).toFixed(2) : "0.00";
+      const totalNum = j.totalCents ?? j.estimatedTotalCents ?? 0;
+      const total = typeof totalNum === "number" ? (totalNum / 100).toFixed(2) : "0.00";
+      const custName = j.customer?.name ? `"${j.customer.name.replace(/"/g, '""')}"` : '""';
+      const svcName = j.service?.name ? `"${j.service.name.replace(/"/g, '""')}"` : '""';
+      const techName = j.technician?.name ? `"${j.technician.name.replace(/"/g, '""')}"` : '"Unassigned"';
+      return [
+        j.jobNumber ?? "",
+        j.status ?? "",
+        j.scheduledStart ?? "",
+        custName,
+        j.customer?.phone ?? "",
+        j.zip ?? "",
+        svcName,
+        techName,
+        deposit,
+        total,
+      ];
+    });
     const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `servicepro-jobs-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (

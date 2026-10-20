@@ -251,9 +251,12 @@ export default function SupportMessengerPage() {
       });
 
       if (!res.ok) throw new Error("Failed to create inquiry");
+      const data = await res.json();
+      const newTicket = data.ticket;
+      const newId = newTicket?.id || `conv-${Date.now()}`;
+
       toast.success("Support inquiry created! Dispatch agent assigned.");
 
-      const newId = `conv-${Date.now()}`;
       const newThreadMsg: ChatMessage = {
         id: `m-${Date.now()}`,
         sender: "customer",
@@ -262,6 +265,10 @@ export default function SupportMessengerPage() {
         timestamp: format(new Date(), "h:mm a"),
         status: "delivered",
       };
+
+      if (newTicket) {
+        setTickets((prev) => [newTicket, ...prev.filter((t) => t.id !== newTicket.id)]);
+      }
 
       setThreadMessages((prev) => ({
         ...prev,
@@ -281,7 +288,7 @@ export default function SupportMessengerPage() {
       setShowNewModal(false);
       setSubject("");
       setDetails("");
-      fetchTickets();
+      void fetchTickets();
     } catch (err: any) {
       toast.error(err.message || "Failed to submit inquiry");
     } finally {

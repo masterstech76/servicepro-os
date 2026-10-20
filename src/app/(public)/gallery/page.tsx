@@ -348,6 +348,7 @@ export default function GalleryPage() {
                 src={post.image}
                 alt={post.title}
                 fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
 
@@ -394,6 +395,7 @@ export default function GalleryPage() {
                 src={activeModalItem.image}
                 alt={activeModalItem.title}
                 fill
+                sizes="(max-width: 1024px) 100vw, 60vw"
                 className="object-cover"
               />
               <div className="absolute bottom-4 left-4 right-4 bg-navy-950/80 backdrop-blur-sm p-3.5 rounded-2xl text-white text-xs border border-white/20">

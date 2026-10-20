@@ -22,7 +22,6 @@ import {
   Wrench,
   AlertTriangle,
   XCircle,
-  HelpCircle,
   DollarSign,
   Save,
 } from "lucide-react";

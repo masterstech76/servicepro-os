@@ -57,13 +57,22 @@ interface BoardResponse {
 export default function AdminOverviewPage() {
   const [data, setData] = React.useState<BoardResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [selectedJob, setSelectedJob] = React.useState<EnrichedJob | null>(null);
 
   const loadBoard = React.useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/dispatch/board");
+      if (!res.ok) {
+        setError("Unable to load live dispatch board.");
+        return;
+      }
       const json = (await res.json()) as BoardResponse;
       setData(json);
+      setError(null);
+    } catch {
+      setError("Network error loading operations overview.");
     } finally {
       setLoading(false);
     }
@@ -73,7 +82,7 @@ export default function AdminOverviewPage() {
     void loadBoard();
   }, [loadBoard]);
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <div className="h-8 w-64 animate-pulse rounded bg-slate-200" />
@@ -83,6 +92,22 @@ export default function AdminOverviewPage() {
           ))}
         </div>
         <div className="h-64 animate-pulse rounded-card bg-slate-200" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center space-y-3">
+        <h2 className="text-base font-bold text-red-900">Operations Board Unavailable</h2>
+        <p className="text-xs text-red-700">{error || "Failed to retrieve live board data."}</p>
+        <button
+          type="button"
+          onClick={() => void loadBoard()}
+          className="rounded-xl bg-navy-900 px-4 py-2 text-xs font-bold text-white hover:bg-navy-800"
+        >
+          Retry
+        </button>
       </div>
     );
   }

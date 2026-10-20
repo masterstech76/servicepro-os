@@ -108,14 +108,24 @@ export default function CustomerPayInvoicePage() {
   function detectCardBrand(num: string): string {
     const clean = num.replace(/\D/g, "");
     if (/^4/.test(clean)) return "Visa";
-    if (/^5[1-5]/.test(clean)) return "Mastercard";
+    if (/^(5[1-5]|2[2-7])/.test(clean)) return "Mastercard";
     if (/^3[47]/.test(clean)) return "Amex";
     if (/^6(?:011|5)/.test(clean)) return "Discover";
+    if (/^(?:2131|1800|35\d{3})/.test(clean)) return "JCB";
+    if (/^3(?:0[0-5]|[68])/.test(clean)) return "Diners";
+    if (/^62/.test(clean)) return "UnionPay";
     return "Card";
   }
 
   function formatCardInput(val: string) {
-    const raw = val.replace(/\D/g, "").slice(0, 16);
+    const raw = val.replace(/\D/g, "").slice(0, 19);
+    if (/^3[47]/.test(raw)) {
+      // Amex 4-6-5
+      const p1 = raw.slice(0, 4);
+      const p2 = raw.slice(4, 10);
+      const p3 = raw.slice(10, 15);
+      return [p1, p2, p3].filter(Boolean).join(" ");
+    }
     const parts = raw.match(/.{1,4}/g);
     return parts ? parts.join(" ") : raw;
   }
@@ -157,8 +167,8 @@ export default function CustomerPayInvoicePage() {
       } else {
         methodParam = "tap_card";
         const cleanDigits = cardNumber.replace(/\D/g, "");
-        if (cleanDigits.length < 15) {
-          toast.error("Please enter a valid 15 or 16-digit card number");
+        if (cleanDigits.length < 14 || cleanDigits.length > 19) {
+          toast.error("Please enter a valid card number (14 to 19 digits)");
           return;
         }
         cardBrandParam = detectCardBrand(cleanDigits);
@@ -189,7 +199,7 @@ export default function CustomerPayInvoicePage() {
       if (data.transactionId) {
         setLastTxId(data.transactionId);
       }
-      toast.success("Payment complete! Thank you for choosing Cool Air HVAC.");
+      toast.success(`Payment complete! Thank you for choosing ${businessConfig.businessName}.`);
     } finally {
       setPaying(false);
     }
@@ -485,25 +495,27 @@ export default function CustomerPayInvoicePage() {
                     </div>
                   </div>
 
-                  {/* Quick Test Card Fill Buttons */}
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => fillTestCard("success")}
-                      className="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-1"
-                    >
-                      <Sparkles className="h-3 w-3" />
-                      Fill Test Card 4242
-                    </button>
-                    <span className="text-slate-300">·</span>
-                    <button
-                      type="button"
-                      onClick={() => fillTestCard("decline")}
-                      className="text-[11px] font-semibold text-slate-500 hover:underline"
-                    >
-                      Test Decline
-                    </button>
-                  </div>
+                  {/* Test Card Fill Helper (Demo / Staging Only) */}
+                  {Boolean(token.includes("demo") || process.env.NODE_ENV !== "production") ? (
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => fillTestCard("success")}
+                        className="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        Fill Test Card 4242
+                      </button>
+                      <span className="text-slate-300">·</span>
+                      <button
+                        type="button"
+                        onClick={() => fillTestCard("decline")}
+                        className="text-[11px] font-semibold text-slate-500 hover:underline"
+                      >
+                        Test Decline
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 

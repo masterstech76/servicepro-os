@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/components/shared/Money";
 import { formatInTimeZone } from "date-fns-tz";
 import { businessConfig } from "@config/business.config";
+import { toast } from "sonner";
 import type { AdminInvoiceItem } from "@/lib/server/admin-portal";
 
 interface InvoicesResponse {
@@ -41,16 +42,23 @@ export default function AdminInvoicesPage() {
   const [loading, setLoading] = React.useState(true);
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
 
   const tz = businessConfig.timezone;
+
+  // Debounce search query by 300ms
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const loadInvoices = React.useCallback(async () => {
     setLoading(true);
     try {
       const sp = new URLSearchParams();
       if (statusFilter !== "all") sp.set("status", statusFilter);
-      if (searchQuery.trim()) sp.set("q", searchQuery.trim());
+      if (debouncedSearch.trim()) sp.set("q", debouncedSearch.trim());
       sp.set("page", String(page));
       sp.set("limit", "15");
 
@@ -58,39 +66,55 @@ export default function AdminInvoicesPage() {
       if (res.ok) {
         const json = await res.json();
         setData(json);
+      } else {
+        setData(null);
       }
+    } catch {
+      setData(null);
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, searchQuery, page]);
+  }, [statusFilter, debouncedSearch, page]);
 
   React.useEffect(() => {
     void loadInvoices();
   }, [loadInvoices]);
 
   function exportCSV() {
-    if (!data || !data.invoices.length) return;
+    if (!data || !data.invoices?.length) {
+      toast.info("No invoices to export.");
+      return;
+    }
     const headers = ["Invoice Number", "Customer", "Phone", "Job Number", "Service", "Status", "Total", "Paid", "Due", "Created Date"];
-    const rows = data.invoices.map((inv) => [
-      inv.invoiceNumber,
-      `"${inv.customerName}"`,
-      inv.customerPhone,
-      inv.jobNumber,
-      `"${inv.serviceName}"`,
-      inv.status,
-      (inv.totalCents / 100).toFixed(2),
-      (inv.amountPaidCents / 100).toFixed(2),
-      (inv.amountDueCents / 100).toFixed(2),
-      inv.createdAt,
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const rows = data.invoices.map((inv) => {
+      const total = typeof inv.totalCents === "number" ? (inv.totalCents / 100).toFixed(2) : "0.00";
+      const paid = typeof inv.amountPaidCents === "number" ? (inv.amountPaidCents / 100).toFixed(2) : "0.00";
+      const due = typeof inv.amountDueCents === "number" ? (inv.amountDueCents / 100).toFixed(2) : "0.00";
+      const cust = inv.customerName ? `"${inv.customerName.replace(/"/g, '""')}"` : '""';
+      const svc = inv.serviceName ? `"${inv.serviceName.replace(/"/g, '""')}"` : '""';
+      return [
+        inv.invoiceNumber ?? "",
+        cust,
+        inv.customerPhone ?? "",
+        inv.jobNumber ?? "",
+        svc,
+        inv.status ?? "",
+        total,
+        paid,
+        due,
+        inv.createdAt ?? "",
+      ];
+    });
+    const csvContent = [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `invoices_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.href = url;
+    link.download = `invoices_export_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   return (

@@ -46,9 +46,14 @@ export default function AdminTechniciansPage() {
   const [saving, setSaving] = React.useState(false);
 
   const loadTechs = React.useCallback(async () => {
-    const res = await fetch("/api/technicians");
-    const data = (await res.json()) as { technicians: TechRow[] };
-    setTechs(data.technicians ?? []);
+    try {
+      const res = await fetch("/api/technicians");
+      if (!res.ok) return;
+      const data = (await res.json()) as { technicians: TechRow[] };
+      setTechs(data.technicians ?? []);
+    } catch {
+      // ignore
+    }
   }, []);
 
   React.useEffect(() => {
@@ -57,6 +62,24 @@ export default function AdminTechniciansPage() {
 
   async function handleCreateTech(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim()) {
+      toast.error("Technician name is required");
+      return;
+    }
+    if (!phone.trim() || phone.replace(/\D/g, "").length < 10) {
+      toast.error("Valid 10-digit phone number is required");
+      return;
+    }
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    const comm = Number(commissionPct);
+    if (isNaN(comm) || comm < 0 || comm > 100) {
+      toast.error("Commission must be a percentage between 0 and 100");
+      return;
+    }
+
     setSaving(true);
     try {
       const zips = zipList
@@ -67,10 +90,10 @@ export default function AdminTechniciansPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
-          phone,
-          email,
-          commissionPct: Number(commissionPct) || 20,
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim() || undefined,
+          commissionPct: comm,
           zipCodes: zips,
         }),
       });
@@ -85,21 +108,31 @@ export default function AdminTechniciansPage() {
       setZipList("");
       setShowAddModal(false);
       await loadTechs();
+    } catch {
+      toast.error("Network error creating technician");
     } finally {
       setSaving(false);
     }
   }
 
   async function toggleActive(tech: TechRow) {
-    await fetch("/api/technicians", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: tech.id, active: !tech.active }),
-    });
-    toast.success(
-      `${tech.name} marked ${!tech.active ? "Active" : "Inactive"}`
-    );
-    await loadTechs();
+    try {
+      const res = await fetch("/api/technicians", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: tech.id, active: !tech.active }),
+      });
+      if (res.ok) {
+        toast.success(
+          `${tech.name} marked ${!tech.active ? "Active" : "Inactive"}`
+        );
+        await loadTechs();
+      } else {
+        toast.error("Failed to update technician status");
+      }
+    } catch {
+      toast.error("Network error updating technician");
+    }
   }
 
   async function addQuickTimeOff(tech: TechRow) {

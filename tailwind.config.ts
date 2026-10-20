@@ -44,6 +44,7 @@ const config: Config = {
         input: "10px",
         card: "14px",
         sheet: "20px",
+        pill: "9999px",
       },
       boxShadow: {
         xs: "0 1px 2px rgba(15, 23, 42, 0.04)",

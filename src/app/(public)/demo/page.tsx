@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ArrowRight,
   BarChart3,
@@ -32,12 +33,18 @@ export default function InteractiveDemoGuidePage() {
   ) {
     setEnteringRole(destPath);
     try {
-      await fetch("/api/auth/demo-session", {
+      const res = await fetch("/api/auth/demo-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, technicianId: techId }),
       });
+      if (!res.ok) {
+        toast.error("Unable to start demo session. Please try again.");
+        return;
+      }
       router.push(destPath);
+    } catch {
+      toast.error("Network error starting demo session.");
     } finally {
       setEnteringRole(null);
     }

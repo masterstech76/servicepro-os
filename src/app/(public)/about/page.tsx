@@ -14,6 +14,7 @@ import {
   Star,
   Wrench,
   Sparkles,
+  DollarSign,
 } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
@@ -54,43 +55,34 @@ export default function AboutPage() {
 
   const teamMembers = [
     {
-      name: "Carlos Rodriguez",
+      name: "Carlos Mendez",
       role: "Lead Master HVAC Technician",
-      exp: "12 Yrs Exp • NATE Certified",
+      exp: "12 Yrs Exp • NATE & EPA Universal",
       initial: "C",
       color: "from-blue-600 to-indigo-700",
     },
     {
-      name: "Marcus Vance",
+      name: "Danny Reyes",
       role: "Senior Refrigeration Specialist",
-      exp: "9 Yrs Exp • EPA Section 608",
-      initial: "M",
+      exp: "8 Yrs Exp • EPA Section 608",
+      initial: "D",
       color: "from-orange-500 to-amber-600",
     },
     {
-      name: "Tony Alvarez",
-      role: "Duct & Airflow Diagnostics",
-      exp: "7 Yrs Exp • Indoor Air Quality",
-      initial: "T",
+      name: "Maria Alvarez",
+      role: "Controls & Smart Systems Lead",
+      exp: "7 Yrs Exp • Low-Voltage Controls",
+      initial: "M",
       color: "from-emerald-500 to-teal-700",
     },
     {
-      name: "Danny Miller",
-      role: "Controls & Smart Systems",
-      exp: "6 Yrs Exp • Low-Voltage Cert",
-      initial: "D",
+      name: "Tony Brooks",
+      role: "Commercial HVAC & Airflow Specialist",
+      exp: "10 Yrs Exp • Indoor Air Quality",
+      initial: "T",
       color: "from-purple-500 to-pink-600",
     },
   ];
-
-  function DollarSign(props: React.SVGProps<SVGSVGElement>) {
-    return (
-      <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="12" x2="12" y1="2" y2="22"/>
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-      </svg>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white text-navy-900 pb-16">
@@ -135,6 +127,7 @@ export default function AboutPage() {
                 src="/images/hero.jpg"
                 alt="HVAC work van and team"
                 fill
+                sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
               />
             </div>
@@ -143,6 +136,7 @@ export default function AboutPage() {
                 src="/images/svc-ac-repair.jpg"
                 alt="HVAC technician at work"
                 fill
+                sizes="192px"
                 className="object-cover"
               />
             </div>
@@ -237,6 +231,7 @@ export default function AboutPage() {
               src="/images/cart-illustration.jpg"
               alt="Dispatch headquarters"
               fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover opacity-80"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />

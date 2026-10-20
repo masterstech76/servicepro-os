@@ -93,11 +93,16 @@ function VerifyPhoneContent() {
 
     setVerifying(true);
     try {
-      await fetch("/api/auth/demo-session", {
+      const res = await fetch("/api/auth/demo-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: "customer" }),
       });
+
+      if (!res.ok) {
+        toast.error("Verification failed. Please check the code and try again.");
+        return;
+      }
 
       setVerified(true);
       toast.success("Mobile number verified successfully!");
@@ -105,11 +110,7 @@ function VerifyPhoneContent() {
         router.push("/account");
       }, 1000);
     } catch {
-      setVerified(true);
-      toast.success("Mobile number verified successfully!");
-      setTimeout(() => {
-        router.push("/account");
-      }, 1000);
+      toast.error("Network error during verification. Please try again.");
     } finally {
       setVerifying(false);
     }
@@ -184,13 +185,15 @@ function VerifyPhoneContent() {
               <span>{timer > 0 ? `Resend code in ${timer}s` : "Resend 6-Digit Code"}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setOtp(["1", "2", "3", "4", "5", "6"])}
-              className="text-slate-400 hover:text-slate-600 text-[11px] underline"
-            >
-              Use demo code (123456)
-            </button>
+            {process.env.NODE_ENV !== "production" ? (
+              <button
+                type="button"
+                onClick={() => setOtp(["1", "2", "3", "4", "5", "6"])}
+                className="text-slate-400 hover:text-slate-600 text-[11px] underline"
+              >
+                Use demo code (123456)
+              </button>
+            ) : null}
           </div>
 
           {/* Submit Action */}

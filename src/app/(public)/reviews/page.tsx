@@ -431,6 +431,7 @@ export default function ReviewsPage() {
                         src={rev.image}
                         alt={`${rev.service} photo`}
                         fill
+                        sizes="(max-width: 640px) 100vw, 320px"
                         className="object-cover"
                       />
                     </div>

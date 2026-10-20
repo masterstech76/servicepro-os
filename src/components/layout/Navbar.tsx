@@ -121,6 +121,7 @@ export function Navbar() {
                   alt={businessConfig.businessName}
                   fill
                   priority
+                  sizes="176px"
                   className="object-contain object-left"
                 />
               </div>

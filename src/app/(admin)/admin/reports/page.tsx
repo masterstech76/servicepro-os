@@ -51,6 +51,7 @@ export default function AdminReportsPage() {
   const [toDate, setToDate] = React.useState<string>("");
   const [report, setReport] = React.useState<ReportResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const initialDatesSynced = React.useRef(false);
 
   const loadReport = React.useCallback(async () => {
     setLoading(true);
@@ -59,10 +60,14 @@ export default function AdminReportsPage() {
       if (fromDate) qs.set("from", fromDate);
       if (toDate) qs.set("to", toDate);
       const res = await fetch(`/api/reports/revenue?${qs.toString()}`);
+      if (!res.ok) return;
       const data = (await res.json()) as ReportResponse;
       setReport(data);
-      if (!fromDate && data.fromDate) setFromDate(data.fromDate);
-      if (!toDate && data.toDate) setToDate(data.toDate);
+      if (!initialDatesSynced.current) {
+        initialDatesSynced.current = true;
+        if (!fromDate && data.fromDate) setFromDate(data.fromDate);
+        if (!toDate && data.toDate) setToDate(data.toDate);
+      }
     } finally {
       setLoading(false);
     }
@@ -73,7 +78,7 @@ export default function AdminReportsPage() {
   }, [loadReport]);
 
   function exportReportCsv() {
-    if (!report) return;
+    if (!report || !report.rows?.length) return;
     const headers = [
       "Group",
       "Jobs Completed",
@@ -84,13 +89,13 @@ export default function AdminReportsPage() {
       "Tech Commission ($)",
     ];
     const lines = report.rows.map((r) => [
-      `"${r.groupLabel}"`,
-      r.jobsCompleted,
-      (r.grossCents / 100).toFixed(2),
-      (r.tipsCents / 100).toFixed(2),
-      (r.refundsCents / 100).toFixed(2),
-      (r.netCents / 100).toFixed(2),
-      (r.commissionCents / 100).toFixed(2),
+      `"${r.groupLabel ?? ""}"`,
+      r.jobsCompleted ?? 0,
+      ((r.grossCents ?? 0) / 100).toFixed(2),
+      ((r.tipsCents ?? 0) / 100).toFixed(2),
+      ((r.refundsCents ?? 0) / 100).toFixed(2),
+      ((r.netCents ?? 0) / 100).toFixed(2),
+      ((r.commissionCents ?? 0) / 100).toFixed(2),
     ]);
     const csv = [headers.join(","), ...lines.map((l) => l.join(","))].join(
       "\n"
@@ -99,8 +104,11 @@ export default function AdminReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `servicepro-revenue-${groupBy}-${report.toDate}.csv`;
+    a.download = `servicepro-revenue-${groupBy}-${report.toDate || new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   const maxGross = Math.max(

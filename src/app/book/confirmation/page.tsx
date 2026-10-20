@@ -40,15 +40,27 @@ const DEMO_CONFIRMED_JOB: ConfirmedJobDTO = {
   depositCents: 2000,
 };
 
+function escapeIcsText(str: string): string {
+  return str
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
+}
+
 function ConfirmationContent() {
   const searchParams = useSearchParams();
   const pi = searchParams.get("pi") ?? "";
-  const [job, setJob] = React.useState<ConfirmedJobDTO | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const isDemo = searchParams.get("demo") === "1" || (!pi && searchParams.get("preview") === "1");
+  const [job, setJob] = React.useState<ConfirmedJobDTO | null>(isDemo ? DEMO_CONFIRMED_JOB : null);
+  const [loading, setLoading] = React.useState(Boolean(pi));
+  const [lookupFailed, setLookupFailed] = React.useState(false);
 
   React.useEffect(() => {
     if (!pi) {
-      setJob(DEMO_CONFIRMED_JOB);
+      if (isDemo) {
+        setJob(DEMO_CONFIRMED_JOB);
+      }
       setLoading(false);
       return;
     }
@@ -74,7 +86,7 @@ function ConfirmationContent() {
         await new Promise((r) => setTimeout(r, 1000));
       }
       if (active) {
-        setJob(DEMO_CONFIRMED_JOB);
+        setLookupFailed(true);
         setLoading(false);
       }
     }
@@ -83,14 +95,12 @@ function ConfirmationContent() {
     return () => {
       active = false;
     };
-  }, [pi]);
+  }, [pi, isDemo]);
 
-  const activeJob = job || DEMO_CONFIRMED_JOB;
-
-  function handleCalendarDownload() {
-    const title = `TechWork HVAC: ${activeJob.serviceName}`;
-    const desc = `Confirmed Job #${activeJob.jobNumber} with TechWork Services LLC. Dispatch hotline: ${businessConfig.phone}`;
-    const loc = `${activeJob.addressLine1}, ${activeJob.city}, ${activeJob.state} ${activeJob.zip}`;
+  function handleCalendarDownload(activeJob: ConfirmedJobDTO) {
+    const title = escapeIcsText(`TechWork HVAC: ${activeJob.serviceName}`);
+    const desc = escapeIcsText(`Confirmed Job #${activeJob.jobNumber} with TechWork Services LLC. Dispatch hotline: ${businessConfig.phone}`);
+    const loc = escapeIcsText(`${activeJob.addressLine1}, ${activeJob.city}, ${activeJob.state} ${activeJob.zip}`);
     const start = new Date(activeJob.scheduledStart).toISOString().replace(/-|:|\.\d\d\d/g, "");
     const end = new Date(activeJob.scheduledEnd || activeJob.scheduledStart).toISOString().replace(/-|:|\.\d\d\d/g, "");
 
@@ -108,14 +118,56 @@ END:VEVENT
 END:VCALENDAR`;
 
     const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
+    link.href = url;
     link.setAttribute("download", `techwork_job_${activeJob.jobNumber}.ics`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     toast.success("Calendar invite (.ics) downloaded!");
   }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 py-12 px-4 flex items-center justify-center">
+        <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center space-y-4 shadow-sm">
+          <div className="h-10 w-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <h2 className="text-base font-bold text-navy-950">Confirming Your Booking...</h2>
+          <p className="text-xs text-slate-500">Retrieving confirmed time slot from central dispatch.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <div className="min-h-screen bg-slate-50 py-12 px-4 flex items-center justify-center">
+        <div className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center space-y-4 shadow-sm">
+          <Calendar className="h-12 w-12 text-slate-400 mx-auto" />
+          <h2 className="text-lg font-black text-navy-950">
+            {lookupFailed ? "Booking Staged" : "No Active Confirmation"}
+          </h2>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            {lookupFailed
+              ? "Your payment was received. Dispatch is staging your appointment and will send an SMS confirmation shortly."
+              : "If you just completed a booking, please check your text messages or visit your customer appointments dashboard."}
+          </p>
+          <div className="pt-2 flex flex-col gap-2">
+            <Button asChild className="w-full bg-orange-500 hover:bg-orange-600 text-navy-950 font-bold text-xs h-10">
+              <Link href="/account/appointments">View My Appointments</Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full text-xs h-10">
+              <Link href="/book">Schedule a Service</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const activeJob = job;
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 flex items-center justify-center">
@@ -230,7 +282,7 @@ END:VCALENDAR`;
             <Button
               type="button"
               variant="outline"
-              onClick={handleCalendarDownload}
+              onClick={() => handleCalendarDownload(activeJob)}
               className="rounded-xl border-slate-300 text-slate-700 text-xs font-bold h-10 hover:bg-slate-50 flex items-center justify-center gap-1.5"
             >
               <Calendar className="h-3.5 w-3.5 text-orange-500" />

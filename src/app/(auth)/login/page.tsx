@@ -27,11 +27,16 @@ function LoginForm() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      await fetch("/api/auth/demo-session", {
+      const res = await fetch("/api/auth/demo-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, technicianId: techId }),
       });
+
+      if (!res.ok) {
+        toast.error("Failed to start session. Please try again.");
+        return;
+      }
 
       const defaultHome = getHomeForRole(role);
       const destination = sanitizeRedirectUrl(rawRedirect, defaultHome);

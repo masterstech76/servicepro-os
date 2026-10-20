@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Clock, ShieldCheck, AlertTriangle, ArrowRight, HelpCircle, CheckCircle2 } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, ShieldCheck, AlertTriangle, ArrowRight, HelpCircle, CheckCircle2, ChevronDown } from "lucide-react";
 import { businessConfig } from "@config/business.config";
 import { Breadcrumbs } from "@/components/shared/Breadcrumbs";
 import { ContactForm } from "@/components/contact/ContactForm";
@@ -202,22 +202,21 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {faqs.map((faq, index) => (
               <details
                 key={index}
-                className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm open:shadow-md open:border-orange-200 transition-all cursor-pointer"
+                name="contact-faq"
+                className="group rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm open:shadow-md open:border-orange-300 transition-all cursor-pointer"
               >
-                <summary className="flex items-center justify-between font-bold text-navy-900 text-base select-none list-none">
+                <summary className="flex items-center justify-between font-bold text-navy-900 text-sm sm:text-base select-none list-none">
                   <div className="flex items-center gap-3">
                     <HelpCircle className="h-5 w-5 text-orange-500 shrink-0" />
                     <span>{faq.q}</span>
                   </div>
-                  <span className="ml-4 font-bold text-slate-400 group-open:rotate-180 transition-transform">
-                    ↓
-                  </span>
+                  <ChevronDown className="h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200 group-open:rotate-180 group-open:text-orange-600" />
                 </summary>
-                <div className="mt-4 pt-4 border-t border-slate-100 text-sm text-slate-600 leading-relaxed pl-8">
+                <div className="mt-4 pt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-600 leading-relaxed pl-8">
                   {faq.a}
                 </div>
               </details>

@@ -101,6 +101,7 @@ export default function AccountLayout({
                   alt="TechWork ServicePro OS"
                   fill
                   priority
+                  sizes="150px"
                   className="object-contain object-left invert"
                 />
               </div>
